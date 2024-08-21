@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added for responsive design -->
     <title>MC Predict</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
@@ -22,13 +23,15 @@
             display: flex;
             align-items: center;
             margin-bottom: 20px;
+            text-align: center;
+            flex-wrap: wrap; /* Make header wrap on smaller screens */
         }
         .header img {
-            width: 100px; /* Reduced size of the image (50% of original 200px) */
+            width: 80px; /* Slightly reduced size of the image */
             margin-right: 10px; /* Space between the image and the text */
         }
         .header h1 {
-            font-size: 100px; /* Match text height to the image */
+            font-size: 36px; /* Reduced font size for better mobile scaling */
             margin: 0;
         }
         @keyframes rotate {
@@ -39,13 +42,14 @@
             animation: rotate 4s linear infinite;
         }
         iframe {
-            width: 70%;
-            height: 4000px;
+            width: 100%; /* Default width for mobile */
+            height: 70vh; /* Use viewport height for responsive design */
             border: 1px solid #2c2c2e; /* Matching border color */
             margin-top: 20px;
         }
         nav {
             margin-bottom: 20px;
+            text-align: center; /* Center navigation links */
         }
         nav a {
             color: #d3d3d3;
@@ -55,6 +59,28 @@
         }
         nav a:hover {
             text-decoration: underline;
+        }
+        @media (min-width: 1024px) {
+            iframe {
+                width: 70%; /* Reduce iframe width on larger screens */
+                height: 80vh; /* Slightly increase height for desktop */
+            }
+        }
+        @media (max-width: 600px) {
+            .header img {
+                width: 60px; /* Further reduce image size on small screens */
+            }
+            .header h1 {
+                font-size: 24px; /* Further reduce font size for small screens */
+            }
+            nav a {
+                display: block;
+                margin: 5px 0; /* Stack navigation links vertically */
+                font-size: 16px;
+            }
+            iframe {
+                height: 60vh; /* Adjust iframe height on smaller screens */
+            }
         }
     </style>
 </head>
