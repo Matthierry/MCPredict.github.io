@@ -63,7 +63,9 @@
         @media (min-width: 1024px) {
             iframe {
                 width: 70%; /* Reduce iframe width on larger screens */
-                height: 80vh; /* Slightly increase height for desktop */
+                height: 550vh; /* 8 times the original 80vh height */
+                transform: scale(1); /* No scaling on desktop */
+                transform-origin: 0 0; /* Ensure scaling is from the top-left corner */
             }
         }
         @media (max-width: 600px) {
@@ -80,6 +82,8 @@
             }
             iframe {
                 height: 60vh; /* Adjust iframe height on smaller screens */
+                transform: scale(0.75); /* Scale down the iframe content on mobile */
+                transform-origin: 0 0; /* Ensure scaling is from the top-left corner */
             }
         }
     </style>
