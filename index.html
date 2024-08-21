@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added for responsive design -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MC Predict</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
@@ -24,14 +24,14 @@
             align-items: center;
             margin-bottom: 20px;
             text-align: center;
-            flex-wrap: wrap; /* Make header wrap on smaller screens */
+            flex-wrap: wrap;
         }
         .header img {
-            width: 80px; /* Slightly reduced size of the image */
-            margin-right: 10px; /* Space between the image and the text */
+            width: 80px;
+            margin-right: 10px;
         }
         .header h1 {
-            font-size: 36px; /* Reduced font size for better mobile scaling */
+            font-size: 36px;
             margin: 0;
         }
         @keyframes rotate {
@@ -42,14 +42,13 @@
             animation: rotate 4s linear infinite;
         }
         iframe {
-            width: 100%; /* Default width for mobile */
-            height: 70vh; /* Use viewport height for responsive design */
-            border: 1px solid #2c2c2e; /* Matching border color */
+            width: 100%;
+            border: 1px solid #2c2c2e;
             margin-top: 20px;
         }
         nav {
             margin-bottom: 20px;
-            text-align: center; /* Center navigation links */
+            text-align: center;
         }
         nav a {
             color: #d3d3d3;
@@ -62,28 +61,34 @@
         }
         @media (min-width: 1024px) {
             iframe {
-                width: 70%; /* Reduce iframe width on larger screens */
-                height: 550vh; /* 8 times the original 80vh height */
-                transform: scale(1); /* No scaling on desktop */
-                transform-origin: 0 0; /* Ensure scaling is from the top-left corner */
+                width: 70%;
+                height: 550vh;
+                transform: scale(1);
+                transform-origin: 0 0;
             }
         }
         @media (max-width: 600px) {
             .header img {
-                width: 60px; /* Further reduce image size on small screens */
+                width: 60px;
             }
             .header h1 {
-                font-size: 24px; /* Further reduce font size for small screens */
+                font-size: 24px;
             }
             nav a {
                 display: block;
-                margin: 5px 0; /* Stack navigation links vertically */
+                margin: 5px 0;
                 font-size: 16px;
             }
             iframe {
-                height: 60vh; /* Adjust iframe height on smaller screens */
-                transform: scale(0.75); /* Scale down the iframe content on mobile */
-                transform-origin: 0 0; /* Ensure scaling is from the top-left corner */
+                height: calc(100vh - 100px); /* Full screen height minus header and margin */
+                transform: scale(1);
+                transform-origin: 0 0;
+                overflow: hidden;
+            }
+            body, html {
+                margin: 0;
+                padding: 0;
+                overflow-x: hidden;
             }
         }
     </style>
