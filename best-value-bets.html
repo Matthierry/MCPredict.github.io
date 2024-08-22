@@ -44,11 +44,11 @@
         }
         iframe {
             width: 100%;
-            border: none; /* Remove border */
+            border: none;
             margin-top: 20px;
         }
         nav {
-            margin-bottom: 10px; /* Adjusted margin for smaller gap between main nav and sub-nav */
+            margin-bottom: 10px;
             text-align: center;
         }
         nav a {
@@ -60,8 +60,9 @@
             background-color: #3c3c3e;
             border-radius: 5px;
         }
-        nav a.active {
-            text-decoration: underline; /* Optional: keep underline for active link */
+        nav a.active, .sub-nav a.active {
+            background-color: #40c456;
+            color: white;
         }
         nav a:hover {
             background-color: #40c456;
@@ -70,7 +71,7 @@
         .sub-nav {
             margin-top: 10px;
             text-align: center;
-            margin-bottom: 30px; /* Increased gap between sub-nav and content below */
+            margin-bottom: 30px;
         }
         .sub-nav a {
             color: #d3d3d3;
@@ -93,7 +94,7 @@
         }
         @media (min-width: 1024px) {
             iframe {
-                width: 41%; /* Reduce iframe width to three-quarters of 70% */
+                width: 41%;
                 height: 430vh;
                 transform: scale(1);
                 transform-origin: 0 0;
@@ -112,7 +113,7 @@
                 font-size: 16px;
             }
             iframe {
-                height: calc(100vh - 100px); /* Full screen height minus header and margin */
+                height: calc(100vh - 100px);
                 transform: scale(1);
                 transform-origin: 0 0;
                 overflow: hidden;
@@ -131,11 +132,11 @@
         <h1>MC PREDICT</h1>
     </div>
     <nav>
-        <a href="index.html" >Highest Chance Bets</a>
+        <a href="index.html">Highest Chance Bets</a>
         <a href="best-value-bets.html" class="active">Best Value Bets</a>
     </nav>
     <div class="sub-nav">
-        <a href="best-value-bets.html">All Fixtures</a>
+        <a href="best-value-bets.html" class="active">All Fixtures</a>
         <a href="best-value-bets-sat3pm.html">Saturday 3pm</a>
     </div>
     <div class="mobile-info">If you are viewing on mobile, swipe right on the table to see more info</div>
