@@ -100,9 +100,9 @@
         }
         @media (min-width: 1024px) {
             iframe {
-                width: 41%; /* Reduce iframe width to three-quarters of 70% */
+                width: 41%; /* Reduce iframe width to fit content */
                 height: 430vh;
-                transform: scale(1);
+                transform: scale(1); /* No zoom on desktop */
                 transform-origin: 0 0;
             }
         }
@@ -120,7 +120,7 @@
             }
             iframe {
                 height: calc(100vh - 100px); /* Full screen height minus header and margin */
-                transform: scale(1);
+                transform: scale(0.6); /* Zoom out for better content visibility */
                 transform-origin: 0 0;
                 overflow: hidden;
             }
