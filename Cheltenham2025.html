@@ -35,12 +35,13 @@
             margin: 0;
             text-transform: uppercase;
         }
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        @keyframes gallop {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
         }
         img {
-            animation: rotate 4s linear infinite;
+            animation: gallop 1s infinite;
         }
         iframe {
             width: 100%;
@@ -67,6 +68,14 @@
         nav a:hover {
             background-color: #40c456;
             color: white;
+        }
+        .selection-header {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            color: #f0f0f0;
         }
         .sub-nav {
             margin-top: 10px;
@@ -134,7 +143,7 @@
 </head>
 <body>
     <div class="header">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Soccerball.svg/200px-Soccerball.svg.png" alt="Rotating Soccer Ball">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Horse_racing_pictogram.svg" alt="Galloping Horse">
         <h1>MC PREDICT - Cheltenham 2025</h1>
     </div>
     <nav>
@@ -142,9 +151,12 @@
         <a href="best-value-bets.html">Best Value Bets</a>
         <a href="Cheltenham2025.html" class="active">Cheltenham 2025</a>
     </nav>
+    <div class="selection-header">Submit your selections</div>
     <div class="sub-nav">
-        <a href="index.html">All Fixtures</a>
-        <a href="highest-chance-sat3pm.html">Saturday 3pm</a>
+        <a href="https://forms.gle/3Tz3ch5NEvdSLF3H6">Tuesday 11th</a>
+        <a href="https://forms.gle/NEpaJnXQymK9qh1K9">Wednesday 12th</a>
+        <a href="https://forms.gle/4B59yXrZHpqEqdbc8">Thursday 13th</a>
+        <a href="https://forms.gle/vpDp8p223t1FKgVr9">Friday 14th</a>
     </div>
     <div class="mobile-info">If you are viewing on mobile, swipe right on the table to see more info</div>
     <div class="loading-message" id="loadingMessage">Please allow up to 20 seconds for the data to load...</div>
@@ -156,4 +168,3 @@
     </script>
 </body>
 </html>
-
