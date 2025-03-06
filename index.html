@@ -44,11 +44,11 @@
         }
         iframe {
             width: 100%;
-            border: none; /* Remove border */
+            border: none;
             margin-top: 20px;
         }
         nav {
-            margin-bottom: 10px; /* Adjusted margin for smaller gap between main nav and sub-nav */
+            margin-bottom: 10px;
             text-align: center;
         }
         nav a {
@@ -71,7 +71,7 @@
         .sub-nav {
             margin-top: 10px;
             text-align: center;
-            margin-bottom: 30px; /* Increased gap between sub-nav and content below */
+            margin-bottom: 30px;
         }
         .sub-nav a {
             color: #d3d3d3;
@@ -93,14 +93,14 @@
             color: #f0f0f0;
         }
         .loading-message {
-            font-size: 16px; /* Same font size as the text above */
+            font-size: 16px;
             color: #f0f0f0;
             text-align: center;
             margin-bottom: 10px;
         }
         @media (min-width: 1024px) {
             iframe {
-                width: 41%; /* Reduce iframe width to three-quarters of 70% */
+                width: 41%;
                 height: 430vh;
                 transform: scale(1);
                 transform-origin: 0 0;
@@ -119,7 +119,7 @@
                 font-size: 16px;
             }
             iframe {
-                height: calc(100vh - 100px); /* Full screen height minus header and margin */
+                height: calc(100vh - 100px);
                 transform: scale(1);
                 transform-origin: 0 0;
                 overflow: hidden;
@@ -140,19 +140,15 @@
     <nav>
         <a href="index.html" class="active">Highest Chance Bets</a>
         <a href="best-value-bets.html">Best Value Bets</a>
+        <a href="Cheltenham2025.html">Cheltenham 2025</a>
     </nav>
     <div class="sub-nav">
         <a href="index.html" class="active">All Fixtures</a>
         <a href="highest-chance-sat3pm.html">Saturday 3pm</a>
     </div>
     <div class="mobile-info">If you are viewing on mobile, swipe right on the table to see more info</div>
-
-    <!-- Loading message -->
     <div class="loading-message" id="loadingMessage">Please allow up to 20 seconds for the data to load...</div>
-    
-    <!-- Iframe -->
     <iframe id="dataIframe" src="https://docs.google.com/spreadsheets/d/1zs1JMyb8ek4W7ATXk3Aj-GTWTZbUzXQci2k1h9r6ipw/pubhtml?gid=8873592&single=true"></iframe>
-
     <script>
         document.getElementById('dataIframe').onload = function() {
             document.getElementById('loadingMessage').style.display = 'none';
