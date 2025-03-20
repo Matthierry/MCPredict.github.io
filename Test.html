@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MC Predict – Soccer Betting Suggestions</title>
+    <title>MC Predict – Football Betting</title>
     <style>
         /* General Styles */
         body {
@@ -91,6 +91,28 @@
             text-align: center;
         }
 
+        .mobile-info {
+            font-size: 14px;
+            color: #bdbdbd;
+            margin-bottom: 10px;
+        }
+
+        .loading-message {
+            font-size: 16px;
+            color: #ffffff;
+            margin-bottom: 10px;
+            animation: fade 1.5s infinite alternate;
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0.5;
+            }
+        }
+
         iframe {
             width: 100%;
             max-width: 1200px;
@@ -139,14 +161,28 @@
 
 <!-- Hero Section -->
 <section class="hero" id="home">
-    <h1>Expert Soccer Betting Suggestions</h1>
-    <p>Updated Daily – Make Smarter Bets with Real-Time Insights</p>
+    <h1>Football Betting Suggestions</h1>
+    <p>Make Smarter Bets with Analytical Insights</p>
     <button class="btn-primary">Get Started</button>
 </section>
 
 <!-- Iframe Section -->
 <section class="iframe-container">
-    <iframe src=""https://docs.google.com/spreadsheets/d/1zs1JMyb8ek4W7ATXk3Aj-GTWTZbUzXQci2k1h9r6ipw/pubhtml?gid=8873592&single=true"></iframe>
+    <div class="mobile-info">
+        If you are viewing on mobile, swipe right on the table to see more info
+    </div>
+    <div class="loading-message" id="loadingMessage">
+        Please allow up to 20 seconds for the data to load...
+    </div>
+    <iframe 
+        id="dataIframe" 
+        src="https://docs.google.com/spreadsheets/d/1zs1JMyb8ek4W7ATXk3Aj-GTWTZbUzXQci2k1h9r6ipw/pubhtml?gid=8873592&single=true">
+    </iframe>
+    <script>
+        document.getElementById('dataIframe').onload = function() {
+            document.getElementById('loadingMessage').style.display = 'none';
+        };
+    </script>
 </section>
 
 <!-- Footer -->
