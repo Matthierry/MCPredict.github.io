@@ -71,7 +71,7 @@
         .sub-nav {
             margin-top: 10px;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
         }
         .sub-nav a {
             color: #d3d3d3;
@@ -83,6 +83,22 @@
             border-radius: 5px;
         }
         .sub-nav a:hover {
+            background-color: #40c456;
+            color: white;
+        }
+        /* NEW subscribe button styles */
+        .subscribe-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            margin-bottom: 20px;
+            color: #d3d3d3;
+            background-color: #3c3c3e;
+            border: 1px solid #40c456;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .subscribe-btn:hover {
             background-color: #40c456;
             color: white;
         }
@@ -146,6 +162,9 @@
         <a href="index.html" class="active">All Fixtures</a>
         <a href="highest-chance-sat3pm.html">Saturday 3pm</a>
     </div>
+
+    <!-- NEW subscribe button -->
+    <a href="subscribe.html" class="subscribe-btn">Subscribe for weekly emails!</a>
 
     <div class="mobile-info">If you are viewing on mobile, swipe right on the table to see more info</div>
     <div class="loading-message" id="loadingMessage">Please allow up to 20 seconds for the data to load...</div>
