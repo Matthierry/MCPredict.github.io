@@ -42,26 +42,6 @@
         img {
             animation: rotate 4s linear infinite;
         }
-        <!-- Subscription Form -->
-<div style="margin: 20px 0; text-align: center;">
-    <h2>Subscribe for updates</h2>
-    <form action="https://docs.google.com/forms/d/1vaEHuAhWo5m_mpikPZ1XrKw5FPFbx9r90Uv-awFTsrs/formResponse" 
-          method="POST" target="hidden_iframe"
-          onsubmit="document.getElementById('thanksMessage').style.display='block'; this.reset();">
-        <input type="email" name="entry.1495954853" placeholder="Your email address" required
-               style="padding: 8px; border-radius: 5px; border: none; margin-right: 8px;" />
-        <button type="submit"
-                style="padding: 8px 16px; background-color: #40c456; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Submit
-        </button>
-    </form>
-    <!-- Invisible iframe target so the page doesn't reload -->
-    <iframe name="hidden_iframe" style="display:none;"></iframe>
-    <!-- Thank-you message -->
-    <div id="thanksMessage" style="display:none; color:#40c456; margin-top:10px;">
-        Thank you for subscribing!
-    </div>
-</div>
         iframe {
             width: 100%;
             border: none;
@@ -157,6 +137,7 @@
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Soccerball.svg/200px-Soccerball.svg.png" alt="Rotating Soccer Ball">
         <h1>MC PREDICT</h1>
     </div>
+
     <nav>
         <a href="index.html" class="active">Highest Chance Bets</a>
         <a href="best-value-bets.html">Best Value Bets</a>
@@ -165,9 +146,30 @@
         <a href="index.html" class="active">All Fixtures</a>
         <a href="highest-chance-sat3pm.html">Saturday 3pm</a>
     </div>
+
+    <!-- ✅ Subscription Form -->
+    <div style="margin: 20px 0; text-align: center;">
+        <h2>Subscribe for updates</h2>
+        <form action="https://docs.google.com/forms/d/1vaEHuAhWo5m_mpikPZ1XrKw5FPFbx9r90Uv-awFTsrs/formResponse"
+              method="POST" target="hidden_iframe"
+              onsubmit="document.getElementById('thanksMessage').style.display='block'; this.reset();">
+            <input type="email" name="entry.1495954853" placeholder="Your email address" required
+                   style="padding: 8px; border-radius: 5px; border: none; margin-right: 8px;" />
+            <button type="submit"
+                    style="padding: 8px 16px; background-color: #40c456; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Submit
+            </button>
+        </form>
+        <iframe name="hidden_iframe" style="display:none;"></iframe>
+        <div id="thanksMessage" style="display:none; color:#40c456; margin-top:10px;">
+            Thank you for subscribing!
+        </div>
+    </div>
+
     <div class="mobile-info">If you are viewing on mobile, swipe right on the table to see more info</div>
     <div class="loading-message" id="loadingMessage">Please allow up to 20 seconds for the data to load...</div>
     <iframe id="dataIframe" src="https://docs.google.com/spreadsheets/d/1zs1JMyb8ek4W7ATXk3Aj-GTWTZbUzXQci2k1h9r6ipw/pubhtml?gid=8873592&single=true"></iframe>
+
     <script>
         document.getElementById('dataIframe').onload = function() {
             document.getElementById('loadingMessage').style.display = 'none';
