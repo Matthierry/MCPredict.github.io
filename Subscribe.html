@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Subscribe - MC PREDICT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Proxima Nova', Arial, sans-serif;
+            background-color: #2c2c2e;
+            color: #d3d3d3;
+            box-sizing: border-box;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            text-align: center;
+            flex-wrap: wrap;
+        }
+        .header img {
+            width: 80px;
+            margin-right: 10px;
+        }
+        .header h1 {
+            font-size: 36px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        img {
+            animation: rotate 4s linear infinite;
+        }
+        nav {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: #d3d3d3;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 16px;
+            padding: 5px 10px;
+            background-color: #3c3c3e;
+            border-radius: 5px;
+        }
+        nav a.active, .sub-nav a.active {
+            background-color: #40c456;
+            color: white;
+        }
+        nav a:hover {
+            background-color: #40c456;
+            color: white;
+        }
+        .sub-nav {
+            margin-top: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .sub-nav a {
+            color: #d3d3d3;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 16px;
+            padding: 5px 10px;
+            background-color: #3c3c3e;
+            border-radius: 5px;
+        }
+        .sub-nav a:hover {
+            background-color: #40c456;
+            color: white;
+        }
+        iframe {
+            border: none;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 640px;
+            height: 420px;
+        }
+        @media (max-width: 680px) {
+            iframe {
+                height: 560px;
+            }
+        }
+        @media (max-width: 400px) {
+            iframe {
+                height: 700px;
+            }
+        }
+        @media (min-width: 1024px) {
+            iframe {
+                width: 640px;
+                height: 420px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Soccerball.svg/200px-Soccerball.svg.png" alt="Rotating Soccer Ball" />
+        <h1>MC PREDICT</h1>
+    </div>
+
+    <nav>
+        <a href="index.html">Highest Chance Bets</a>
+        <a href="best-value-bets.html">Best Value Bets</a>
+        <a href="subscribe.html" class="active">Subscribe</a>
+    </nav>
+    <div class="sub-nav">
+        <a href="index.html">All Fixtures</a>
+        <a href="highest-chance-sat3pm.html">Saturday 3pm</a>
+    </div>
+
+    <!-- Google Form iframe -->
+    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSd7fUQFV2zIAvIVc00aSNCw_V1ZjHtuZ-LDYHriBqzx2K0k4A/viewform?embedded=true" 
+            frameborder="0" marginheight="0" marginwidth="0" loading="lazy">Loading…</iframe>
+</body>
+</html>
+
