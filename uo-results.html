@@ -87,9 +87,10 @@
             margin-bottom: 10px;
         }
 
-        /* Table container with side padding */
+        /* Table container */
         .table-container {
-            width: 100%;
+            width: 50%;
+            margin: 0 auto;
             overflow: hidden;
             padding-left: 10px;
             padding-right: 10px;
@@ -116,7 +117,7 @@
             background-color: #2c2c2e;
         }
 
-        /* Mobile adjustments: shrink table to fit */
+        /* Mobile adjustments */
         @media (max-width: 600px) {
             .header img {
                 width: 60px;
@@ -133,6 +134,9 @@
                 margin: 0;
                 padding: 0;
                 overflow-x: hidden;
+            }
+            .table-container {
+                width: 100%; /* full width on mobile */
             }
             table {
                 font-size: 9px; /* smaller text */
@@ -151,7 +155,7 @@
     <nav>
         <a href="/index">HOME</a>
         <a href="/hda-value">MATCH RESULT</a>
-        <a href="/uo-value">UNDER/OVER 2.5</a>
+        <a href="/uo-value" class="active">UNDER/OVER 2.5</a>
     </nav>
     <div class="sub-nav">
         <a href="/hda-value">BEST VALUE</a>
