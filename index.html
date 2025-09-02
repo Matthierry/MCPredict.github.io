@@ -19,7 +19,6 @@
       box-sizing: border-box;
     }
 
-    /* Header (logo + title) */
     .header {
       display: flex;
       align-items: center;
@@ -37,7 +36,6 @@
       text-transform: uppercase;
     }
 
-    /* Navigation */
     nav {
       margin-bottom: 10px;
       text-align: center;
@@ -61,7 +59,6 @@
       color: white;
     }
 
-    /* Sub-navigation */
     .sub-nav {
       margin-top: 10px;
       text-align: center;
@@ -82,7 +79,6 @@
       color: white;
     }
 
-    /* Hero / Intro section */
     .hero {
       max-width: 800px;
       text-align: center;
@@ -99,7 +95,6 @@
       line-height: 1.5;
     }
 
-    /* Call-to-action buttons */
     .cta-buttons {
       margin-top: 30px;
     }
@@ -129,7 +124,57 @@
       color: white;
     }
 
-    /* Responsive tweaks */
+    /* Flag list */
+    .flag-list {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+      text-align: left;
+      display: inline-block;
+    }
+    .flag-list li {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+    .flag-list img {
+      width: 24px;
+      height: 16px;
+      margin-right: 10px;
+      object-fit: cover;
+    }
+
+    /* Styled link */
+    a {
+      color: #f09300;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+      color: #ffae33;
+    }
+
+    /* Twitter link */
+    .twitter-link {
+      margin: 15px 0 25px 0;
+      text-align: center;
+    }
+    .twitter-link a {
+      color: #f09300;
+      font-size: 18px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .twitter-link a:hover {
+      color: #ffae33;
+    }
+    .twitter-link img {
+      width: 20px;
+      height: 20px;
+    }
+
     @media (max-width: 600px) {
       .header img {
         width: 60px;
@@ -157,7 +202,6 @@
     <h1>MC PREDICT</h1>
   </div>
 
-  <!-- Navigation -->
   <nav>
     <a href="/index" class="active">HOME</a>
     <a href="/hda-value">MATCH RESULT</a>
@@ -168,35 +212,46 @@
     <a href="/uo-highchance">HIGHEST CHANCE</a>
   </div>
 
-  <!-- Hero / Homepage Content -->
   <section class="hero">
     <h2>Welcome to MC Predict</h2>
+
+    <!-- Twitter Link -->
+    <div class="twitter-link">
+      <a href="https://x.com/StatMatt14" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/X_logo_2023.svg" alt="X Logo">
+        @StatMatt14
+      </a>
+    </div>
+
     <p>
       Your source for data-driven football predictions.  
       The model I've built to predict the outcomes of Football matches focuses on fixtures from:
-
-  <li>England: Premier League, Championship, League 1 & League 2</li>
-  <li>Spain: La Liga & La Liga 2</li>
-  <li>Germany: Bundesliga & Bundesliga 2</li>
-  <li>Italy: Serie A & Serie B</li>
-  <li>France: Ligue 1 & Ligue 2</li>
-  <li>Netherlands: Eredivise</li>
-  <li>Portugal: Primeira Liga</li>
-  
-      All of the historical data, odds and fixtures are sourced from <a href="https://www.football-data.co.uk/">Football-Data.co.uk</a>.
-
     </p>
+
+    <!-- Flag List -->
+    <ul class="flag-list">
+      <li><img src="https://flagcdn.com/w20/gb.png" alt="UK Flag">England: Premier League, Championship, League 1 & League 2</li>
+      <li><img src="https://flagcdn.com/w20/es.png" alt="Spain Flag">Spain: La Liga & La Liga 2</li>
+      <li><img src="https://flagcdn.com/w20/de.png" alt="Germany Flag">Germany: Bundesliga & Bundesliga 2</li>
+      <li><img src="https://flagcdn.com/w20/it.png" alt="Italy Flag">Italy: Serie A & Serie B</li>
+      <li><img src="https://flagcdn.com/w20/fr.png" alt="France Flag">France: Ligue 1 & Ligue 2</li>
+      <li><img src="https://flagcdn.com/w20/nl.png" alt="Netherlands Flag">Netherlands: Eredivisie</li>
+      <li><img src="https://flagcdn.com/w20/pt.png" alt="Portugal Flag">Portugal: Primeira Liga</li>
+    </ul>
+
+    <p>
+      All of the historical data, odds and fixtures are sourced from 
+      <a href="https://www.football-data.co.uk/">Football-Data.co.uk</a>.
+    </p>
+
     <div class="cta-buttons">
       <a href="/hda-value" class="secondary">VIEW MATCH RESULT PREDICTIONS</a>
       <a href="/uo-value" class="secondary">EXPLORE UNDER/OVER 2.5 GOALS</a>
     </div>
-   <div class="cta-buttons">
+    <div class="cta-buttons">
       <a href="/hda-results" class="primary">MATCH RESULT - PROFIT/LOSS</a>
       <a href="/uo-results" class="primary">UNDER/OVER 2.5 GOALS - PROFIT/LOSS</a>
     </div>
   </section>
 </body>
 </html>
-
-
-
