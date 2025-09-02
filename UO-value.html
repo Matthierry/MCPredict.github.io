@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MC PREDICT - UNDER/OVER 2.5 GOALS VALUE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Proxima Nova', Arial, sans-serif;
+            background-color: #2c2c2e;
+            color: #d3d3d3;
+            box-sizing: border-box;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            text-align: center;
+            flex-wrap: wrap;
+        }
+        .header img {
+            width: 80px;
+            margin-right: 10px;
+        }
+        .header h1 {
+            font-size: 36px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        nav {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: #d3d3d3;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 16px;
+            padding: 5px 10px;
+            background-color: #3c3c3e;
+            border-radius: 5px;
+        }
+        nav a.active, .sub-nav a.active {
+            background-color: #f09300;
+            color: white;
+        }
+        nav a:hover {
+            background-color: #f09300;
+            color: white;
+        }
+        .sub-nav {
+            margin-top: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .sub-nav a {
+            color: #d3d3d3;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 16px;
+            padding: 5px 10px;
+            background-color: #3c3c3e;
+            border-radius: 5px;
+        }
+        .sub-nav a:hover {
+            background-color: #f09300;
+            color: white;
+        }
+        .mobile-info {
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-align: center;
+            color: #f0f0f0;
+        }
+        .loading-message {
+            font-size: 16px;
+            color: #f0f0f0;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* Table container with side padding */
+        .table-container {
+            width: 100%;
+            overflow: hidden;
+            padding-left: 10px;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+            background-color: #3c3c3e;
+            font-size: 16px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+            border: none; /* remove borders */
+        }
+        th {
+            background-color: #f09300;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #2c2c2e;
+        }
+
+        /* Mobile adjustments: shrink table to fit */
+        @media (max-width: 600px) {
+            .header img {
+                width: 60px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            nav a {
+                display: block;
+                margin: 5px 0;
+                font-size: 16px;
+            }
+            body, html {
+                margin: 0;
+                padding: 0;
+                overflow-x: hidden;
+            }
+            table {
+                font-size: 9px; /* smaller text */
+            }
+            th, td {
+                padding: 2px; /* tighter padding */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
+        <h1>MC PREDICT</h1>
+    </div>
+    <nav>
+        <a href="/index.html">Highest Chance Bets</a>
+        <a href="/best-value-bets.html">Best Value Bets</a>
+        <a href="/HDA-Value" class="active">HDA Value</a>
+    </nav>
+    <div class="sub-nav">
+        <a href="/HDA-Value" class="active">All Fixtures</a>
+    </div>
+    <div class="mobile-info">If you are viewing on mobile, the table has been resized to fit your screen</div>
+    <div class="loading-message" id="loadingMessage">Loading latest data...</div>
+    <div class="table-container" id="sheet-data"></div>
+
+    <script>
+        async function loadCSV() {
+            const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv";
+            const response = await fetch(url);
+            const text = await response.text();
+            const rows = text.trim().split("\n").map(r => r.split(","));
+
+            let html = "<table>";
+            rows.forEach((row, i) => {
+                html += "<tr>";
+                row.forEach(cell => {
+                    html += i === 0 ? `<th>${cell}</th>` : `<td>${cell}</td>`;
+                });
+                html += "</tr>";
+            });
+            html += "</table>";
+
+            document.getElementById("sheet-data").innerHTML = html;
+            document.getElementById("loadingMessage").style.display = "none";
+        }
+        loadCSV();
+    </script>
+</body>
+</html>
