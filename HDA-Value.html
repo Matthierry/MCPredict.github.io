@@ -93,11 +93,19 @@
             text-align: center;
             margin-bottom: 10px;
         }
+
+        /* Table container */
+        .table-container {
+            width: 100%;
+            overflow: hidden;
+        }
+
         table {
             border-collapse: collapse;
             width: 100%;
             margin-top: 20px;
             background-color: #3c3c3e;
+            font-size: 16px;
         }
         th, td {
             border: 1px solid #555;
@@ -111,6 +119,8 @@
         tr:nth-child(even) {
             background-color: #2c2c2e;
         }
+
+        /* Mobile adjustments: shrink table to fit */
         @media (max-width: 600px) {
             .header img {
                 width: 60px;
@@ -129,7 +139,10 @@
                 overflow-x: hidden;
             }
             table {
-                font-size: 14px;
+                font-size: 12px; /* smaller text */
+            }
+            th, td {
+                padding: 4px; /* tighter padding */
             }
         }
     </style>
@@ -147,13 +160,13 @@
     <div class="sub-nav">
         <a href="/HDA-Value" class="active">All Fixtures</a>
     </div>
-    <div class="mobile-info">If you are viewing on mobile, swipe right on the table to see more info</div>
+    <div class="mobile-info">If you are viewing on mobile, the table has been resized to fit your screen</div>
     <div class="loading-message" id="loadingMessage">Loading latest data...</div>
-    <div id="sheet-data"></div>
+    <div class="table-container" id="sheet-data"></div>
 
     <script>
         async function loadCSV() {
-            const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv"; // replace with your link
+            const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
             const response = await fetch(url);
             const text = await response.text();
             const rows = text.trim().split("\n").map(r => r.split(","));
@@ -175,4 +188,3 @@
     </script>
 </body>
 </html>
-
