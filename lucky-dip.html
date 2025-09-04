@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MC PREDICT - Lucky Dip</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      font-family: 'Proxima Nova', Arial, sans-serif;
+      background-color: #2c2c2e;
+      color: #d3d3d3;
+      box-sizing: border-box;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      text-align: center;
+      flex-wrap: wrap;
+    }
+    .header img {
+      width: 80px;
+      margin-right: 10px;
+    }
+    .header h1 {
+      font-size: 36px;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    nav {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    nav a {
+      color: #d3d3d3;
+      text-decoration: none;
+      margin: 0 10px;
+      font-size: 16px;
+      padding: 5px 10px;
+      background-color: #3c3c3e;
+      border-radius: 5px;
+    }
+    nav a.active, .sub-nav a.active {
+      background-color: #f09300;
+      color: white;
+    }
+    nav a:hover {
+      background-color: #f09300;
+      color: white;
+    }
+    .question {
+      margin: 15px 0;
+      text-align: center;
+    }
+    .buttons {
+      margin-top: 10px;
+    }
+    .buttons button {
+      margin: 5px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      background-color: #3c3c3e;
+      color: #d3d3d3;
+      cursor: pointer;
+    }
+    .buttons button.active,
+    .buttons button:hover {
+      background-color: #f09300;
+      color: #fff;
+    }
+    .generate-btn, .regenerate-btn {
+      margin: 20px auto;
+      display: block;
+      padding: 10px 20px;
+      background-color: #f09300;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+      background-color: #3c3c3e;
+      font-size: 16px;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+      border: none;
+    }
+    th {
+      background-color: #f09300;
+      color: white;
+    }
+    tr:nth-child(even) { background-color: #2c2c2e; }
+    .table-container {
+      width: 75%;
+      margin: 0 auto;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
+    <h1>MC PREDICT</h1>
+  </div>
+  <nav>
+    <a href="/index">HOME</a>
+    <a href="/lucky-dip" class="active">LUCKY DIP</a>
+  </nav>
+
+  <div id="error-message"></div>
+
+  <div id="questions" style="display:none;">
+    <div class="question" id="q1">
+      <h3>Step 1: Choose Market</h3>
+      <div class="buttons">
+        <button data-value="match">Match Winner</button>
+        <button data-value="uo">Under/Over 2.5 Goals</button>
+      </div>
+    </div>
+
+    <div class="question" id="q2">
+      <h3>Step 2: Choose Type</h3>
+      <div class="buttons"></div>
+    </div>
+
+    <div class="question" id="q3">
+      <h3>Step 3: Value or Chance</h3>
+      <div class="buttons">
+        <button data-value="value">Good Value</button>
+        <button data-value="chance">Higher Chance</button>
+      </div>
+    </div>
+
+    <div class="question" id="q4">
+      <h3>Step 4: Choose Days</h3>
+      <div class="buttons"></div>
+    </div>
+
+    <div class="question" id="q5">
+      <h3>Step 5: Number of Selections</h3>
+      <div class="buttons"></div>
+    </div>
+
+    <button id="generateBtn" class="generate-btn" style="display:none;">Generate</button>
+  </div>
+
+  <div class="table-container" id="results"></div>
+  <button id="regenerateBtn" class="regenerate-btn" style="display:none;">Regenerate</button>
+
+  <script>
+    const sources = {
+      match_value: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv",
+      match_chance: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv",
+      uo_value: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv",
+      uo_chance: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1035748278&single=true&output=csv"
+    };
+
+    let state = { market:null, type:null, pref:null, days:[], num:null, data:[] };
+
+    async function checkRow20() {
+      const url = sources.match_value;
+      const response = await fetch(url);
+      const text = await response.text();
+      const rows = text.trim().split("\n").map(r=>r.split(","));
+      if (!rows[19] || rows[19].every(cell => !cell.trim())) {
+        document.getElementById("error-message").innerHTML =
+          "<p>The model currently has no fixtures to process, please check again later. It is normally ready by 5pm UK time on a Friday but can sometimes be later.</p>";
+      } else {
+        document.getElementById("questions").style.display = "block";
+      }
+    }
+
+    function setActive(btn, groupSelector) {
+      document.querySelectorAll(groupSelector+" button").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+    }
+
+    // Step 1
+    document.querySelectorAll("#q1 button").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        setActive(btn, "#q1 .buttons");
+        state.market = btn.dataset.value;
+        const q2 = document.querySelector("#q2 .buttons");
+        q2.innerHTML = "";
+        if(state.market==="match"){
+          ["Home Wins","Away Wins","Home & Away Wins"].forEach(v=>{
+            let b=document.createElement("button");
+            b.textContent=v; q2.appendChild(b);
+            b.onclick=()=>{ setActive(b,"#q2 .buttons"); state.type=v; };
+          });
+        } else {
+          ["Under 2.5","Over 2.5","Under & Over 2.5"].forEach(v=>{
+            let b=document.createElement("button");
+            b.textContent=v; q2.appendChild(b);
+            b.onclick=()=>{ setActive(b,"#q2 .buttons"); state.type=v; };
+          });
+        }
+      });
+    });
+
+    // Step 3
+    document.querySelectorAll("#q3 button").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        setActive(btn, "#q3 .buttons");
+        state.pref = btn.dataset.value;
+        let key = state.market + "_" + state.pref;
+        const response = await fetch(sources[key]);
+        const text = await response.text();
+        state.data = text.trim().split("\n").map(r=>r.split(","));
+        const days = [...new Set(state.data.slice(1).map(r=>r[0]))];
+        const q4 = document.querySelector("#q4 .buttons");
+        q4.innerHTML="";
+        days.forEach(d=>{
+          let b=document.createElement("button");
+          b.textContent=d; q4.appendChild(b);
+          b.onclick=()=>{ b.classList.toggle("active");
+            state.days = [...q4.querySelectorAll(".active")].map(x=>x.textContent); };
+        });
+      });
+    });
+
+    // Step 5 will be populated dynamically when days selected
+    document.querySelector("#q4 .buttons").addEventListener("click", ()=>{
+      if(state.days.length>0){
+        let filtered = state.data.filter((r,i)=> i>1 && state.days.includes(r[0]));
+        let max = Math.min(8, filtered.length);
+        const q5 = document.querySelector("#q5 .buttons");
+        q5.innerHTML="";
+        for(let i=1;i<=max;i++){
+          let b=document.createElement("button");
+          b.textContent=i; q5.appendChild(b);
+          b.onclick=()=>{ setActive(b,"#q5 .buttons"); state.num=i; document.getElementById("generateBtn").style.display="block"; };
+        }
+      }
+    });
+
+    // Generate + Regenerate
+    function generate(){
+      let filtered = state.data.filter((r,i)=> i>1 && state.days.includes(r[0]));
+      let weighted = filtered.slice(2,30);
+      let pool = weighted.length>=state.num ? weighted : filtered;
+      let chosen=[];
+      while(chosen.length<state.num && pool.length>0){
+        let idx=Math.floor(Math.random()*pool.length);
+        chosen.push(pool.splice(idx,1)[0]);
+      }
+      let html="<table><tr>"+state.data[0].map(h=>`<th>${h}</th>`).join("")+"</tr>";
+      chosen.forEach(r=>{ html+="<tr>"+r.map(c=>`<td>${c}</td>`).join("")+"</tr>" });
+      html+="</table>";
+      document.getElementById("results").innerHTML=html;
+      document.getElementById("regenerateBtn").style.display="block";
+    }
+
+    document.getElementById("generateBtn").onclick=generate;
+    document.getElementById("regenerateBtn").onclick=generate;
+
+    checkRow20();
+  </script>
+</body>
+</html>
