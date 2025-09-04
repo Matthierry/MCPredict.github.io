@@ -1,191 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MC PREDICT - UNDER/OVER 2.5 GOALS HIGHEST CHANCE</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            font-family: 'Proxima Nova', Arial, sans-serif;
-            background-color: #2c2c2e;
-            color: #d3d3d3;
-            box-sizing: border-box;
-        }
-        .header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            text-align: center;
-            flex-wrap: wrap;
-        }
-        .header img {
-            width: 80px;
-            margin-right: 10px;
-        }
-        .header h1 {
-            font-size: 36px;
-            margin: 0;
-            text-transform: uppercase;
-        }
-        nav {
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        nav a {
-            color: #d3d3d3;
-            text-decoration: none;
-            margin: 0 10px;
-            font-size: 16px;
-            padding: 5px 10px;
-            background-color: #3c3c3e;
-            border-radius: 5px;
-        }
-        nav a.active, .sub-nav a.active {
-            background-color: #f09300;
-            color: white;
-        }
-        nav a:hover {
-            background-color: #f09300;
-            color: white;
-        }
-        .sub-nav {
-            margin-top: 10px;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .sub-nav a {
-            color: #d3d3d3;
-            text-decoration: none;
-            margin: 0 10px;
-            font-size: 16px;
-            padding: 5px 10px;
-            background-color: #3c3c3e;
-            border-radius: 5px;
-        }
-        .sub-nav a:hover {
-            background-color: #f09300;
-            color: white;
-        }
-        .mobile-info {
-            margin-bottom: 20px;
-            font-size: 16px;
-            text-align: center;
-            color: #f0f0f0;
-        }
-        .loading-message {
-            font-size: 16px;
-            color: #f0f0f0;
-            text-align: center;
-            margin-bottom: 10px;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MC PREDICT - UNDER/OVER 2.5 GOALS HIGHEST CHANCE</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      font-family: 'Proxima Nova', Arial, sans-serif;
+      background-color: #2c2c2e;
+      color: #d3d3d3;
+      box-sizing: border-box;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      text-align: center;
+      flex-wrap: wrap;
+    }
+    .header img {
+      width: 80px;
+      margin-right: 10px;
+    }
+    .header h1 {
+      font-size: 36px;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    nav {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    nav a {
+      color: #d3d3d3;
+      text-decoration: none;
+      margin: 0 10px;
+      font-size: 16px;
+      padding: 5px 10px;
+      background-color: #3c3c3e;
+      border-radius: 5px;
+    }
+    nav a.active, .sub-nav a.active {
+      background-color: #f09300;
+      color: white;
+    }
+    nav a:hover {
+      background-color: #f09300;
+      color: white;
+    }
+    .sub-nav {
+      margin-top: 10px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .sub-nav a {
+      color: #d3d3d3;
+      text-decoration: none;
+      margin: 0 10px;
+      font-size: 16px;
+      padding: 5px 10px;
+      background-color: #3c3c3e;
+      border-radius: 5px;
+    }
+    .sub-nav a:hover {
+      background-color: #f09300;
+      color: white;
+    }
+    .filter-title {
+      font-size: 18px;
+      margin: 15px 0 10px;
+      text-align: center;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .filter-btn {
+      padding: 6px 12px;
+      background-color: #3c3c3e;
+      color: #d3d3d3;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .filter-btn.active {
+      background-color: #f09300;
+      color: white;
+    }
+    .mobile-info {
+      margin-bottom: 20px;
+      font-size: 16px;
+      text-align: center;
+      color: #f0f0f0;
+    }
+    .loading-message {
+      font-size: 16px;
+      color: #f0f0f0;
+      text-align: center;
+      margin-bottom: 10px;
+    }
 
-        /* Table container with centered 75% width */
-        .table-container {
-            width: 75%;
-            margin: 0 auto;
-            overflow: hidden;
-            padding-left: 10px;
-            padding-right: 10px;
-            box-sizing: border-box;
-        }
+    .table-container {
+      width: 75%;
+      margin: 0 auto;
+      overflow: hidden;
+      padding-left: 10px;
+      padding-right: 10px;
+      box-sizing: border-box;
+    }
 
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 20px;
-            background-color: #3c3c3e;
-            font-size: 16px;
-        }
-        th, td {
-            padding: 8px;
-            text-align: center;
-            border: none; /* remove borders */
-        }
-        th {
-            background-color: #f09300;
-            color: white;
-        }
-        tr:nth-child(even) {
-            background-color: #2c2c2e;
-        }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+      background-color: #3c3c3e;
+      font-size: 16px;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+      border: none;
+    }
+    th {
+      background-color: #f09300;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #2c2c2e;
+    }
 
-        /* Mobile adjustments: shrink table to fit */
-        @media (max-width: 600px) {
-            .header img {
-                width: 60px;
-            }
-            .header h1 {
-                font-size: 24px;
-            }
-            nav a {
-                display: block;
-                margin: 5px 0;
-                font-size: 16px;
-            }
-            body, html {
-                margin: 0;
-                padding: 0;
-                overflow-x: hidden;
-            }
-            .table-container {
-                width: 100%; /* full width on mobile */
-            }
-            table {
-                font-size: 9px; /* smaller text */
-            }
-            th, td {
-                padding: 2px; /* tighter padding */
-            }
-        }
-    </style>
+    @media (max-width: 600px) {
+      .header img { width: 60px; }
+      .header h1 { font-size: 24px; }
+      nav a {
+        display: block;
+        margin: 5px 0;
+        font-size: 16px;
+      }
+      .table-container { width: 100%; }
+      table { font-size: 9px; }
+      th, td { padding: 2px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
-        <h1>MC PREDICT</h1>
-    </div>
-        <nav>
-        <a href="/index">HOME</a>
-        <a href="/hda-highchance">MATCH RESULT</a>
-        <a href="/uo-highchance" class="active">UNDER/OVER 2.5</a>
-    </nav>
-    <div class="sub-nav">
-        <a href="/uo-value">BEST VALUE</a>
-        <a href="/uo-highchance" class="active">HIGHEST CHANCE</a>
-    </div>
-    <div class="mobile-info">If you are viewing on mobile, the table has been resized to fit your screen</div>
-    <div class="loading-message" id="loadingMessage">Loading latest data...</div>
-    <div class="table-container" id="sheet-data"></div>
+  <div class="header">
+    <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
+    <h1>MC PREDICT</h1>
+  </div>
+  <nav>
+    <a href="/index">HOME</a>
+    <a href="/hda-highchance">MATCH RESULT</a>
+    <a href="/uo-highchance" class="active">UNDER/OVER 2.5</a>
+  </nav>
+  <div class="sub-nav">
+    <a href="/uo-value">BEST VALUE</a>
+    <a href="/uo-highchance" class="active">HIGHEST CHANCE</a>
+  </div>
+  <div class="filter-title">Filter options</div>
+  <div class="filters" id="dayFilters"></div>
+  <div class="filters" id="resultFilters"></div>
+  <div class="mobile-info">If you are viewing on mobile, the table has been resized to fit your screen</div>
+  <div class="loading-message" id="loadingMessage">Loading latest data...</div>
+  <div class="table-container" id="sheet-data"></div>
 
-    <script>
-        async function loadCSV() {
-            const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1035748278&single=true&output=csv";
-            const response = await fetch(url);
-            const text = await response.text();
-            const rows = text.trim().split("\n").map(r => r.split(","));
+  <script>
+    let allRows = [];
+    let activeDayFilters = new Set();
+    let activeResultFilters = new Set();
 
-            let html = "<table>";
-            rows.forEach((row, i) => {
-                html += "<tr>";
-                row.forEach(cell => {
-                    html += i === 0 ? `<th>${cell}</th>` : `<td>${cell}</td>`;
-                });
-                html += "</tr>";
-            });
-            html += "</table>";
+    async function loadCSV() {
+      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1035748278&single=true&output=csv";
+      const response = await fetch(url);
+      const text = await response.text();
+      const rows = text.trim().split("\n").map(r => r.split(","));
+      const header = rows[1]; // row 2 contains column titles
+      allRows = rows.slice(2); // data starts after row 2
 
-            document.getElementById("sheet-data").innerHTML = html;
-            document.getElementById("loadingMessage").style.display = "none";
-        }
-        loadCSV();
-    </script>
+      // Build Day filter buttons (col A)
+      const days = [...new Set(allRows.map(r => r[0]).filter(v => v))];
+      const dayFilters = document.getElementById("dayFilters");
+      days.forEach(day => {
+        const btn = document.createElement("button");
+        btn.textContent = day;
+        btn.className = "filter-btn";
+        btn.onclick = () => toggleFilter(activeDayFilters, day, btn, renderTable);
+        dayFilters.appendChild(btn);
+      });
+
+      // Build Result filter buttons (col F)
+      const resultFilters = document.getElementById("resultFilters");
+      ["UNDER 2.5 GOALS", "OVER 2.5 GOALS"].forEach(result => {
+        const btn = document.createElement("button");
+        btn.textContent = result;
+        btn.className = "filter-btn";
+        btn.onclick = () => toggleFilter(activeResultFilters, result, btn, renderTable);
+        resultFilters.appendChild(btn);
+      });
+
+      renderTable(header);
+      document.getElementById("loadingMessage").style.display = "none";
+    }
+
+    function toggleFilter(filterSet, value, btn, callback) {
+      if (filterSet.has(value)) {
+        filterSet.delete(value);
+        btn.classList.remove("active");
+      } else {
+        filterSet.add(value);
+        btn.classList.add("active");
+      }
+      callback();
+    }
+
+    function renderTable(header) {
+      let filtered = allRows.filter(row => {
+        const dayMatch = activeDayFilters.size === 0 || activeDayFilters.has(row[0]);
+        const resultMatch = activeResultFilters.size === 0 || activeResultFilters.has(row[5]);
+        return dayMatch && resultMatch;
+      });
+
+      let html = "<table><tr>";
+      header.forEach(h => html += `<th>${h}</th>`);
+      html += "</tr>";
+
+      filtered.forEach(row => {
+        html += "<tr>";
+        row.forEach(cell => html += `<td>${cell}</td>`);
+        html += "</tr>";
+      });
+      html += "</table>";
+
+      document.getElementById("sheet-data").innerHTML = html;
+    }
+
+    loadCSV();
+  </script>
 </body>
 </html>
