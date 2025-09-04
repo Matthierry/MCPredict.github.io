@@ -1,736 +1,365 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MC PREDICT - Lucky Dip</title>
+  <meta charset="UTF-8">
+  <title>Lucky Dip</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
-    :root{
-      --bg:#2c2c2e;
-      --panel:#3c3c3e;
-      --accent:#f09300;
-      --text:#d3d3d3;
-      --muted:#7a7a7a;
-    }
-    html,body{height:100%;margin:0;padding:0}
-    body{
-      font-family:'Proxima Nova',Arial,sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      padding:20px;
-      box-sizing:border-box;
+    body {
+      background-color: #2c2c2e;
+      color: #bdbdbd;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
     }
 
-    /* Header / nav (keeps site look consistent) */
-    .header{display:flex;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-    .header img{width:80px;margin-right:10px}
-    .header h1{font-size:36px;margin:0;text-transform:uppercase}
-    nav{margin-bottom:8px;text-align:center}
-    nav a{color:var(--text);text-decoration:none;margin:0 8px;padding:6px 10px;background:var(--panel);border-radius:6px}
-    nav a.active, nav a:hover{background:var(--accent);color:#fff}
-
-    /* container for the stacked questions - centered column */
-    .wizard {
-      width:100%;
-      max-width:760px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      margin-top:8px;
+    .question {
+      margin: 20px 0;
     }
 
-    .step {
-      width:100%;
-      background:transparent;
-      margin:10px 0;
-      text-align:center;
-    }
-    .step .title {
-      font-weight:700;
-      font-size:18px;
-      color:#fff;
-      margin-bottom:8px;
+    .question h2 {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
     }
 
-    .controls {
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      justify-content:center;
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
     }
 
-    .controls button {
-      background:var(--panel);
-      color:var(--text);
-      border:0;
-      padding:8px 12px;
-      border-radius:6px;
-      cursor:pointer;
-      font-size:15px;
-    }
-    .controls button.active {
-      background:var(--accent);
-      color:#fff;
-    }
-    .controls button:disabled {
-      background:#222;
-      color:var(--muted);
-      cursor:not-allowed;
-      opacity:0.7;
+    button {
+      background-color: #222224;
+      color: #bdbdbd;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+      min-width: 100px;
     }
 
-    .notice {
-      margin:12px 0;
-      color:#f0f0f0;
-      font-size:16px;
-      text-align:center;
+    button:hover:enabled {
+      background-color: #444;
     }
 
-    .generate-row { margin-top:14px; text-align:center; }
+    button:disabled {
+      background-color: #555;
+      color: #888;
+      cursor: not-allowed;
+    }
+
+    .active {
+      background-color: #f09300 !important;
+      color: #fff !important;
+    }
+
+    .loading {
+      font-size: 1rem;
+      color: #f09300;
+      margin-top: 15px;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+
+    .fade-out {
+      opacity: 0 !important;
+    }
+
+    #generateBtn, #regenerateBtn {
+      margin: 20px 0;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: none;
+    }
+
     #generateBtn {
-      display:none;
-      background:var(--accent);
-      color:#fff;
-      border:0;
-      padding:10px 18px;
-      border-radius:6px;
-      font-size:16px;
-      cursor:pointer;
+      background-color: #f09300;
+      color: white;
     }
 
-    /* Results table area */
-    .table-container {
-      width:75%;
-      margin:22px auto;
-      padding-left:10px;
-      padding-right:10px;
-      box-sizing:border-box;
-      overflow-x:auto; /* defensive, but table will shrink on mobile */
+    #regenerateBtn {
+      background-color: #f09300;
+      color: white;
+      display: none;
     }
 
     table {
-      width:100%;
-      border-collapse:collapse;
-      background:var(--panel);
-      min-width:600px; /* give space for columns; will be handled on mobile */
-      font-size:16px;
-    }
-    th,td{padding:8px;text-align:center;border:none}
-    th{background:var(--accent);color:#fff}
-    tr:nth-child(even){background:var(--bg)}
-
-    #regenerateBtn {
-      display:none;
-      margin:12px auto 36px;
-      background:var(--accent);
-      color:#fff;
-      border:0;
-      padding:10px 16px;
-      border-radius:6px;
-      cursor:pointer;
+      border-collapse: collapse;
+      margin: 20px auto;
+      width: 75%;
+      max-width: 100%;
     }
 
-    /* Mobile: shrink table and container to fit, reduce padding & font */
-    @media (max-width:600px){
-      .header img{width:60px}
-      .header h1{font-size:24px}
-      nav a{display:block;margin:6px 0}
-      .wizard{width:100%}
-      .table-container{width:100%;padding-left:0;padding-right:0}
-      table{font-size:10px;min-width:100%}
-      th,td{padding:4px}
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #444;
+    }
+
+    tr:nth-child(even) {
+      background-color: #222224;
+    }
+
+    tr:nth-child(odd) {
+      background-color: #2c2c2e;
+    }
+
+    @media (max-width: 768px) {
+      table {
+        width: 100% !important;
+      }
+      th, td {
+        padding: 6px;
+        font-size: 0.85rem;
+      }
+      button {
+        min-width: 80px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
-    <h1>MC PREDICT</h1>
-  </div>
+  <h1>Lucky Dip</h1>
 
-  <nav>
-    <a href="/index">HOME</a>
-    <a href="/lucky-dip" class="active">LUCKY DIP</a>
-    <a href="/hda-value">MATCH RESULT</a>
-    <a href="/uo-value">UNDER/OVER 2.5</a>
-  </nav>
-
-  <div id="loadingNotice" class="notice">Loading questions...</div>
-  <div id="noDataNotice" class="notice" style="display:none;color:#fff">
-    The model currently has no fixtures to process, please check again later. It is normally ready by 5pm UK time on a Friday but can sometimes be later.
-  </div>
-
-  <main class="wizard" id="wizard" style="display:none">
-    <!-- Steps inserted here -->
-    <div class="step" id="step-market">
-      <div class="title">Step 1: Market</div>
-      <div class="controls" id="market-controls">
-        <!-- Match Winner / UnderOver buttons -->
-      </div>
-    </div>
-
-    <div class="step" id="step-type" style="display:none">
-      <div class="title">Step 2: Outcome Type</div>
-      <div class="controls" id="type-controls"></div>
-    </div>
-
-    <div class="step" id="step-pref" style="display:none">
-      <div class="title">Step 3: Preference</div>
-      <div class="controls" id="pref-controls">
-        <!-- Good Value / Higher Chance -->
-      </div>
-    </div>
-
-    <div class="step" id="step-days" style="display:none">
-      <div class="title">Step 4: Day(s) (select one or more)</div>
-      <div class="controls" id="day-controls"></div>
-    </div>
-
-    <div class="step" id="step-number" style="display:none">
-      <div class="title">Step 5: Number of Selections</div>
-      <div class="controls" id="num-controls"></div>
-    </div>
-
-    <div class="generate-row">
-      <button id="generateBtn">Generate</button>
-    </div>
-  </main>
-
-  <div class="table-container" id="resultsContainer"></div>
+  <div id="questionsContainer"></div>
+  <div id="loadingMessage" class="loading" style="display:none;">Loading questions...</div>
+  <button id="generateBtn" style="display:none;">Generate</button>
   <button id="regenerateBtn">Regenerate</button>
 
-<script>
-/* -----------------------------
-  Configuration & Sources
-   -----------------------------*/
-const CHECK_SHEET = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
+  <div id="resultsContainer"></div>
 
-const SOURCES = {
-  "Match Winner|Value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv",
-  "Match Winner|Chance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv",
-  "UO|Value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv",
-  "UO|Chance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1035748278&single=true&output=csv"
-};
+  <script>
+    const sheetCheckUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
 
-/* -----------------------------
-  Utility helpers
-   -----------------------------*/
-function csvToRows(text){
-  // simple CSV -> rows; assumes no unescaped commas in cells (matches your other pages)
-  return text.trim().split("\n").map(r => r.split(","));
-}
-
-function el(id){ return document.getElementById(id); }
-
-/* normalize day abbreviations to full names and order */
-const DAY_ORDER = ["Friday","Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday"];
-function normalizeDayLabel(raw){
-  if(!raw) return "";
-  const r = raw.trim().toLowerCase();
-  if(r.startsWith("fri")) return "Friday";
-  if(r.startsWith("sat")) return "Saturday";
-  if(r.startsWith("sun")) return "Sunday";
-  if(r.startsWith("mon")) return "Monday";
-  if(r.startsWith("tue")) return "Tuesday";
-  if(r.startsWith("wed")) return "Wednesday";
-  if(r.startsWith("thu")) return "Thursday";
-  // fallback: capitalize first
-  return raw.trim().charAt(0).toUpperCase() + raw.trim().slice(1);
-}
-
-/* sort available days into desired order, only include those present */
-function sortDays(days){
-  const set = new Set(days.map(d=>normalizeDayLabel(d)));
-  return DAY_ORDER.filter(d => set.has(d));
-}
-
-/* -----------------------------
-   State
-   -----------------------------*/
-const state = {
-  market: null,     // "Match Winner" or "UO"
-  type: null,       // "HOME WIN" / "AWAY WIN" / "BOTH" or "UNDER 2.5 GOALS" / "OVER 2.5 GOALS" / "BOTH"
-  pref: null,       // "Value" or "Chance"
-  days: [],         // selected full-day names (e.g. "Friday")
-  num: null,        // integer 1..8
-  rows: [],         // all rows for selected sheet (full)
-  header: [],       // header row (row 2)
-  dataRows: []      // rows 3+ (array of arrays)
-};
-
-/* -----------------------------
-   DOM refs
-   -----------------------------*/
-const loadingNotice = el("loadingNotice");
-const noDataNotice = el("noDataNotice");
-const wizard = el("wizard");
-const marketControls = el("market-controls");
-const typeControls = el("type-controls");
-const prefControls = el("pref-controls");
-const dayControls = el("day-controls");
-const numControls = el("num-controls");
-const generateBtn = el("generateBtn");
-const resultsContainer = el("resultsContainer");
-const regenerateBtn = el("regenerateBtn");
-
-/* -----------------------------
-   Initialization: check row 20 on the CHECK_SHEET
-   -----------------------------*/
-async function init(){
-  loadingNotice.style.display = "block";
-  try{
-    const resp = await fetch(CHECK_SHEET);
-    const txt = await resp.text();
-    const rows = csvToRows(txt);
-    // check row 20 (index 19)
-    const row20 = rows[19];
-    if(!row20 || row20.every(c => (c||"").trim()==="")){
-      loadingNotice.style.display = "none";
-      noDataNotice.style.display = "block";
-      wizard.style.display = "none";
-      return; // stop
-    }
-    // OK - show wizard
-    loadingNotice.style.display = "none";
-    noDataNotice.style.display = "none";
-    wizard.style.display = "flex";
-    buildMarketStep();
-  }catch(err){
-    loadingNotice.style.display = "none";
-    noDataNotice.style.display = "block";
-    noDataNotice.innerText = "Error loading data. Please try again later.";
-    console.error(err);
-  }
-}
-
-/* -----------------------------
-   Step 1: Market buttons
-   -----------------------------*/
-function buildMarketStep(){
-  marketControls.innerHTML = "";
-  const b1 = document.createElement("button");
-  b1.textContent = "Match Winner";
-  b1.onclick = ()=> {
-    setActive(marketControls,b1);
-    state.market = "Match Winner";
-    // reset downstream
-    state.type = null; state.pref = null; state.days = []; state.num = null;
-    typeControls.innerHTML = ""; prefControls.querySelectorAll("button").forEach(btn=>btn.classList.remove("active"));
-    dayControls.innerHTML=""; numControls.innerHTML=""; resultsContainer.innerHTML=""; regenerateBtn.style.display="none";
-    // reveal step 2 with type options
-    buildTypeStep();
-    el("step-type").style.display = "block";
-    el("step-pref").style.display = "none";
-    el("step-days").style.display = "none";
-    el("step-number").style.display = "none";
-    generateBtn.style.display = "none";
-  };
-  const b2 = document.createElement("button");
-  b2.textContent = "Under/Over 2.5 Goals";
-  b2.onclick = ()=> {
-    setActive(marketControls,b2);
-    state.market = "UO";
-    // reset downstream
-    state.type = null; state.pref = null; state.days = []; state.num = null;
-    typeControls.innerHTML = ""; prefControls.querySelectorAll("button").forEach(btn=>btn.classList.remove("active"));
-    dayControls.innerHTML=""; numControls.innerHTML=""; resultsContainer.innerHTML=""; regenerateBtn.style.display="none";
-    buildTypeStep();
-    el("step-type").style.display = "block";
-    el("step-pref").style.display = "none";
-    el("step-days").style.display = "none";
-    el("step-number").style.display = "none";
-    generateBtn.style.display = "none";
-  };
-  marketControls.appendChild(b1);
-  marketControls.appendChild(b2);
-  // show only step1 initially (others hidden until answered)
-  el("step-type").style.display = "none";
-  el("step-pref").style.display = "none";
-  el("step-days").style.display = "none";
-  el("step-number").style.display = "none";
-}
-
-/* helper to set active class within a container */
-function setActive(container, btn){
-  Array.from(container.querySelectorAll("button")).forEach(b => b.classList.remove("active"));
-  if(btn) btn.classList.add("active");
-}
-
-/* -----------------------------
-   Step 2: Type (depends on market)
-   -----------------------------*/
-function buildTypeStep(){
-  typeControls.innerHTML = "";
-  if(state.market === "Match Winner"){
-    ["HOME WIN","AWAY WIN","BOTH"].forEach(lbl=>{
-      const b = document.createElement("button");
-      b.textContent = lbl;
-      b.onclick = ()=> {
-        setActive(typeControls,b);
-        state.type = lbl;
-        // reset downstream
-        state.pref = null; state.days=[]; state.num=null;
-        prefControls.querySelectorAll("button").forEach(bt => bt.classList.remove("active"));
-        dayControls.innerHTML = ""; numControls.innerHTML="";
-        el("step-pref").style.display = "block";
-        el("step-days").style.display = "none";
-        el("step-number").style.display = "none";
-        generateBtn.style.display = "none";
-      };
-      typeControls.appendChild(b);
-    });
-  } else {
-    ["UNDER 2.5 GOALS","OVER 2.5 GOALS","BOTH"].forEach(lbl=>{
-      const b = document.createElement("button");
-      b.textContent = lbl;
-      b.onclick = ()=> {
-        setActive(typeControls,b);
-        state.type = lbl;
-        // reset downstream
-        state.pref = null; state.days=[]; state.num=null;
-        prefControls.querySelectorAll("button").forEach(bt => bt.classList.remove("active"));
-        dayControls.innerHTML = ""; numControls.innerHTML="";
-        el("step-pref").style.display = "block";
-        el("step-days").style.display = "none";
-        el("step-number").style.display = "none";
-        generateBtn.style.display = "none";
-      };
-      typeControls.appendChild(b);
-    });
-  }
-}
-
-/* -----------------------------
-   Step 3: Preference (Good Value / Higher Chance)
-   -----------------------------*/
-function buildPrefStep(){
-  // prefControls already holds buttons in markup; add handlers if not yet attached
-  prefControls.innerHTML = "";
-  const b1 = document.createElement("button"); b1.textContent = "Good Value"; b1.dataset.pref = "Value";
-  const b2 = document.createElement("button"); b2.textContent = "Higher Chance"; b2.dataset.pref = "Chance";
-  b1.onclick = async ()=> {
-    setActive(prefControls,b1); state.pref = "Value";
-    // reset downstream
-    state.days=[]; state.num=null; dayControls.innerHTML=""; numControls.innerHTML=""; resultsContainer.innerHTML=""; regenerateBtn.style.display="none";
-    // load the CSV for selected combination and populate days
-    await loadSelectedSheet();
-  };
-  b2.onclick = async ()=> {
-    setActive(prefControls,b2); state.pref = "Chance";
-    state.days=[]; state.num=null; dayControls.innerHTML=""; numControls.innerHTML=""; resultsContainer.innerHTML=""; regenerateBtn.style.display="none";
-    await loadSelectedSheet();
-  };
-  prefControls.appendChild(b1); prefControls.appendChild(b2);
-}
-
-/* -----------------------------
-   Load selected CSV & build Day buttons
-   -----------------------------*/
-async function loadSelectedSheet(){
-  if(!state.market || !state.type || !state.pref) return;
-  // choose source key
-  const key = (state.market === "Match Winner" ? "Match Winner" : "UO") + "|" + state.pref;
-  const url = SOURCES[key];
-  try{
-    loadingNotice.style.display = "block"; loadingNotice.innerText = "Loading days...";
-    const resp = await fetch(url);
-    const txt = await resp.text();
-    const rows = csvToRows(txt);
-    // header is row 2 -> index 1
-    state.header = rows[1] || [];
-    state.dataRows = rows.slice(2); // sheet rows 3+
-    state.rows = rows;
-
-    // Build unique day values from column A (index 0), normalize, and keep only non-blank
-    const rawDays = Array.from(new Set(state.dataRows.map(r => (r[0]||"").trim()).filter(v => v && v.length>0)));
-    const normalized = rawDays.map(d=>normalizeDayLabel(d));
-    const ordered = sortDays(normalized);
-    // Build day buttons in requested order
-    dayControls.innerHTML = "";
-    ordered.forEach(day => {
-      const b = document.createElement("button");
-      b.textContent = day;
-      b.dataset.day = day;
-      b.onclick = ()=>{
-        // toggle selection
-        if(b.classList.contains("active")){
-          b.classList.remove("active");
-          state.days = state.days.filter(x=>x!==day);
-        } else {
-          b.classList.add("active");
-          state.days.push(day);
-        }
-        // when days change, rebuild number buttons
-        buildNumberButtons();
-        // hide results/regenerate until generate clicked
-        resultsContainer.innerHTML = "";
-        regenerateBtn.style.display = "none";
-        generateBtn.style.display = isReadyToGenerate() ? "inline-block" : "none";
-      };
-      dayControls.appendChild(b);
-    });
-
-    // show step-days and hide subsequent steps until days chosen
-    el("step-days").style.display = "block";
-    el("step-number").style.display = "none";
-    loadingNotice.style.display = "none";
-    // ensure step-pref visible
-    el("step-pref").style.display = "block";
-  }catch(err){
-    loadingNotice.style.display = "none";
-    noDataNotice.style.display = "block";
-    noDataNotice.innerText = "Error loading selected sheet. Please try again later.";
-    console.error(err);
-  }
-}
-
-/* -----------------------------
-   Step 5: Number buttons 1..8 - disabled if > available
-   -----------------------------*/
-function buildNumberButtons(){
-  numControls.innerHTML = "";
-  numControls.style.display = "flex";
-  el("step-number").style.display = "block";
-  // compute available matches after current filters
-  const filtered = getFilteredRowsFull();
-  const available = filtered.length;
-  for(let i=1;i<=8;i++){
-    const b = document.createElement("button");
-    b.textContent = i;
-    b.disabled = i > available;
-    b.onclick = ()=>{
-      if(b.disabled) return;
-      // clear active
-      Array.from(numControls.querySelectorAll("button")).forEach(x=>x.classList.remove("active"));
-      b.classList.add("active");
-      state.num = i;
-      generateBtn.style.display = isReadyToGenerate() ? "inline-block" : "none";
-      // hide old results/regenerate
-      resultsContainer.innerHTML = ""; regenerateBtn.style.display = "none";
+    const tableUrls = {
+      "Match Winner|Value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv",
+      "Match Winner|Chance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv",
+      "Over/Under|Value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv",
+      "Over/Under|Chance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1035748278&single=true&output=csv"
     };
-    numControls.appendChild(b);
-  }
-}
 
-/* -----------------------------
-   Filter function: returns rows (sheet rows 3+) that match type & selected days
-   Note: state.type can be "BOTH" which means include both Home & Away (or both Under & Over)
-   Column F is index 5, Column A is index 0
-   -----------------------------*/
-function getFilteredRowsFull(){
-  if(!state.dataRows) return [];
-  const daysSet = new Set(state.days.map(d=>d)); // days are normalized to full names
-  return state.dataRows.filter((r, idx) => {
-    // day normalization for each row
-    const rawDay = (r[0]||"").trim();
-    const rowDay = normalizeDayLabel(rawDay);
-    if(daysSet.size > 0 && !daysSet.has(rowDay)) return false;
-    // type/result matching
-    if(!state.type || state.type === "BOTH") return true;
-    const cellVal = ((r[5]||"").trim()).toUpperCase();
-    const want = state.type.toUpperCase();
-    return cellVal === want;
-  });
-}
+    const dayOrder = ["Friday","Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday"];
+    let selectedAnswers = {};
+    let tableData = [];
 
-/* -----------------------------
-   Ready check for Generate button
-   -----------------------------*/
-function isReadyToGenerate(){
-  return state.market && state.type && state.pref && state.days && state.days.length>0 && Number.isInteger(state.num) && state.num>0;
-}
-
-/* -----------------------------
-   Weighted selection (rows 3..50 get linear descending weight)
-   - If enough matches exist in top block (3..50) choose from that block (weighted)
-   - Else pick all from top block (weighted) then fill remaining from the rest (weight 1)
-   Implementation detail:
-     - state.dataRows index 0 == sheet row 3
-     - top block indices: 0..47 (rows 3..50)
-   -----------------------------*/
-function weightedSample(rowsToChooseFrom, requestedCount){
-  // rowsToChooseFrom: array of objects {row: rowArr, idxInDataRows}
-  // build topBlock and lowerBlock based on idxInDataRows
-  const topLimit = 48; // indices 0..47 inclusive (3..50)
-  const topBlock = rowsToChooseFrom.filter(o => o.idx >= 0 && o.idx < topLimit);
-  const lowerBlock = rowsToChooseFrom.filter(o => !(o.idx >= 0 && o.idx < topLimit));
-
-  // helper: pick n distinct using provided weights array
-  function pickWeightedUnique(items, weights, n){
-    const chosen = [];
-    const pool = items.slice();
-    const w = weights.slice();
-    while(chosen.length < n && pool.length > 0){
-      const total = w.reduce((a,b)=>a+b,0);
-      const r = Math.random() * total;
-      let acc = 0, pickIndex = -1;
-      for(let i=0;i<w.length;i++){
-        acc += w[i];
-        if(r <= acc){ pickIndex = i; break; }
+    async function init() {
+      const csv = await fetchCSV(sheetCheckUrl);
+      const rows = csv.split("\n").map(r => r.split(","));
+      if (!rows[19] || rows[19].every(cell => cell.trim() === "")) {
+        document.getElementById("questionsContainer").innerHTML =
+          '<p>The model currently has no fixtures to process, please check again later. It is normally ready by 5pm UK time on a Friday but can sometimes be later.</p>';
+        return;
       }
-      if(pickIndex === -1) pickIndex = w.length - 1;
-      chosen.push(pool[pickIndex]);
-      pool.splice(pickIndex,1);
-      w.splice(pickIndex,1);
+      showQuestion1();
     }
-    return chosen;
-  }
 
-  const result = [];
-  if(topBlock.length >= requestedCount){
-    // compute weights for topBlock (linear descending: earlier idx higher weight)
-    const weights = topBlock.map(o => {
-      // weight = (topLimit - idx) -> earlier idx = larger weight
-      return Math.max(1, topLimit - o.idx);
-    });
-    const picks = pickWeightedUnique(topBlock, weights, requestedCount);
-    return picks.map(x=>x.row);
-  } else {
-    // take all top block weighted
-    const topWeights = topBlock.map(o => Math.max(1, topLimit - o.idx));
-    const topPicked = pickWeightedUnique(topBlock, topWeights, topBlock.length);
-    // add them
-    topPicked.forEach(x=>result.push(x.row));
-    const remaining = requestedCount - result.length;
-    // lowerBlock fallback: choose uniformly (or weight=1)
-    if(lowerBlock.length > 0 && remaining > 0){
-      const lowerPicks = pickWeightedUnique(lowerBlock, lowerBlock.map(()=>1), Math.min(remaining, lowerBlock.length));
-      lowerPicks.forEach(x=>result.push(x.row));
+    function showLoading(belowId) {
+      const loading = document.getElementById("loadingMessage");
+      if (belowId) {
+        document.getElementById(belowId).insertAdjacentElement("afterend", loading);
+      }
+      loading.style.display = "block";
+      loading.classList.remove("fade-out");
     }
-    return result;
-  }
-}
 
-/* Combine filtered rows with their original index in dataRows */
-function buildIndexedFiltered(){
-  const idxMap = new Map(); // row object -> index
-  // state.dataRows may contain duplicate rows; we index by position
-  const arr = state.dataRows;
-  const filteredIndexed = [];
-  arr.forEach((r, idx) => {
-    // apply same filtering logic as getFilteredRowsFull but include idx
-    const rawDay = (r[0]||"").trim();
-    const rowDay = normalizeDayLabel(rawDay);
-    if(state.days.length > 0 && !state.days.includes(rowDay)) return;
-    if(state.type && state.type !== "BOTH"){
-      const cellVal = ((r[5]||"").trim()).toUpperCase();
-      if(cellVal !== state.type.toUpperCase()) return;
+    function hideLoading() {
+      const loading = document.getElementById("loadingMessage");
+      loading.classList.add("fade-out");
+      setTimeout(() => loading.style.display = "none", 500);
     }
-    // keep this row with its idx
-    filteredIndexed.push({row:r, idx: idx});
-  });
-  return filteredIndexed;
-}
 
-/* -----------------------------
-   Generate / Regenerate handlers
-   -----------------------------*/
-function onGenerate(){
-  if(!isReadyToGenerate()) return;
-  // build filtered rows with index
-  const filteredIndexed = buildIndexedFiltered();
-  if(filteredIndexed.length === 0){
-    resultsContainer.innerHTML = "<p style='text-align:center;color:#fff'>No matches available for the selected criteria.</p>";
-    regenerateBtn.style.display = "none";
-    return;
-  }
-  // perform weighted sampling as per rules
-  const picks = weightedSample(filteredIndexed, state.num);
-  renderResults(picks);
-}
+    function createQuestion(id, text, options) {
+      const container = document.getElementById("questionsContainer");
+      const qDiv = document.createElement("div");
+      qDiv.className = "question";
+      qDiv.id = id;
 
-function onRegenerate(){
-  if(!isReadyToGenerate()) return;
-  const filteredIndexed = buildIndexedFiltered();
-  const picks = weightedSample(filteredIndexed, state.num);
-  renderResults(picks);
-}
+      const title = document.createElement("h2");
+      title.textContent = text;
+      qDiv.appendChild(title);
 
-/* -----------------------------
-   Render results table
-   -----------------------------*/
-function renderResults(rows){
-  if(!rows || rows.length === 0){
-    resultsContainer.innerHTML = "<p style='text-align:center;color:#fff'>No results to show.</p>";
-    regenerateBtn.style.display = "none";
-    return;
-  }
-  // use header from state.header (row 2)
-  const headers = state.header || [];
-  let html = "<table>";
-  if(headers.length){
-    html += "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
-  }
-  rows.forEach(r=>{
-    html += "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>";
-  });
-  html += "</table>";
-  resultsContainer.innerHTML = html;
-  // show regenerate btn below generate (ensure gap)
-  regenerateBtn.style.display = "inline-block";
-}
+      const group = document.createElement("div");
+      group.className = "button-group";
 
-/* -----------------------------
-   Wire up step interactions & initial behaviors
-   -----------------------------*/
-function prepareInteractions(){
-  // Step 1 market controls already built in buildMarketStep
-  // Step 2 (type) is built dynamically by buildTypeStep
-  // Step 3 (pref) buttons
-  buildPrefStep(); // this sets handlers for pref buttons but they will be shown only when step2 answered
+      options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.textContent = opt.label;
+        btn.dataset.value = opt.value;
+        btn.onclick = () => {
+          group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          selectedAnswers[id] = btn.dataset.value;
+          if (opt.onSelect) opt.onSelect();
+        };
+        group.appendChild(btn);
+      });
 
-  // Generate & Regenerate
-  generateBtn.onclick = onGenerate;
-  regenerateBtn.onclick = onRegenerate;
-}
+      qDiv.appendChild(group);
+      container.appendChild(qDiv);
+    }
 
-/* -----------------------------
-   On days changed / type changed, rebuild numbers
-   -----------------------------*/
-function buildNumberButtonsIfNeeded(){
-  // only build when at least one day selected
-  if(!state.days || state.days.length === 0){
-    numControls.innerHTML = "";
-    el("step-number").style.display = "none";
-    generateBtn.style.display = "none";
-    return;
-  }
-  // compute available
-  const available = getFilteredRowsFull().length;
-  numControls.innerHTML = "";
-  el("step-number").style.display = "block";
-  for(let i=1;i<=8;i++){
-    const b = document.createElement("button");
-    b.textContent = i;
-    b.disabled = i > available;
-    b.onclick = ()=>{
-      if(b.disabled) return;
-      // clear previous active
-      Array.from(numControls.querySelectorAll("button")).forEach(x=>x.classList.remove("active"));
-      b.classList.add("active");
-      state.num = i;
-      generateBtn.style.display = isReadyToGenerate() ? "inline-block" : "none";
+    function showQuestion1() {
+      createQuestion("q1", "Match Winner or Under/Over 2.5 Goals?", [
+        {label:"Match Winner", value:"Match Winner", onSelect: showQuestion1a},
+        {label:"Under/Over 2.5 Goals", value:"Over/Under", onSelect: showQuestion1b}
+      ]);
+    }
+
+    function showQuestion1a() {
+      showLoading("q1");
+      setTimeout(() => {
+        hideLoading();
+        createQuestion("q1a", "Home wins, Away wins, or Home & Away Wins?", [
+          {label:"Home Wins", value:"HOME WIN", onSelect: showQuestion2},
+          {label:"Away Wins", value:"AWAY WIN", onSelect: showQuestion2},
+          {label:"Home & Away Wins", value:"BOTH", onSelect: showQuestion2}
+        ]);
+      }, 500);
+    }
+
+    function showQuestion1b() {
+      showLoading("q1");
+      setTimeout(() => {
+        hideLoading();
+        createQuestion("q1b", "Under 2.5 goals, Over 2.5 goals, or Both?", [
+          {label:"Under 2.5 Goals", value:"UNDER 2.5", onSelect: showQuestion2},
+          {label:"Over 2.5 Goals", value:"OVER 2.5", onSelect: showQuestion2},
+          {label:"Under & Over 2.5 Goals", value:"BOTH", onSelect: showQuestion2}
+        ]);
+      }, 500);
+    }
+
+    function showQuestion2() {
+      showLoading("q1a") || showLoading("q1b");
+      setTimeout(() => {
+        hideLoading();
+        createQuestion("q2", "Which do you prefer?", [
+          {label:"A good value bet", value:"Value", onSelect: loadTable},
+          {label:"A higher chance of winning", value:"Chance", onSelect: loadTable}
+        ]);
+      }, 500);
+    }
+
+    async function loadTable() {
+      showLoading("q2");
+      const key = selectedAnswers.q1 + "|" + selectedAnswers.q2;
+      const url = tableUrls[key];
+      tableData = (await fetchCSV(url)).split("\n").map(r => r.split(","));
+      hideLoading();
+      showQuestion3();
+    }
+
+    function showQuestion3() {
+      const header = tableData[1]; 
+      const dayColIndex = 0; 
+      const daysRaw = tableData.slice(2).map(r => r[dayColIndex].trim()).filter(Boolean);
+      const uniqueDays = [...new Set(daysRaw)].map(d => convertDay(d));
+      const sortedDays = dayOrder.filter(d => uniqueDays.includes(d));
+      const options = sortedDays.map(d => ({label:d, value:d, onSelect: showQuestion4}));
+
+      createQuestion("q3", "Which day(s) of the fixtures?", options);
+    }
+
+    function convertDay(abbrev) {
+      const map = { "Fri":"Friday","Sat":"Saturday","Sun":"Sunday","Mon":"Monday","Tue":"Tuesday","Wed":"Wednesday","Thu":"Thursday" };
+      return map[abbrev] || abbrev;
+    }
+
+    function showQuestion4() {
+      const available = Math.min(8, tableData.length - 2);
+      const options = Array.from({length: available}, (_,i) => ({
+        label:String(i+1), value:(i+1).toString(), onSelect: maybeShowGenerate
+      }));
+      createQuestion("q4", "Number of selections?", options);
+    }
+
+    function maybeShowGenerate() {
+      document.getElementById("generateBtn").style.display = "inline-block";
+    }
+
+    document.getElementById("generateBtn").onclick = generateResults;
+    document.getElementById("regenerateBtn").onclick = generateResults;
+
+    function generateResults() {
+      const resultsContainer = document.getElementById("resultsContainer");
+      const generateBtn = document.getElementById("generateBtn");
+      const regenerateBtn = document.getElementById("regenerateBtn");
+
+      generateBtn.classList.add("fade-out");
+      setTimeout(() => generateBtn.style.display = "none", 500);
+
+      regenerateBtn.style.display = "inline-block";
+
+      let rows = tableData.slice(2, 50); 
+      if (selectedAnswers.q3) {
+        rows = rows.filter(r => convertDay(r[0].trim()) === selectedAnswers.q3);
+      }
+      if (selectedAnswers.q1a) {
+        rows = rows.filter(r => r[5] === selectedAnswers.q1a || selectedAnswers.q1a === "BOTH");
+      }
+      if (selectedAnswers.q1b) {
+        rows = rows.filter(r => r[5] === selectedAnswers.q1b || selectedAnswers.q1b === "BOTH");
+      }
+
+      const numSelections = parseInt(selectedAnswers.q4,10) || 1;
+      const weighted = weightedSample(rows, numSelections);
+
+      const table = document.createElement("table");
+      const headerRow = document.createElement("tr");
+      tableData[1].forEach(h => {
+        if (h.trim() !== "Day") {
+          const th = document.createElement("th");
+          th.textContent = h;
+          headerRow.appendChild(th);
+        }
+      });
+      table.appendChild(headerRow);
+
+      weighted.forEach(r => {
+        const tr = document.createElement("tr");
+        r.forEach((cell,i) => {
+          if (i !== 0) { 
+            const td = document.createElement("td");
+            td.textContent = cell;
+            tr.appendChild(td);
+          }
+        });
+        table.appendChild(tr);
+      });
+
       resultsContainer.innerHTML = "";
-      regenerateBtn.style.display = "none";
-    };
-    numControls.appendChild(b);
-  }
-}
+      resultsContainer.appendChild(table);
+    }
 
-/* alias used in day button click code */
-function buildNumberButtons(){ buildNumberButtonsIfNeeded(); }
+    function weightedSample(rows, count) {
+      const weighted = [];
+      for (let i = 0; i < rows.length; i++) {
+        const weight = Math.max(1, rows.length - i);
+        for (let w = 0; w < weight; w++) {
+          weighted.push(rows[i]);
+        }
+      }
+      const result = [];
+      while (result.length < count && weighted.length) {
+        const idx = Math.floor(Math.random() * weighted.length);
+        result.push(weighted[idx]);
+        weighted.splice(idx, 1);
+      }
+      return result;
+    }
 
-/* -----------------------------
-   Kick off
-   -----------------------------*/
-buildMarketStep();     // prepare step1 UI
-prepareInteractions(); // prepare handlers
-init();               // check row20 and start
+    async function fetchCSV(url) {
+      const res = await fetch(url);
+      return await res.text();
+    }
 
-</script>
+    init();
+  </script>
 </body>
 </html>
