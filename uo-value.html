@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC PREDICT - UNDER/OVER 2.5 GOALS BEST VALUE</title>
+  <title>MC PREDICT - UNDER/OVER 2.5 GOALS Highest Chance</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
     body {
@@ -86,8 +86,8 @@
   <div class="filter-title">Filter options</div>
   <div class="filters" id="day-filters"></div>
   <div class="filters" id="result-filters">
-    <button data-result="UNDER 2.5 GOALS">Under 2.5 Goals</button>
-    <button data-result="OVER 2.5 GOALS">Over 2.5 Goals</button>
+    <button data-result="UNDER 2.5">Under 2.5 Goals</button>
+    <button data-result="OVER 2.5">Over 2.5 Goals</button>
   </div>
 
   <div class="mobile-info">If you are viewing on mobile, the table has been resized to fit your screen</div>
@@ -96,6 +96,7 @@
   <div class="table-container" id="sheet-data"></div>
 
   <script>
+    let allRows = [];
     let headerRow = [];
     let dataRows = [];
 
@@ -110,10 +111,10 @@
       const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv";
       const response = await fetch(url);
       const text = await response.text();
-      const rows = csvToRows(text);
+      allRows = csvToRows(text);
 
-      headerRow = rows[1] || [];
-      dataRows = rows.slice(2);
+      headerRow = allRows[1] || [];
+      dataRows = allRows.slice(2);
 
       buildDayButtons();
       attachResultButtonHandlers();
