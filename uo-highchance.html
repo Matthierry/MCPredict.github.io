@@ -177,6 +177,7 @@
 
   <script>
     let allRows = [];
+    let header = [];
     let activeDayFilters = new Set();
     let activeResultFilters = new Set();
 
@@ -185,8 +186,9 @@
       const response = await fetch(url);
       const text = await response.text();
       const rows = text.trim().split("\n").map(r => r.split(","));
-      const header = rows[1]; // row 2 contains column titles
-      allRows = rows.slice(2); // data starts after row 2
+
+      header = rows[1];       // row 2 = headers
+      allRows = rows.slice(2); // data starts at row 3
 
       // Build Day filter buttons (col A)
       const days = [...new Set(allRows.map(r => r[0]).filter(v => v))];
@@ -209,7 +211,7 @@
         resultFilters.appendChild(btn);
       });
 
-      renderTable(header);
+      renderTable();
       document.getElementById("loadingMessage").style.display = "none";
     }
 
@@ -224,7 +226,7 @@
       callback();
     }
 
-    function renderTable(header) {
+    function renderTable() {
       let filtered = allRows.filter(row => {
         const dayMatch = activeDayFilters.size === 0 || activeDayFilters.has(row[0]);
         const resultMatch = activeResultFilters.size === 0 || activeResultFilters.has(row[5]);
