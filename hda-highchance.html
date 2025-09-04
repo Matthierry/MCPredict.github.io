@@ -31,8 +31,12 @@
     }
     .sub-nav a:hover { background-color: #f09300; color: white; }
 
-    .filter-title { margin: 15px 0 5px; font-size: 18px; text-align: center; font-weight: bold; color: #f0f0f0; }
-    .filters { display: flex; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+    .filter-title {
+      margin: 15px 0 5px; font-size: 18px; text-align: center; font-weight: bold; color: #f0f0f0;
+    }
+    .filters {
+      display: flex; flex-wrap: wrap; justify-content: center; margin-bottom: 10px;
+    }
     .filters button {
       margin: 5px; padding: 6px 12px; border: none; border-radius: 5px;
       background-color: #3c3c3e; color: #d3d3d3; cursor: pointer;
@@ -104,7 +108,7 @@
     }
 
     async function loadCSV() {
-      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1877332177&single=true&output=csv";
+      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
       const response = await fetch(url);
       const text = await response.text();
       allRows = csvToRows(text);
@@ -119,8 +123,8 @@
     }
 
     function buildDayButtons() {
-      const dayFiltersDiv = document.getElementById("day-filters");
-      dayFiltersDiv.innerHTML = "";
+      const container = document.getElementById("day-filters");
+      container.innerHTML = "";
 
       const uniqueDays = Array.from(new Set(
         dataRows.map(r => (r[0] || "").trim()).filter(v => v.length > 0)
@@ -140,19 +144,19 @@
           }
           renderTable();
         });
-        dayFiltersDiv.appendChild(btn);
+        container.appendChild(btn);
       });
     }
 
     function attachResultButtonHandlers() {
       document.querySelectorAll("#result-filters button").forEach(btn => {
         btn.addEventListener("click", () => {
-          const value = (btn.dataset.result || "").trim().toUpperCase();
-          if (activeResultFilters.has(value)) {
-            activeResultFilters.delete(value);
+          const val = btn.dataset.result.trim().toUpperCase();
+          if (activeResultFilters.has(val)) {
+            activeResultFilters.delete(val);
             btn.classList.remove("active");
           } else {
-            activeResultFilters.add(value);
+            activeResultFilters.add(val);
             btn.classList.add("active");
           }
           renderTable();
@@ -160,30 +164,29 @@
       });
     }
 
-    function rowMatchesFilters(row) {
-      const dayVal = (row[0] || "").trim();
-      const resultVal = (row[5] || "").trim().toUpperCase();
-      const dayOk = activeDayFilters.size === 0 || activeDayFilters.has(dayVal);
-      const resultOk = activeResultFilters.size === 0 || activeResultFilters.has(resultVal);
-      return dayOk && resultOk;
+    function rowMatches(row) {
+      const day = (row[0] || "").trim();
+      const res = (row[5] || "").trim().toUpperCase();
+      const okDay = activeDayFilters.size === 0 || activeDayFilters.has(day);
+      const okRes = activeResultFilters.size === 0 || activeResultFilters.has(res);
+      return okDay && okRes;
     }
 
     function renderTable() {
-      const container = document.getElementById("sheet-data");
       let html = "<table>";
 
       if (headerRow.length) {
-        html += "<tr>" + headerRow.map(cell => `<th>${cell}</th>`).join("") + "</tr>";
+        html += "<tr>" + headerRow.map(c => `<th>${c}</th>`).join("") + "</tr>";
       }
 
-      dataRows.forEach(row => {
-        if (rowMatchesFilters(row)) {
-          html += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>";
+      dataRows.forEach(r => {
+        if (rowMatches(r)) {
+          html += "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>";
         }
       });
 
       html += "</table>";
-      container.innerHTML = html;
+      document.getElementById("sheet-data").innerHTML = html;
     }
 
     loadCSV();
