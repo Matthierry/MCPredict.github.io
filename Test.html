@@ -1,194 +1,260 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MC Predict – Football Betting</title>
-    <style>
-        /* General Styles */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #2c2c2e;
-            color: #bdbdbd;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MC PREDICT - Home</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
 
-        a {
-            color: #bdbdbd;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+      font-family: 'Proxima Nova', Arial, sans-serif;
+      background-color: #2c2c2e;
+      color: #d3d3d3;
+      box-sizing: border-box;
+    }
 
-        a:hover {
-            color: #ffffff;
-        }
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      text-align: center;
+      flex-wrap: wrap;
+    }
+    .header img {
+      width: 80px;
+      margin-right: 10px;
+    }
+    .header h1 {
+      font-size: 36px;
+      margin: 0;
+      text-transform: uppercase;
+    }
 
-        /* Header */
-        header {
-            background-color: #222224;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 10;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
+    nav {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    nav a {
+      color: #d3d3d3;
+      text-decoration: none;
+      margin: 0 10px;
+      font-size: 16px;
+      padding: 5px 10px;
+      background-color: #3c3c3e;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    nav a.active, .sub-nav a.active {
+      background-color: #f09300;
+      color: white;
+    }
+    nav a:hover {
+      background-color: #f09300;
+      color: white;
+    }
 
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #ffffff;
-        }
+    .sub-nav {
+      margin-top: 10px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .sub-nav a {
+      color: #d3d3d3;
+      text-decoration: none;
+      margin: 0 10px;
+      font-size: 16px;
+      padding: 5px 10px;
+      background-color: #3c3c3e;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    .sub-nav a:hover {
+      background-color: #f09300;
+      color: white;
+    }
 
-        nav a {
-            margin-left: 20px;
-            font-size: 16px;
-        }
+    .hero {
+      max-width: 800px;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .hero h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+    .hero p {
+      font-size: 18px;
+      color: #bdbdbd;
+      line-height: 1.5;
+    }
 
-        /* Hero Section */
-        .hero {
-            padding: 100px 20px;
-            text-align: center;
-            background-color: #2c2c2e;
-        }
+    .cta-buttons {
+      margin-top: 30px;
+    }
+    .cta-buttons a {
+      display: inline-block;
+      margin: 10px;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+    .cta-buttons a.primary {
+      background-color: #f09300;
+      color: white;
+    }
+    .cta-buttons a.primary:hover {
+      background-color: #369d47;
+    }
+    .cta-buttons a.secondary {
+      background-color: #3c3c3e;
+      color: #d3d3d3;
+      border: 1px solid #f09300;
+    }
+    .cta-buttons a.secondary:hover {
+      background-color: #f09300;
+      color: white;
+    }
 
-        .hero h1 {
-            font-size: 36px;
-            margin-bottom: 10px;
-            color: #ffffff;
-        }
+    /* Flag list */
+    .flag-list {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+      text-align: left;
+      display: inline-block;
+    }
+    .flag-list li {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+    .flag-list img {
+      width: 24px;
+      height: 16px;
+      margin-right: 10px;
+      object-fit: cover;
+    }
 
-        .hero p {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #bdbdbd;
-        }
+    /* Styled link */
+    a {
+      color: #f09300;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+      color: #ffae33;
+    }
 
-        .btn-primary {
-            background-color: #222224;
-            color: #ffffff;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 25px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
+    /* Twitter link */
+    .twitter-link {
+      margin: 15px 0 25px 0;
+      text-align: center;
+    }
+    .twitter-link a {
+      color: #f09300;
+      font-size: 18px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .twitter-link a:hover {
+      color: #ffae33;
+    }
+    .twitter-link img {
+      width: 20px;
+      height: 20px;
+    }
 
-        .btn-primary:hover {
-            background-color: #1a1a1c;
-        }
-
-        /* Iframe Section */
-        .iframe-container {
-            padding: 20px;
-            text-align: center;
-        }
-
-        .mobile-info {
-            font-size: 14px;
-            color: #bdbdbd;
-            margin-bottom: 10px;
-        }
-
-        .loading-message {
-            font-size: 16px;
-            color: #ffffff;
-            margin-bottom: 10px;
-            animation: fade 1.5s infinite alternate;
-        }
-
-        @keyframes fade {
-            from {
-                opacity: 1;
-            }
-            to {
-                opacity: 0.5;
-            }
-        }
-
-        iframe {
-            width: 100%;
-            max-width: 1200px;
-            height: 600px;
-            border: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            border-radius: 12px;
-            background-color: #222224;
-        }
-
-        /* Footer */
-        footer {
-            background-color: #222224;
-            color: #bdbdbd;
-            padding: 20px;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 28px;
-            }
-
-            .hero p {
-                font-size: 16px;
-            }
-
-            iframe {
-                height: 400px;
-            }
-        }
-    </style>
+    @media (max-width: 600px) {
+      .header img {
+        width: 60px;
+      }
+      .header h1 {
+        font-size: 24px;
+      }
+      nav a, .sub-nav a {
+        display: block;
+        margin: 5px 0;
+        font-size: 16px;
+      }
+      .hero h2 {
+        font-size: 22px;
+      }
+      .hero p {
+        font-size: 16px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="header">
+    <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
+    <h1>MC PREDICT</h1>
+  </div>
 
-<!-- Header -->
-<header>
-    <div class="logo">MC Predict</div>
-    <nav>
-        <a href="#home">Home</a>
-        <a href="#about">About</a>
-        <a href="#contact">Contact</a>
-    </nav>
-</header>
+  <nav>
+    <a href="/index" class="active">HOME</a>
+    <a href="/lucky-dip">NEW: LUCKY DIP</a>
+    <a href="/hda-value">MATCH RESULT</a>
+    <a href="/uo-value">UNDER/OVER 2.5</a>
+  </div>
 
-<!-- Hero Section -->
-<section class="hero" id="home">
-    <h1>Football Betting Suggestions</h1>
-    <p>Make Smarter Bets with Analytical Insights</p>
-    <button class="btn-primary">Get Started</button>
-</section>
+  <section class="hero">
+    <h2>Welcome to MC Predict</h2>
 
-<!-- Iframe Section -->
-<section class="iframe-container">
-    <div class="mobile-info">
-        If you are viewing on mobile, swipe right on the table to see more info
+    <!-- Twitter Link -->
+    <div class="twitter-link">
+      <a href="https://x.com/mc_predict" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/1/18/X_icon_-_Gray.svg" alt="X Logo">
+        @MC_Predict
+      </a>
     </div>
-    <div class="loading-message" id="loadingMessage">
-        Please allow up to 20 seconds for the data to load...
+
+    <p>
+      Your source for data-driven football predictions.  
+      The model I've built to predict the outcomes of Football matches focuses on fixtures from:
+    </p>
+
+    <!-- Flag List -->
+    <ul class="flag-list">
+      <li><img src="https://flagcdn.com/w20/gb-eng.png" alt="UK Flag">Premier League, Championship, League 1 & League 2</li>
+      <li><img src="https://flagcdn.com/w20/es.png" alt="Spain Flag">La Liga & La Liga 2</li>
+      <li><img src="https://flagcdn.com/w20/de.png" alt="Germany Flag">Bundesliga & Bundesliga 2</li>
+      <li><img src="https://flagcdn.com/w20/it.png" alt="Italy Flag">Serie A & Serie B</li>
+      <li><img src="https://flagcdn.com/w20/fr.png" alt="France Flag">Ligue 1 & Ligue 2</li>
+      <li><img src="https://flagcdn.com/w20/nl.png" alt="Netherlands Flag">Eredivisie</li>
+      <li><img src="https://flagcdn.com/w20/pt.png" alt="Portugal Flag">Primeira Liga</li>
+    </ul>
+
+    <p>
+      All of the historical data, odds and fixtures are sourced from 
+      <a href="https://www.football-data.co.uk/">Football-Data.co.uk</a>.
+    </p>
+
+    <div class="cta-buttons">
+      <a href="/hda-value" class="secondary">VIEW MATCH RESULT PREDICTIONS</a>
+      <a href="/uo-value" class="secondary">EXPLORE UNDER/OVER 2.5 GOALS</a>
     </div>
-    <iframe 
-        id="dataIframe" 
-        src="https://docs.google.com/spreadsheets/d/1zs1JMyb8ek4W7ATXk3Aj-GTWTZbUzXQci2k1h9r6ipw/pubhtml?gid=8873592&single=true">
-    </iframe>
-    <script>
-        document.getElementById('dataIframe').onload = function() {
-            document.getElementById('loadingMessage').style.display = 'none';
-        };
-    </script>
-</section>
-
-<!-- Footer -->
-<footer>
-    &copy; 2025 MC Predict. All Rights Reserved. | <a href="#">Terms of Service</a> | <a href="#">Privacy Policy</a>
-</footer>
-
+    <div class="cta-buttons">
+      <a href="/hda-results" class="primary">MATCH RESULT - PROFIT/LOSS</a>
+      <a href="/uo-results" class="primary">UNDER/OVER 2.5 GOALS - PROFIT/LOSS</a>
+    </div>
+  </section>
 </body>
 </html>
+
+
+
+
+
