@@ -1,601 +1,326 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MC PREDICT — Lucky Dip</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
-
-  :root{
-    --bg:#2c2c2e;
-    --panel:#3c3c3e;
-    --accent:#f09300;
-    --text:#d3d3d3;
-    --muted:#7a7a7a;
-  }
-  html,body{height:100%;margin:0;padding:0}
-  body{
-    font-family:'Proxima Nova', Arial, sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding:20px;
-    box-sizing:border-box;
-  }
-
-  .header{display:flex;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-  .header img{width:80px;margin-right:10px}
-  .header h1{font-size:36px;margin:0;text-transform:uppercase}
-  nav{margin-bottom:10px;text-align:center}
-  nav a{color:var(--text);text-decoration:none;margin:0 8px;padding:6px 10px;background:var(--panel);border-radius:6px}
-  nav a.active, nav a:hover{background:var(--accent);color:#fff}
-
-  /* Wizard column */
-  .wizard {
-    width:100%;
-    max-width:900px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-  }
-
-  .step {
-    width:100%;
-    margin-bottom:16px;
-    text-align:center;
-  }
-  .step .title {
-    font-weight:700;
-    font-size:18px;
-    color:#fff;
-    margin-bottom:8px;
-  }
-  .controls {
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    justify-content:center;
-  }
-  .controls button {
-    background:var(--panel);
-    color:var(--text);
-    border:0;
-    padding:8px 12px;
-    border-radius:6px;
-    cursor:pointer;
-    font-size:15px;
-  }
-  .controls button.active { background:var(--accent); color:#fff; }
-  .controls button:disabled {
-    background:#222;
-    color:var(--muted);
-    cursor:not-allowed;
-    opacity:.8;
-  }
-
-  .loadingMsg {
-    color:var(--accent);
-    margin-top:10px;
-    transition:opacity .4s;
-    font-weight:600;
-  }
-  .loadingMsg.hidden{opacity:0;display:none}
-
-  .generate-row { margin-top:8px; text-align:center; }
-  #generateBtn, #regenerateBtn {
-    padding:10px 16px;
-    font-size:16px;
-    border-radius:6px;
-    border:0;
-    cursor:pointer;
-    background:var(--accent);
-    color:#fff;
-  }
-  #generateBtn.fade { opacity:0; transition:opacity .5s; }
-  #regenerateBtn { display:none; }
-
-  /* Results table container */
-  .table-container {
-    width:75%;
-    margin:22px auto;
-    padding-left:10px;
-    padding-right:10px;
-    box-sizing:border-box;
-  }
-  table {
-    width:100%;
-    border-collapse:collapse;
-    background:var(--panel);
-    font-size:16px;
-  }
-  th, td { padding:8px; text-align:center; border:none; }
-  th { background:var(--accent); color:#fff; }
-  tr:nth-child(even) { background:var(--bg); }
-
-  @media (max-width:600px){
-    .header img{width:60px}
-    .header h1{font-size:24px}
-    nav a{display:block;margin:6px 0}
-    .table-container{width:100%;padding-left:0;padding-right:0}
-    table{font-size:10px}
-    th, td{padding:4px}
-  }
-</style>
-</head>
-<body>
-  <div class="header">
-    <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
-    <h1>MC PREDICT</h1>
-  </div>
-
-  <nav>
-    <a href="/index">HOME</a>
-    <a href="/lucky-dip" class="active">LUCKY DIP</a>
-    <a href="/hda-value">MATCH RESULT</a>
-    <a href="/uo-value">UNDER/OVER 2.5</a>
-  </nav>
-
-  <!-- No-data notice -->
-  <div id="no-data" style="display:none;color:#fff;margin:12px 0;text-align:center">
-    The model currently has no fixtures to process, please check again later. It is normally ready by 5pm UK time on a Friday but can sometimes be later.
-  </div>
-
-  <main class="wizard" id="wizard" style="display:none">
-    <!-- Step 1 -->
-    <div class="step" id="step-market">
-      <div class="title">Step 1 — Market</div>
-      <div class="controls" id="market-controls"></div>
-    </div>
-
-    <!-- Step 2 -->
-    <div class="step" id="step-type" style="display:none">
-      <div class="title">Step 2 — Outcome Type</div>
-      <div class="controls" id="type-controls"></div>
-    </div>
-
-    <!-- Step 3 -->
-    <div class="step" id="step-pref" style="display:none">
-      <div class="title">Step 3 — Preference</div>
-      <div class="controls" id="pref-controls"></div>
-    </div>
-
-    <!-- Loading message will be positioned below the current step -->
-    <div id="loadingMsg" class="loadingMsg" style="display:none"></div>
-
-    <!-- Step 4 -->
-    <div class="step" id="step-days" style="display:none">
-      <div class="title">Step 4 — Day(s)</div>
-      <div class="controls" id="day-controls"></div>
-    </div>
-
-    <!-- Step 5 -->
-    <div class="step" id="step-number" style="display:none">
-      <div class="title">Step 5 — Number of selections</div>
-      <div class="controls" id="num-controls"></div>
-    </div>
-
-    <div class="generate-row">
-      <button id="generateBtn" style="display:none">Generate</button>
-      <div style="height:12px"></div>
-      <button id="regenerateBtn">Regenerate</button>
-    </div>
-  </main>
-
-  <div class="table-container" id="resultsContainer"></div>
-
-<script>
-/* ---------------------------
-   Configuration & sources
-   --------------------------- */
-const CHECK_SHEET = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
-
-const SOURCE_MAP = {
-  "Match Winner|Value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv",
-  "Match Winner|Chance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv",
-  "UO|Value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv",
-  "UO|Chance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1035748278&single=true&output=csv"
-};
-
-const DAY_ORDER = ["Friday","Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday"];
-
-/* ---------------------------
-   State
-   ---------------------------*/
-const state = {
-  market: null,   // "Match Winner" or "UO"
-  type: null,     // "HOME WIN"/"AWAY WIN"/"BOTH" or "UNDER"/"OVER"/"BOTH"
-  pref: null,     // "Value" or "Chance"
-  days: [],       // array of normalized day names
-  num: null,      // int 1..8
-  header: [],     // header row (sheet row 2)
-  dataRows: []    // sheet rows 3+ (array of arrays)
-};
-
-/* ---------------------------
-   Helpers
-   ---------------------------*/
-function $(id){ return document.getElementById(id); }
-
-function csvToRows(text){
-  // simple CSV split (assumes no unescaped commas, which you said is fine)
-  return text.trim().split(/\r?\n/).map(r => r.split(","));
-}
-
-function normalizeDay(raw){
-  if(!raw) return "";
-  const s = raw.trim().toLowerCase();
-  if(s.startsWith("fri")) return "Friday";
-  if(s.startsWith("sat")) return "Saturday";
-  if(s.startsWith("sun")) return "Sunday";
-  if(s.startsWith("mon")) return "Monday";
-  if(s.startsWith("tue")) return "Tuesday";
-  if(s.startsWith("wed")) return "Wednesday";
-  if(s.startsWith("thu")) return "Thursday";
-  // fallback capitalise
-  return raw.trim().charAt(0).toUpperCase() + raw.trim().slice(1);
-}
-
-function sortDays(days){
-  const set = new Set(days);
-  return DAY_ORDER.filter(d => set.has(d));
-}
-
-function showLoadingBelow(stepId, text="Loading questions..."){
-  const el = $("loadingMsg");
-  el.textContent = text;
-  el.style.display = "block";
-  // Move below the step if exists
-  const step = $(stepId);
-  if(step && step.parentNode){
-    step.parentNode.insertBefore(el, step.nextSibling);
-  }
-}
-function hideLoading(){ $("loadingMsg").style.display = "none"; }
-
-/* ---------------------------
-   CSV check (row 20) and init
-   ---------------------------*/
-async function init(){
-  try {
-    const txt = await fetchText(CHECK_SHEET);
-    const rows = csvToRows(txt);
-    const row20 = rows[19]; // index 19 = row 20
-    if(!row20 || row20.every(cell => (cell||"").trim() === "")){
-      $("no-data").style.display = "block";
-      $("wizard").style.display = "none";
-      return;
+  <meta charset="UTF-8">
+  <title>Lucky Dip</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #2c2c2e;
+      color: #bdbdbd;
+      text-align: center;
+      padding: 20px;
     }
-    $("wizard").style.display = "flex";
-    buildMarketControls();
-  } catch(e){
-    console.error(e);
-    $("no-data").style.display = "block";
-    $("no-data").textContent = "Error loading data. Please try again later.";
-  }
-}
-
-async function fetchText(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error("fetch failed");
-  return await r.text();
-}
-
-/* ---------------------------
-   Build UI steps
-   ---------------------------*/
-function clear(el){ el.innerHTML = ""; }
-
-function setActive(container, btn){
-  Array.from(container.querySelectorAll("button")).forEach(b => b.classList.remove("active"));
-  if(btn) btn.classList.add("active");
-}
-
-function buildMarketControls(){
-  const c = $("market-controls"); clear(c);
-  const m1 = document.createElement("button"); m1.textContent = "Match Winner";
-  const m2 = document.createElement("button"); m2.textContent = "Under/Over 2.5 Goals";
-  m1.onclick = () => {
-    setActive(c,m1);
-    state.market = "Match Winner";
-    // reset downstream
-    state.type = state.pref = null; state.days = []; state.num = null;
-    clear($("type-controls")); clear($("pref-controls")); clear($("day-controls")); clear($("num-controls")); $("resultsContainer").innerHTML = "";
-    $("step-type").style.display = "block";
-    $("step-pref").style.display = "none";
-    $("step-days").style.display = "none";
-    $("step-number").style.display = "none";
-    $("generateBtn").style.display = "none";
-    $("regenerateBtn").style.display = "none";
-    buildTypeControls();
-  };
-  m2.onclick = () => {
-    setActive(c,m2);
-    state.market = "UO";
-    state.type = state.pref = null; state.days = []; state.num = null;
-    clear($("type-controls")); clear($("pref-controls")); clear($("day-controls")); clear($("num-controls")); $("resultsContainer").innerHTML = "";
-    $("step-type").style.display = "block";
-    $("step-pref").style.display = "none";
-    $("step-days").style.display = "none";
-    $("step-number").style.display = "none";
-    $("generateBtn").style.display = "none";
-    $("regenerateBtn").style.display = "none";
-    buildTypeControls();
-  };
-  c.appendChild(m1); c.appendChild(m2);
-}
-
-function buildTypeControls(){
-  const c = $("type-controls"); clear(c);
-  if(state.market === "Match Winner"){
-    ["HOME WIN","AWAY WIN","BOTH"].forEach(lbl => {
-      const b = document.createElement("button"); b.textContent = lbl;
-      b.onclick = () => {
-        setActive(c,b);
-        state.type = lbl; // exact form for matching column F
-        state.pref = null; state.days=[]; state.num=null;
-        clear($("pref-controls")); clear($("day-controls")); clear($("num-controls")); $("resultsContainer").innerHTML="";
-        $("step-pref").style.display = "block";
-        $("step-days").style.display = "none";
-        $("step-number").style.display = "none";
-        $("generateBtn").style.display = "none"; $("regenerateBtn").style.display = "none";
-        buildPrefControls();
-      };
-      c.appendChild(b);
-    });
-  } else {
-    // UO variants - we store simplified type tokens 'UNDER'/'OVER'/'BOTH'
-    ["UNDER","OVER","BOTH"].forEach(tok => {
-      const label = tok === "UNDER" ? "UNDER 2.5 GOALS" : tok === "OVER" ? "OVER 2.5 GOALS" : "BOTH";
-      const b = document.createElement("button"); b.textContent = label;
-      b.onclick = () => {
-        setActive(c,b);
-        state.type = tok; // 'UNDER' / 'OVER' / 'BOTH'
-        state.pref = null; state.days=[]; state.num=null;
-        clear($("pref-controls")); clear($("day-controls")); clear($("num-controls")); $("resultsContainer").innerHTML="";
-        $("step-pref").style.display = "block";
-        $("step-days").style.display = "none";
-        $("step-number").style.display = "none";
-        $("generateBtn").style.display = "none"; $("regenerateBtn").style.display = "none";
-        buildPrefControls();
-      };
-      c.appendChild(b);
-    });
-  }
-}
-
-function buildPrefControls(){
-  const c = $("pref-controls"); clear(c);
-  const b1 = document.createElement("button"); b1.textContent = "A good value bet";
-  const b2 = document.createElement("button"); b2.textContent = "A higher chance of winning";
-  b1.onclick = async () => {
-    setActive(c,b1); state.pref = "Value"; state.days=[]; state.num=null;
-    clear($("day-controls")); clear($("num-controls")); $("resultsContainer").innerHTML="";
-    $("generateBtn").style.display = "none"; $("regenerateBtn").style.display = "none";
-    await loadSheetForSelection();
-  };
-  b2.onclick = async () => {
-    setActive(c,b2); state.pref = "Chance"; state.days=[]; state.num=null;
-    clear($("day-controls")); clear($("num-controls")); $("resultsContainer").innerHTML="";
-    $("generateBtn").style.display = "none"; $("regenerateBtn").style.display = "none";
-    await loadSheetForSelection();
-  };
-  c.appendChild(b1); c.appendChild(b2);
-}
-
-/* ---------------------------
-   Load sheet for current selection and build day buttons
-   ---------------------------*/
-async function loadSheetForSelection(){
-  if(!state.market || !state.pref) return;
-  showLoadingBelow("step-pref", "Loading days...");
-  const key = (state.market === "Match Winner" ? "Match Winner" : "UO") + "|" + state.pref;
-  const url = SOURCE_MAP[key];
-  try {
-    const txt = await fetchText(url);
-    const rows = csvToRows(txt);
-    state.header = rows[1] || [];
-    state.dataRows = rows.slice(2); // data from row 3 onwards
-    // unique normalized days
-    const rawDays = Array.from(new Set(state.dataRows.map(r => (r[0]||"").trim()).filter(x => x && x.length>0)));
-    const normDays = rawDays.map(d => normalizeDay(d));
-    const ordered = sortDays(normDays);
-
-    // create day buttons
-    const container = $("day-controls"); clear(container);
-    ordered.forEach(day => {
-      const b = document.createElement("button"); b.textContent = day; b.dataset.day = day;
-      b.onclick = () => {
-        if(b.classList.contains("active")){
-          b.classList.remove("active");
-          state.days = state.days.filter(x=>x !== day);
-        } else {
-          b.classList.add("active");
-          state.days.push(day);
-        }
-        // rebuild number buttons (available count changes)
-        buildNumberButtons();
-        // hide prior results
-        $("resultsContainer").innerHTML = "";
-        $("regenerateBtn").style.display = "none";
-        $("generateBtn").style.display = isReadyToGenerate() ? "inline-block" : "none";
-      };
-      container.appendChild(b);
-    });
-
-    $("step-days").style.display = "block";
-    hideLoading();
-  } catch(e){
-    console.error(e);
-    hideLoading();
-    $("no-data").style.display = "block";
-    $("no-data").textContent = "Error loading selected sheet. Please try again later.";
-  }
-}
-
-/* ---------------------------
-   Build numbers (1..8) and disable if not available
-   ---------------------------*/
-function buildNumberButtons(){
-  const container = $("num-controls"); clear(container);
-  $("step-number").style.display = "block";
-  const available = getFilteredIndexed().length;
-  for(let i=1;i<=8;i++){
-    const b = document.createElement("button"); b.textContent = String(i);
-    b.disabled = i > available;
-    b.onclick = () => {
-      if(b.disabled) return;
-      Array.from(container.querySelectorAll("button")).forEach(x=>x.classList.remove("active"));
-      b.classList.add("active");
-      state.num = i;
-      $("generateBtn").style.display = isReadyToGenerate() ? "inline-block" : "none";
-      $("resultsContainer").innerHTML = "";
-      $("regenerateBtn").style.display = "none";
-    };
-    container.appendChild(b);
-  }
-}
-
-/* ---------------------------
-   Filter rows (return items with idx)
-   Uses Column A index 0 = day, Column F index 5 = result/type
-   ---------------------------*/
-function getFilteredIndexed(){
-  if(!state.dataRows) return [];
-  const matched = [];
-  state.dataRows.forEach((r, idx) => {
-    // normalize day
-    const rowDay = normalizeDay((r[0]||"").trim());
-    if(state.days.length > 0 && !state.days.includes(rowDay)) return;
-    // type matching
-    if(state.type && state.type !== "BOTH"){
-      const cell = ((r[5]||"").trim()).toUpperCase();
-      if(state.market === "Match Winner"){
-        // expect exact 'HOME WIN' or 'AWAY WIN' in column F
-        if(state.type === "HOME WIN" && cell !== "HOME WIN") return;
-        if(state.type === "AWAY WIN" && cell !== "AWAY WIN") return;
-      } else {
-        // UO: look for 'UNDER' or 'OVER' word inside cell
-        if(state.type === "UNDER" && !cell.includes("UNDER")) return;
-        if(state.type === "OVER" && !cell.includes("OVER")) return;
+    .question {
+      margin: 20px auto;
+      max-width: 600px;
+    }
+    .question h3 {
+      margin-bottom: 10px;
+    }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .buttons button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background-color: #222224;
+      color: #bdbdbd;
+      cursor: pointer;
+    }
+    .buttons button.active {
+      background-color: #f09300;
+      color: #fff;
+    }
+    .buttons button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 75%;
+      max-width: 100%;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+    }
+    tr:nth-child(even) { background-color: #222224; }
+    tr:nth-child(odd) { background-color: #2c2c2e; }
+    #generate, #regenerate {
+      margin-top: 20px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #generate {
+      background-color: #f09300;
+      color: white;
+    }
+    #regenerate {
+      background-color: #f09300;
+      color: white;
+    }
+    .loading-message {
+      color: #f09300;
+      font-size: 16px;
+      margin-top: 10px;
+      min-height: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .loading-message.visible {
+      opacity: 1;
+    }
+    @media (max-width: 768px) {
+      table {
+        width: 100%;
+        font-size: 12px;
+        padding: 0;
+      }
+      th, td {
+        padding: 4px;
       }
     }
-    matched.push({row: r, idx: idx});
-  });
-  return matched;
-}
+  </style>
+</head>
+<body>
+  <h1>Lucky Dip</h1>
+  <div id="questions"></div>
+  <div id="results"></div>
 
-/* ---------------------------
-   Readiness check
-   ---------------------------*/
-function isReadyToGenerate(){
-  return !!state.market && !!state.type && !!state.pref && state.days.length > 0 && Number.isInteger(state.num) && state.num > 0;
-}
+  <script>
+    const sheetCheck = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
+    const tables = {
+      "winner_value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv",
+      "winner_safe": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv",
+      "goals_value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv",
+      "goals_safe": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1035748278&single=true&output=csv"
+    };
 
-/* ---------------------------
-   Weighted sampling without replacement (Efraimidis–Spirakis)
-   Preference for dataRows indices 0..47 (sheet rows 3..50)
-   weight = (topLimit - idx) for idx < topLimit, else 1
-   ---------------------------*/
-function weightedWithoutReplacement(filteredIndexed, k){
-  if(filteredIndexed.length <= k) return filteredIndexed.map(x => x.row);
-  const topLimit = 48;
-  // compute key = Math.random() ** (1/weight) and pick top k items by key
-  const candidates = filteredIndexed.map(obj => {
-    const idx = obj.idx;
-    const weight = (idx >= 0 && idx < topLimit) ? Math.max(1, topLimit - idx) : 1;
-    const key = Math.pow(Math.random(), 1 / weight); // E-S method
-    return { obj, key };
-  });
-  // sort by key desc
-  candidates.sort((a,b) => b.key - a.key);
-  const picks = candidates.slice(0, k).map(c => c.obj.row);
-  return picks;
-}
+    let answers = {};
+    let fullData = [];
+    let filteredData = [];
+    let loadingInterval;
 
-/* ---------------------------
-   Render results table (show header from row2 and all columns except day col0)
-   Align columns by index; skip column 0
-   ---------------------------*/
-function renderResults(rows){
-  const container = $("resultsContainer");
-  if(!rows || rows.length === 0){
-    container.innerHTML = "<p style='text-align:center;color:#fff'>No matches found for the selected criteria.</p>";
-    return;
-  }
-  // compute number of columns to render (use header length and rows actual lengths)
-  const header = state.header || [];
-  let maxCols = header.length;
-  rows.forEach(r => { if(r.length > maxCols) maxCols = r.length; });
+    function showLoading(targetContainer) {
+      clearLoading();
+      const msg = document.createElement("div");
+      msg.className = "loading-message visible";
+      msg.id = "step-loading";
+      msg.textContent = "Loading your lucky dip";
+      targetContainer.appendChild(msg);
 
-  const tbl = document.createElement("table");
-  // header row: skip col 0
-  const thr = document.createElement("tr");
-  for(let c = 1; c < maxCols; c++){
-    const th = document.createElement("th");
-    th.textContent = header[c] ? header[c] : ""; 
-    thr.appendChild(th);
-  }
-  tbl.appendChild(thr);
-
-  // body rows
-  rows.forEach(r => {
-    const tr = document.createElement("tr");
-    for(let c = 1; c < maxCols; c++){
-      const td = document.createElement("td");
-      td.textContent = r[c] ? r[c] : "";
-      tr.appendChild(td);
+      let dots = 0;
+      loadingInterval = setInterval(() => {
+        dots = (dots + 1) % 5;
+        msg.textContent = "Loading your lucky dip" + ".".repeat(dots);
+      }, 500);
     }
-    tbl.appendChild(tr);
-  });
 
-  container.innerHTML = "";
-  container.appendChild(tbl);
-}
+    function clearLoading() {
+      clearInterval(loadingInterval);
+      const old = document.getElementById("step-loading");
+      if (old) old.remove();
+    }
 
-/* ---------------------------
-   Generate & Regenerate handlers
-   ---------------------------*/
-function onGenerate(){
-  if(!isReadyToGenerate()) return;
-  const filteredIndexed = getFilteredIndexed();
-  if(filteredIndexed.length === 0){
-    $("resultsContainer").innerHTML = "<p style='text-align:center;color:#fff'>No matches match your criteria.</p>";
-    $("regenerateBtn").style.display = "none";
-    return;
-  }
-  const picks = weightedWithoutReplacement(filteredIndexed, state.num);
-  renderResults(picks);
+    function parseCSV(text) {
+      return text.trim().split("\n").map(r => r.split(","));
+    }
 
-  // fade out generate and hide it, then show regenerate where generate was
-  const gen = $("generateBtn"), reg = $("regenerateBtn");
-  gen.classList.add("fade");
-  setTimeout(()=>{ gen.style.display = "none"; gen.classList.remove("fade"); }, 500);
-  reg.style.display = "inline-block";
-}
+    function createButtons(options, stepKey, container, nextStep, multi=false) {
+      clearLoading();
+      const wrapper = document.createElement("div");
+      wrapper.className = "buttons";
+      let selected = new Set();
 
-function onRegenerate(){
-  if(!isReadyToGenerate()) return;
-  const filteredIndexed = getFilteredIndexed();
-  if(filteredIndexed.length === 0){
-    $("resultsContainer").innerHTML = "<p style='text-align:center;color:#fff'>No matches match your criteria.</p>";
-    return;
-  }
-  const picks = weightedWithoutReplacement(filteredIndexed, state.num);
-  renderResults(picks);
-}
+      options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.textContent = opt.label;
+        btn.onclick = () => {
+          if (multi) {
+            if (selected.has(opt.value)) {
+              selected.delete(opt.value);
+              btn.classList.remove("active");
+            } else {
+              selected.add(opt.value);
+              btn.classList.add("active");
+            }
+            answers[stepKey] = Array.from(selected);
+            if (selected.size > 0) nextStep();
+          } else {
+            wrapper.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            answers[stepKey] = opt.value;
+            nextStep();
+          }
+        };
+        wrapper.appendChild(btn);
+      });
 
-/* ---------------------------
-   Event wiring & start
-   ---------------------------*/
-$("generateBtn").addEventListener("click", onGenerate);
-$("regenerateBtn").addEventListener("click", onRegenerate);
+      container.appendChild(wrapper);
+    }
 
-buildMarketControls(); // initial controls placed
-init(); // start by checking row20
+    function createStep(title, stepKey, options, nextStep, multi=false) {
+      const qDiv = document.createElement("div");
+      qDiv.className = "question";
+      const h = document.createElement("h3");
+      h.textContent = title;
+      qDiv.appendChild(h);
+      document.getElementById("questions").appendChild(qDiv);
 
-</script>
+      showLoading(qDiv);
+      setTimeout(() => {
+        createButtons(options, stepKey, qDiv, nextStep, multi);
+      }, 1000);
+    }
+
+    function start() {
+      createStep("Do you want Match Winner or Under/Over 2.5 Goals?", "market", [
+        {label: "Match Winner", value: "winner"},
+        {label: "Under/Over 2.5 Goals", value: "goals"}
+      ], step2);
+    }
+
+    function step2() {
+      if (answers.market === "winner") {
+        createStep("Choose result type", "resultType", [
+          {label: "Home Wins", value: "HOME WIN"},
+          {label: "Away Wins", value: "AWAY WIN"},
+          {label: "Home & Away Wins", value: "HOME & AWAY"}
+        ], step3);
+      } else {
+        createStep("Choose goal type", "resultType", [
+          {label: "Under 2.5 Goals", value: "UNDER 2.5"},
+          {label: "Over 2.5 Goals", value: "OVER 2.5"},
+          {label: "Under & Over 2.5 Goals", value: "UNDER & OVER"}
+        ], step3);
+      }
+    }
+
+    function step3() {
+      createStep("Which do you prefer?", "pref", [
+        {label: "Good Value Bet", value: "value"},
+        {label: "Higher Chance of Winning", value: "safe"}
+      ], step4);
+    }
+
+    async function step4() {
+      let key = answers.market + "_" + answers.pref;
+      const url = tables[key];
+      let resp = await fetch(url);
+      let data = parseCSV(await resp.text());
+
+      fullData = data.slice(1); // drop header
+      let days = [...new Set(fullData.map(r => r[0]).filter(Boolean))];
+
+      const dayOrder = ["Fri","Sat","Sun","Mon","Tue","Wed","Thu"];
+      days.sort((a,b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
+
+      const mapped = days.map(d => ({label: {"Fri":"Friday","Sat":"Saturday","Sun":"Sunday","Mon":"Monday","Tue":"Tuesday","Wed":"Wednesday","Thu":"Thursday"}[d], value:d}));
+
+      createStep("Pick day(s)", "days", mapped, step5, true);
+    }
+
+    function step5() {
+      let max = Math.min(8, fullData.length);
+      const options = Array.from({length:max}, (_,i)=>({label:String(i+1), value:i+1}));
+      createStep("How many selections?", "num", options, showGenerate);
+    }
+
+    function showGenerate() {
+      clearLoading();
+      const btn = document.createElement("button");
+      btn.id = "generate";
+      btn.textContent = "Generate";
+      btn.onclick = showResults;
+      document.getElementById("questions").appendChild(btn);
+    }
+
+    function pickRandom(data, n) {
+      let weighted = [];
+      data.forEach((row,i)=> {
+        let weight = (i<50)?3:1;
+        for (let w=0; w<weight; w++) weighted.push(row);
+      });
+      let picked = [];
+      while (picked.length<n && weighted.length>0) {
+        let idx = Math.floor(Math.random()*weighted.length);
+        let choice = weighted[idx];
+        weighted = weighted.filter(r => r!==choice);
+        picked.push(choice);
+      }
+      return picked;
+    }
+
+    function showResults() {
+      document.getElementById("results").innerHTML = "";
+      document.getElementById("generate")?.remove();
+
+      // filter
+      filteredData = fullData.filter(r => {
+        let dayMatch = answers.days.includes(r[0]);
+        let resultMatch = false;
+        if (answers.resultType.includes(" & ")) {
+          let parts = answers.resultType.split(" & ");
+          resultMatch = parts.some(p => r[5]===p);
+        } else {
+          resultMatch = (r[5]===answers.resultType);
+        }
+        return dayMatch && resultMatch;
+      });
+
+      let selected = pickRandom(filteredData, answers.num);
+
+      if (selected.length===0) {
+        document.getElementById("results").innerHTML = "<p>No matches available for chosen criteria.</p>";
+        return;
+      }
+
+      let table = document.createElement("table");
+      let header = document.createElement("tr");
+      parseCSV("Date,Competition,Home,Home Goals,Away Goals,Away,Result").forEach(col=>{
+        let th = document.createElement("th");
+        th.textContent = col;
+        header.appendChild(th);
+      });
+      table.appendChild(header);
+
+      selected.forEach(r=>{
+        let tr = document.createElement("tr");
+        r.forEach(val=>{
+          let td = document.createElement("td");
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+        table.appendChild(tr);
+      });
+
+      document.getElementById("results").appendChild(table);
+
+      const regen = document.createElement("button");
+      regen.id = "regenerate";
+      regen.textContent = "Regenerate";
+      regen.onclick = showResults;
+      document.getElementById("results").prepend(regen);
+    }
+
+    window.onload = async () => {
+      let resp = await fetch(sheetCheck);
+      let data = parseCSV(await resp.text());
+      if (!data[20] || data[20].every(c => c==="")) {
+        document.getElementById("questions").innerHTML = `<p>The model currently has no fixtures to process, please check again later. It is normally ready by 5pm UK time on a Friday but can sometimes be later.</p>`;
+      } else {
+        start();
+      }
+    };
+  </script>
 </body>
 </html>
