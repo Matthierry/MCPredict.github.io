@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lucky Dip</title>
   <style>
     body {
@@ -11,316 +12,160 @@
       text-align: center;
       padding: 20px;
     }
+
+    h1 {
+      color: #f09300;
+    }
+
     .question {
-      margin: 20px auto;
-      max-width: 600px;
+      margin: 20px 0;
     }
-    .question h3 {
-      margin-bottom: 10px;
+
+    .options {
+      margin-top: 10px;
     }
-    .buttons {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-    }
-    .buttons button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
+
+    .options button {
       background-color: #222224;
       color: #bdbdbd;
+      border: 1px solid #444;
+      padding: 10px 20px;
+      margin: 5px;
       cursor: pointer;
+      border-radius: 8px;
+      font-size: 16px;
     }
-    .buttons button.active {
+
+    .options button.active {
       background-color: #f09300;
       color: #fff;
     }
-    .buttons button:disabled {
+
+    .options button:disabled {
       background-color: #555;
       cursor: not-allowed;
+      color: #999;
     }
-    table {
-      margin: 20px auto;
-      border-collapse: collapse;
-      width: 75%;
-      max-width: 100%;
-    }
-    th, td {
-      padding: 8px;
-      text-align: center;
-    }
-    tr:nth-child(even) { background-color: #222224; }
-    tr:nth-child(odd) { background-color: #2c2c2e; }
-    #generate, #regenerate {
+
+    #generateBtn, #regenerateBtn {
       margin-top: 20px;
-      padding: 12px 24px;
+      padding: 12px 25px;
+      font-size: 18px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 16px;
     }
-    #generate {
+
+    #generateBtn {
+      background-color: #444;
+      color: #fff;
+    }
+
+    #regenerateBtn {
       background-color: #f09300;
-      color: white;
+      color: #fff;
+      display: none;
     }
-    #regenerate {
-      background-color: #f09300;
-      color: white;
+
+    table {
+      width: 75%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background-color: #222224;
+      color: #bdbdbd;
     }
-    .loading-message {
-      color: #f09300;
-      font-size: 16px;
-      margin-top: 10px;
-      min-height: 20px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
+
+    table th, table td {
+      border: 1px solid #444;
+      padding: 8px;
+      text-align: center;
     }
-    .loading-message.visible {
-      opacity: 1;
+
+    table th {
+      background-color: #333;
     }
+
+    /* Mobile full width */
     @media (max-width: 768px) {
       table {
         width: 100%;
-        font-size: 12px;
-        padding: 0;
+        font-size: 14px;
       }
-      th, td {
-        padding: 4px;
+      .options button {
+        display: block;
+        width: 100%;
       }
+    }
+
+    /* Loading message */
+    .loading-message {
+      color: #f09300;
+      font-size: 18px;
+      margin-top: 15px;
     }
   </style>
 </head>
 <body>
   <h1>Lucky Dip</h1>
+
   <div id="questions"></div>
+  <div id="loadingArea"></div>
+  <button id="generateBtn" style="display:none;">Generate</button>
+  <button id="regenerateBtn">Regenerate</button>
   <div id="results"></div>
 
   <script>
-    const sheetCheck = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
-    const tables = {
-      "winner_value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv",
-      "winner_safe": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv",
-      "goals_value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv",
-      "goals_safe": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1035748278&single=true&output=csv"
-    };
+    const questionsDiv = document.getElementById("questions");
+    const loadingArea = document.getElementById("loadingArea");
+    const generateBtn = document.getElementById("generateBtn");
+    const regenerateBtn = document.getElementById("regenerateBtn");
+    const resultsDiv = document.getElementById("results");
 
-    let answers = {};
-    let fullData = [];
-    let filteredData = [];
-    let loadingInterval;
+    let loadingTimer;
+    let dotsInterval;
 
-    function showLoading(targetContainer) {
-      clearLoading();
-      const msg = document.createElement("div");
-      msg.className = "loading-message visible";
-      msg.id = "step-loading";
-      msg.textContent = "Loading your lucky dip";
-      targetContainer.appendChild(msg);
-
-      let dots = 0;
-      loadingInterval = setInterval(() => {
-        dots = (dots + 1) % 5;
-        msg.textContent = "Loading your lucky dip" + ".".repeat(dots);
+    // Show loading message with animated dots
+    function showLoadingMessage() {
+      let dots = "";
+      loadingArea.innerHTML = `<div class="loading-message">Loading your lucky dip${dots}</div>`;
+      dotsInterval = setInterval(() => {
+        dots = dots.length < 4 ? dots + "." : "";
+        loadingArea.innerHTML = `<div class="loading-message">Loading your lucky dip${dots}</div>`;
       }, 500);
     }
 
-    function clearLoading() {
-      clearInterval(loadingInterval);
-      const old = document.getElementById("step-loading");
-      if (old) old.remove();
+    // Hide loading message
+    function hideLoadingMessage() {
+      clearInterval(dotsInterval);
+      loadingArea.innerHTML = "";
     }
 
-    function parseCSV(text) {
-      return text.trim().split("\n").map(r => r.split(","));
-    }
+    // Simulate fetching the first question
+    function loadFirstQuestion() {
+      // Show loader if fetching takes longer than 1 second
+      loadingTimer = setTimeout(showLoadingMessage, 1000);
 
-    function createButtons(options, stepKey, container, nextStep, multi=false) {
-      clearLoading();
-      const wrapper = document.createElement("div");
-      wrapper.className = "buttons";
-      let selected = new Set();
-
-      options.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.textContent = opt.label;
-        btn.onclick = () => {
-          if (multi) {
-            if (selected.has(opt.value)) {
-              selected.delete(opt.value);
-              btn.classList.remove("active");
-            } else {
-              selected.add(opt.value);
-              btn.classList.add("active");
-            }
-            answers[stepKey] = Array.from(selected);
-            if (selected.size > 0) nextStep();
-          } else {
-            wrapper.querySelectorAll("button").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            answers[stepKey] = opt.value;
-            nextStep();
-          }
-        };
-        wrapper.appendChild(btn);
-      });
-
-      container.appendChild(wrapper);
-    }
-
-    function createStep(title, stepKey, options, nextStep, multi=false) {
-      const qDiv = document.createElement("div");
-      qDiv.className = "question";
-      const h = document.createElement("h3");
-      h.textContent = title;
-      qDiv.appendChild(h);
-      document.getElementById("questions").appendChild(qDiv);
-
-      showLoading(qDiv);
+      // Simulate async delay (replace this with your actual fetch)
       setTimeout(() => {
-        createButtons(options, stepKey, qDiv, nextStep, multi);
-      }, 1000);
+        clearTimeout(loadingTimer);
+        hideLoadingMessage();
+        renderQuestion1();
+      }, 1500);
     }
 
-    function start() {
-      createStep("Do you want Match Winner or Under/Over 2.5 Goals?", "market", [
-        {label: "Match Winner", value: "winner"},
-        {label: "Under/Over 2.5 Goals", value: "goals"}
-      ], step2);
+    function renderQuestion1() {
+      const q1 = document.createElement("div");
+      q1.classList.add("question");
+      q1.innerHTML = `<p>Do you want Match Winner or Under/Over 2.5 Goals?</p>
+        <div class="options">
+          <button>Match Winner</button>
+          <button>Under/Over 2.5 Goals</button>
+        </div>`;
+      questionsDiv.appendChild(q1);
     }
 
-    function step2() {
-      if (answers.market === "winner") {
-        createStep("Choose result type", "resultType", [
-          {label: "Home Wins", value: "HOME WIN"},
-          {label: "Away Wins", value: "AWAY WIN"},
-          {label: "Home & Away Wins", value: "HOME & AWAY"}
-        ], step3);
-      } else {
-        createStep("Choose goal type", "resultType", [
-          {label: "Under 2.5 Goals", value: "UNDER 2.5"},
-          {label: "Over 2.5 Goals", value: "OVER 2.5"},
-          {label: "Under & Over 2.5 Goals", value: "UNDER & OVER"}
-        ], step3);
-      }
-    }
-
-    function step3() {
-      createStep("Which do you prefer?", "pref", [
-        {label: "Good Value Bet", value: "value"},
-        {label: "Higher Chance of Winning", value: "safe"}
-      ], step4);
-    }
-
-    async function step4() {
-      let key = answers.market + "_" + answers.pref;
-      const url = tables[key];
-      let resp = await fetch(url);
-      let data = parseCSV(await resp.text());
-
-      fullData = data.slice(1); // drop header
-      let days = [...new Set(fullData.map(r => r[0]).filter(Boolean))];
-
-      const dayOrder = ["Fri","Sat","Sun","Mon","Tue","Wed","Thu"];
-      days.sort((a,b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
-
-      const mapped = days.map(d => ({label: {"Fri":"Friday","Sat":"Saturday","Sun":"Sunday","Mon":"Monday","Tue":"Tuesday","Wed":"Wednesday","Thu":"Thursday"}[d], value:d}));
-
-      createStep("Pick day(s)", "days", mapped, step5, true);
-    }
-
-    function step5() {
-      let max = Math.min(8, fullData.length);
-      const options = Array.from({length:max}, (_,i)=>({label:String(i+1), value:i+1}));
-      createStep("How many selections?", "num", options, showGenerate);
-    }
-
-    function showGenerate() {
-      clearLoading();
-      const btn = document.createElement("button");
-      btn.id = "generate";
-      btn.textContent = "Generate";
-      btn.onclick = showResults;
-      document.getElementById("questions").appendChild(btn);
-    }
-
-    function pickRandom(data, n) {
-      let weighted = [];
-      data.forEach((row,i)=> {
-        let weight = (i<50)?3:1;
-        for (let w=0; w<weight; w++) weighted.push(row);
-      });
-      let picked = [];
-      while (picked.length<n && weighted.length>0) {
-        let idx = Math.floor(Math.random()*weighted.length);
-        let choice = weighted[idx];
-        weighted = weighted.filter(r => r!==choice);
-        picked.push(choice);
-      }
-      return picked;
-    }
-
-    function showResults() {
-      document.getElementById("results").innerHTML = "";
-      document.getElementById("generate")?.remove();
-
-      // filter
-      filteredData = fullData.filter(r => {
-        let dayMatch = answers.days.includes(r[0]);
-        let resultMatch = false;
-        if (answers.resultType.includes(" & ")) {
-          let parts = answers.resultType.split(" & ");
-          resultMatch = parts.some(p => r[5]===p);
-        } else {
-          resultMatch = (r[5]===answers.resultType);
-        }
-        return dayMatch && resultMatch;
-      });
-
-      let selected = pickRandom(filteredData, answers.num);
-
-      if (selected.length===0) {
-        document.getElementById("results").innerHTML = "<p>No matches available for chosen criteria.</p>";
-        return;
-      }
-
-      let table = document.createElement("table");
-      let header = document.createElement("tr");
-      parseCSV("Date,Competition,Home,Home Goals,Away Goals,Away,Result").forEach(col=>{
-        let th = document.createElement("th");
-        th.textContent = col;
-        header.appendChild(th);
-      });
-      table.appendChild(header);
-
-      selected.forEach(r=>{
-        let tr = document.createElement("tr");
-        r.forEach(val=>{
-          let td = document.createElement("td");
-          td.textContent = val;
-          tr.appendChild(td);
-        });
-        table.appendChild(tr);
-      });
-
-      document.getElementById("results").appendChild(table);
-
-      const regen = document.createElement("button");
-      regen.id = "regenerate";
-      regen.textContent = "Regenerate";
-      regen.onclick = showResults;
-      document.getElementById("results").prepend(regen);
-    }
-
-    window.onload = async () => {
-      let resp = await fetch(sheetCheck);
-      let data = parseCSV(await resp.text());
-      if (!data[20] || data[20].every(c => c==="")) {
-        document.getElementById("questions").innerHTML = `<p>The model currently has no fixtures to process, please check again later. It is normally ready by 5pm UK time on a Friday but can sometimes be later.</p>`;
-      } else {
-        start();
-      }
-    };
+    // Load first question when page loads
+    window.onload = loadFirstQuestion;
   </script>
 </body>
 </html>
