@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MC PREDICT - MATCH WINNER HISTORICAL PREDICTIONS</title>
   <style>
@@ -27,7 +27,7 @@
       flex-wrap: wrap;
     }
     .header img { width: 80px; margin-right: 10px; }
-    .header h1 { font-size: 36px; margin: 0; text-transform: uppercase; }
+    .header h1 { font-size: 32px; margin: 0; text-transform: uppercase; }
 
     nav { margin-bottom: 10px; text-align: center; }
     nav a {
@@ -40,65 +40,46 @@
     .filter-title {
       margin: 15px 0 5px; font-size: 18px; text-align: center; font-weight: bold; color: #f0f0f0;
     }
-    .toggle-container {
-      margin: 10px 0 20px;
-      text-align: center;
-    }
-    .toggle-container label {
-      font-size: 16px;
-      margin-right: 10px;
-    }
-    .toggle-container select {
-      padding: 5px 10px;
-      background-color: #3c3c3e;
-      color: #d3d3d3;
-      border: none;
-      border-radius: 5px;
-    }
+    .filters { display: flex; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+    .filters label { margin: 0 10px; cursor: pointer; }
 
+    .mobile-info { margin-bottom: 20px; font-size: 16px; text-align: center; color: #f0f0f0; }
     .loading-message { font-size: 16px; color: #f0f0f0; text-align: center; margin-bottom: 10px; }
 
-    /* Table container (75% on desktop) - allow horizontal scrolling */
+    /* Table container (75% on desktop) */
     .table-container {
       width: 75%;
       margin: 0 auto;
-      overflow-x: auto;           /* IMPORTANT: allow horizontal scroll on small screens */
+      overflow-x: auto;
       padding-left: 10px;
       padding-right: 10px;
       box-sizing: border-box;
     }
 
     table {
-      border-collapse: collapse; width: 100%; margin-top: 20px;
-      background-color: #3c3c3e; font-size: 14px;
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+      background-color: #3c3c3e;
+      font-size: 16px;
       table-layout: auto;
     }
-    th, td { padding: 8px; text-align: center; border: none; white-space: nowrap; }
+    th, td { padding: 8px; text-align: center; border: none; }
     th { background-color: #f09300; color: white; }
     tr:nth-child(even) { background-color: #2c2c2e; }
-
-    .tick { color: #4CAF50; font-weight: bold; }
-    .cross { color: #F44336; font-weight: bold; }
-
-    /* DataTables input alignment (small tweak so it looks neat) */
-    .dataTables_wrapper .dataTables_filter { text-align: right; }
+    td img { width: 18px; height: 18px; }
 
     /* Mobile adjustments */
     @media (max-width: 600px) {
       .header img { width: 60px; }
-      .header h1 { font-size: 24px; }
-      nav a { display: block; margin: 5px 0; font-size: 16px; }
+      .header h1 { font-size: 22px; }
+      nav a { display: block; margin: 5px 0; font-size: 14px; }
       body, html { margin: 0; padding: 0; overflow-x: hidden; }
-      .table-container { width: 100%; padding-left: 6px; padding-right: 6px; }
+      .table-container { width: 100%; }
       table { font-size: 10px; }
-      th, td { padding: 4px; }
+      th, td { padding: 2px; }
     }
   </style>
-
-  <!-- DataTables CSS + jQuery -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 </head>
 <body>
   <div class="header">
@@ -110,210 +91,86 @@
     <a href="/index">HOME</a>
     <a href="/hda-value">MATCH RESULT</a>
     <a href="/uo-value">UNDER/OVER 2.5</a>
-    <a href="/historical" class="active">HISTORICAL PREDICTIONS</a>
+    <a href="/match-winner-historical" class="active">HISTORICAL PREDICTIONS</a>
   </nav>
 
-  <div class="filter-title">Match Winner Historical Predictions</div>
-
-  <div class="toggle-container">
-    <label for="oddsFormat">Odds Format:</label>
-    <select id="oddsFormat">
-      <option value="fractional" selected>Fractional</option>
-      <option value="decimal">Decimal</option>
-    </select>
+  <div class="filter-title">Odds Format</div>
+  <div class="filters">
+    <label><input type="radio" name="oddsFormat" value="fractional" checked> Fractional</label>
+    <label><input type="radio" name="oddsFormat" value="decimal"> Decimal</label>
   </div>
 
-  <div class="loading-message" id="loadingMessage">Loading historical data...</div>
-  <div class="table-container">
-    <table id="predictionsTable" class="display" style="width:100%">
-      <thead>
-        <tr id="table-header"></tr>
-      </thead>
-      <tbody id="table-body"></tbody>
-    </table>
-  </div>
+  <div class="mobile-info">On mobile, the table resizes automatically to fit your screen</div>
+  <div class="loading-message" id="loadingMessage">Loading historical predictions...</div>
+
+  <div class="table-container" id="sheet-data"></div>
 
   <script>
-    // CSV URL (your supplied link)
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=0&single=true&output=csv";
-
     let allRows = [];
-    let dataTable = null;
+    let headerRow = [];
+    let dataRows = [];
+    let oddsFormat = "fractional";
 
-    // Robust CSV parser: supports quoted fields and CRLF/LF line endings
-    function parseCSV(text) {
-      const rows = [];
-      let cur = '';
-      let row = [];
-      let inQuotes = false;
-      for (let i = 0; i < text.length; i++) {
-        const ch = text[i];
-        if (ch === '"') {
-          // handle escaped quotes ""
-          if (inQuotes && text[i + 1] === '"') {
-            cur += '"';
-            i++;
-          } else {
-            inQuotes = !inQuotes;
-          }
-        } else if (ch === ',' && !inQuotes) {
-          row.push(cur);
-          cur = '';
-        } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
-          // end of row
-          row.push(cur);
-          cur = '';
-          rows.push(row);
-          row = [];
-          // skip the LF following CR (\r\n)
-          if (ch === '\r' && text[i + 1] === '\n') i++;
-        } else {
-          cur += ch;
-        }
-      }
-      // last value
-      if (cur.length > 0 || row.length > 0) {
-        row.push(cur);
-        rows.push(row);
-      }
-      // trim whitespace from every cell
-      return rows.map(r => r.map(c => (c === undefined ? '' : c.trim())));
+    function csvToRows(text) {
+      return text.trim().split("\n").map(r => r.split(","));
     }
 
     async function loadCSV() {
-      try {
-        const response = await fetch(csvUrl);
-        if (!response.ok) throw new Error("Could not fetch CSV: " + response.status);
-        const text = await response.text();
-        allRows = parseCSV(text);
+      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=0&single=true&output=csv";
+      const response = await fetch(url);
+      const text = await response.text();
+      allRows = csvToRows(text);
 
-        // If the sheet has a top empty row, try to normalize (but assume headers are row 1 as requested)
-        if (allRows.length === 0) {
-          document.getElementById("loadingMessage").textContent = "CSV is empty.";
-          return;
-        }
+      // Row 1 = headers
+      headerRow = allRows[0] || [];
+      dataRows = allRows.slice(1);
 
-        buildTable(); // initial build (default fractional)
-        document.getElementById("loadingMessage").style.display = "none";
-      } catch (err) {
-        document.getElementById("loadingMessage").textContent = "Error loading data: " + err.message;
-        console.error(err);
-      }
+      renderTable();
+      document.getElementById("loadingMessage").style.display = "none";
     }
 
-    function buildTable() {
-      // defensive: ensure we have parsed rows
-      if (!allRows || allRows.length === 0) return;
+    function renderTable() {
+      const container = document.getElementById("sheet-data");
+      const maxRows = 500;
 
-      const headerRow = allRows[0] || [];
-      const dataRows = allRows.slice(1);
+      // Column indexes (A=0)
+      const colIndexes = oddsFormat === "fractional"
+        ? [7, 11, 12, 13, 14, 18, 21, 23, 26, 28, 29] // H,L,M,N,O,S,V,X,AA,AC,AD
+        : [7, 11, 12, 13, 14, 15, 20, 23, 26, 28, 29]; // H,L,M,N,O,P,U,X,AA,AC,AD
 
-      const oddsFormat = document.getElementById("oddsFormat").value; // "fractional" or "decimal"
+      const colHeaders = colIndexes.map(i => headerRow[i] || "");
 
-      // Column indices (zero-based, A=0)
-      // H=7, L=11, M=12, N=13, O=14,
-      // P=15 (decimal), S=18 (fractional),
-      // U=20 (decimal), V=21 (fractional),
-      // X=23, AA=26, AC=28, AD=29
-      const colP_or_S = oddsFormat === "decimal" ? 15 : 18;
-      const colU_or_V = oddsFormat === "decimal" ? 20 : 21;
+      let html = "<table><tr>";
+      colHeaders.forEach(h => { html += `<th>${h}</th>`; });
+      html += "</tr>";
 
-      const columnsNeeded = [
-        7,   // H
-        11,  // L
-        12,  // M
-        13,  // N
-        14,  // O
-        colP_or_S,
-        colU_or_V,
-        23,  // X
-        26,  // AA
-        28,  // AC
-        29   // AD (tick/cross)
-      ];
-
-      // Build header
-      const headerEl = document.getElementById("table-header");
-      headerEl.innerHTML = "";
-      columnsNeeded.forEach(i => {
-        const text = headerRow[i] || "";
-        headerEl.innerHTML += `<th>${escapeHtml(text)}</th>`;
-      });
-
-      // Build body
-      const bodyEl = document.getElementById("table-body");
-      bodyEl.innerHTML = "";
-      dataRows.forEach(row => {
-        // Skip rows that are completely empty
-        if (!row || row.join('').trim() === '') return;
-
-        let htmlRow = "<tr>";
-        columnsNeeded.forEach(i => {
-          let cell = (row[i] !== undefined && row[i] !== null) ? row[i] : "";
-          // last column AD (index 29) - show tick/cross
-          if (i === 29) {
-            const val = (cell || "").toString().trim();
-            if (val === "1") {
-              cell = "<span class='tick'>&#10004;</span>";
-            } else if (val === "0") {
-              cell = "<span class='cross'>&#10008;</span>";
-            } else {
-              // if empty or other, show blank
-              cell = "";
+      dataRows.slice(0, maxRows).forEach(row => {
+        html += "<tr>";
+        colIndexes.forEach((i, idx) => {
+          let cell = row[i] || "";
+          if (idx === colIndexes.length - 1) { // AD column tick/cross
+            if (cell.trim() === "1") {
+              cell = '<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Yes_Check_Circle.svg/20px-Yes_Check_Circle.svg.png" alt="✔">';
+            } else if (cell.trim() === "0") {
+              cell = '<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Error.svg/20px-Error.svg.png" alt="✘">';
             }
-          } else {
-            cell = escapeHtml(cell);
           }
-          htmlRow += `<td>${cell}</td>`;
+          html += `<td>${cell}</td>`;
         });
-        htmlRow += "</tr>";
-        bodyEl.insertAdjacentHTML('beforeend', htmlRow);
+        html += "</tr>";
       });
 
-      // (re)initialize DataTable safely
-      if ($.fn.dataTable.isDataTable('#predictionsTable')) {
-        // destroy existing and restore markup so we can reinitialize
-        $('#predictionsTable').DataTable().clear().destroy();
-      }
+      html += "</table>";
+      container.innerHTML = html;
+    }
 
-      dataTable = $('#predictionsTable').DataTable({
-        pageLength: 25,
-        lengthMenu: [10, 25, 50, 100, 250],
-        order: [],
-        deferRender: true,
-        scrollX: true,      // makes table horizontally scrollable (works with our container)
-        autoWidth: false,
-        // responsive: true // optional if you include responsive extension
+    document.querySelectorAll("input[name='oddsFormat']").forEach(input => {
+      input.addEventListener("change", (e) => {
+        oddsFormat = e.target.value;
+        renderTable();
       });
-
-      // Move DataTables' built-in search box / controls look a bit tidier (optional tweak)
-      // no extra styling required — DataTables default is usable.
-    }
-
-    // simple HTML-escape to avoid accidental markup injection
-    function escapeHtml(text) {
-      if (text === null || text === undefined) return '';
-      return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    // Rebuild on toggle change
-    document.getElementById("oddsFormat").addEventListener("change", () => {
-      // keep the loading message visible briefly if dataset is large
-      document.getElementById("loadingMessage").style.display = "block";
-      document.getElementById("loadingMessage").textContent = "Rebuilding table...";
-      // small timeout to show message then rebuild (UI nicety)
-      setTimeout(() => {
-        buildTable();
-        document.getElementById("loadingMessage").style.display = "none";
-      }, 50);
     });
 
-    // Initial load
     loadCSV();
   </script>
 </body>
