@@ -58,21 +58,30 @@
 
     .loading-message { font-size: 16px; color: #f0f0f0; text-align: center; margin-bottom: 10px; }
 
+    /* Table container (75% on desktop) - allow horizontal scrolling */
     .table-container {
-      width: 90%; margin: 0 auto; overflow: hidden;
-      padding-left: 10px; padding-right: 10px; box-sizing: border-box;
+      width: 75%;
+      margin: 0 auto;
+      overflow-x: auto;           /* IMPORTANT: allow horizontal scroll on small screens */
+      padding-left: 10px;
+      padding-right: 10px;
+      box-sizing: border-box;
     }
 
     table {
       border-collapse: collapse; width: 100%; margin-top: 20px;
       background-color: #3c3c3e; font-size: 14px;
+      table-layout: auto;
     }
-    th, td { padding: 8px; text-align: center; border: none; }
+    th, td { padding: 8px; text-align: center; border: none; white-space: nowrap; }
     th { background-color: #f09300; color: white; }
     tr:nth-child(even) { background-color: #2c2c2e; }
 
     .tick { color: #4CAF50; font-weight: bold; }
     .cross { color: #F44336; font-weight: bold; }
+
+    /* DataTables input alignment (small tweak so it looks neat) */
+    .dataTables_wrapper .dataTables_filter { text-align: right; }
 
     /* Mobile adjustments */
     @media (max-width: 600px) {
@@ -80,9 +89,9 @@
       .header h1 { font-size: 24px; }
       nav a { display: block; margin: 5px 0; font-size: 16px; }
       body, html { margin: 0; padding: 0; overflow-x: hidden; }
-      .table-container { width: 100%; }
-      table { font-size: 9px; }
-      th, td { padding: 2px; }
+      .table-container { width: 100%; padding-left: 6px; padding-right: 6px; }
+      table { font-size: 10px; }
+      th, td { padding: 4px; }
     }
   </style>
 
@@ -125,39 +134,98 @@
   </div>
 
   <script>
+    // CSV URL (your supplied link)
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=0&single=true&output=csv";
 
     let allRows = [];
-    let dataTable;
+    let dataTable = null;
 
-    function csvToRows(text) {
-      return text.trim().split("\n").map(r => r.split(","));
+    // Robust CSV parser: supports quoted fields and CRLF/LF line endings
+    function parseCSV(text) {
+      const rows = [];
+      let cur = '';
+      let row = [];
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (ch === '"') {
+          // handle escaped quotes ""
+          if (inQuotes && text[i + 1] === '"') {
+            cur += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (ch === ',' && !inQuotes) {
+          row.push(cur);
+          cur = '';
+        } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+          // end of row
+          row.push(cur);
+          cur = '';
+          rows.push(row);
+          row = [];
+          // skip the LF following CR (\r\n)
+          if (ch === '\r' && text[i + 1] === '\n') i++;
+        } else {
+          cur += ch;
+        }
+      }
+      // last value
+      if (cur.length > 0 || row.length > 0) {
+        row.push(cur);
+        rows.push(row);
+      }
+      // trim whitespace from every cell
+      return rows.map(r => r.map(c => (c === undefined ? '' : c.trim())));
     }
 
     async function loadCSV() {
-      const response = await fetch(csvUrl);
-      const text = await response.text();
-      allRows = csvToRows(text);
+      try {
+        const response = await fetch(csvUrl);
+        if (!response.ok) throw new Error("Could not fetch CSV: " + response.status);
+        const text = await response.text();
+        allRows = parseCSV(text);
 
-      buildTable();
-      document.getElementById("loadingMessage").style.display = "none";
+        // If the sheet has a top empty row, try to normalize (but assume headers are row 1 as requested)
+        if (allRows.length === 0) {
+          document.getElementById("loadingMessage").textContent = "CSV is empty.";
+          return;
+        }
+
+        buildTable(); // initial build (default fractional)
+        document.getElementById("loadingMessage").style.display = "none";
+      } catch (err) {
+        document.getElementById("loadingMessage").textContent = "Error loading data: " + err.message;
+        console.error(err);
+      }
     }
 
     function buildTable() {
-      const headerRow = allRows[0];
+      // defensive: ensure we have parsed rows
+      if (!allRows || allRows.length === 0) return;
+
+      const headerRow = allRows[0] || [];
       const dataRows = allRows.slice(1);
 
-      const oddsFormat = document.getElementById("oddsFormat").value;
+      const oddsFormat = document.getElementById("oddsFormat").value; // "fractional" or "decimal"
 
-      // Column indices (zero-based, A=0, B=1...)
+      // Column indices (zero-based, A=0)
+      // H=7, L=11, M=12, N=13, O=14,
+      // P=15 (decimal), S=18 (fractional),
+      // U=20 (decimal), V=21 (fractional),
+      // X=23, AA=26, AC=28, AD=29
+      const colP_or_S = oddsFormat === "decimal" ? 15 : 18;
+      const colU_or_V = oddsFormat === "decimal" ? 20 : 21;
+
       const columnsNeeded = [
         7,   // H
         11,  // L
         12,  // M
         13,  // N
         14,  // O
-        oddsFormat === "decimal" ? 15 : 18, // P (Decimal) or S (Fractional)
-        oddsFormat === "decimal" ? 20 : 21, // U (Decimal) or V (Fractional)
+        colP_or_S,
+        colU_or_V,
         23,  // X
         26,  // AA
         28,  // AC
@@ -168,39 +236,84 @@
       const headerEl = document.getElementById("table-header");
       headerEl.innerHTML = "";
       columnsNeeded.forEach(i => {
-        let text = headerRow[i] || "";
-        headerEl.innerHTML += `<th>${text}</th>`;
+        const text = headerRow[i] || "";
+        headerEl.innerHTML += `<th>${escapeHtml(text)}</th>`;
       });
 
       // Build body
       const bodyEl = document.getElementById("table-body");
       bodyEl.innerHTML = "";
       dataRows.forEach(row => {
+        // Skip rows that are completely empty
+        if (!row || row.join('').trim() === '') return;
+
         let htmlRow = "<tr>";
         columnsNeeded.forEach(i => {
-          let cell = row[i] || "";
+          let cell = (row[i] !== undefined && row[i] !== null) ? row[i] : "";
+          // last column AD (index 29) - show tick/cross
           if (i === 29) {
-            cell = cell.trim() === "1" ? "<span class='tick'>&#10004;</span>" : "<span class='cross'>&#10008;</span>";
+            const val = (cell || "").toString().trim();
+            if (val === "1") {
+              cell = "<span class='tick'>&#10004;</span>";
+            } else if (val === "0") {
+              cell = "<span class='cross'>&#10008;</span>";
+            } else {
+              // if empty or other, show blank
+              cell = "";
+            }
+          } else {
+            cell = escapeHtml(cell);
           }
           htmlRow += `<td>${cell}</td>`;
         });
         htmlRow += "</tr>";
-        bodyEl.innerHTML += htmlRow;
+        bodyEl.insertAdjacentHTML('beforeend', htmlRow);
       });
 
-      // Init or re-draw DataTable
-      if (dataTable) {
-        dataTable.destroy();
+      // (re)initialize DataTable safely
+      if ($.fn.dataTable.isDataTable('#predictionsTable')) {
+        // destroy existing and restore markup so we can reinitialize
+        $('#predictionsTable').DataTable().clear().destroy();
       }
+
       dataTable = $('#predictionsTable').DataTable({
         pageLength: 25,
         lengthMenu: [10, 25, 50, 100, 250],
         order: [],
+        deferRender: true,
+        scrollX: true,      // makes table horizontally scrollable (works with our container)
+        autoWidth: false,
+        // responsive: true // optional if you include responsive extension
       });
+
+      // Move DataTables' built-in search box / controls look a bit tidier (optional tweak)
+      // no extra styling required — DataTables default is usable.
     }
 
-    document.getElementById("oddsFormat").addEventListener("change", buildTable);
+    // simple HTML-escape to avoid accidental markup injection
+    function escapeHtml(text) {
+      if (text === null || text === undefined) return '';
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
 
+    // Rebuild on toggle change
+    document.getElementById("oddsFormat").addEventListener("change", () => {
+      // keep the loading message visible briefly if dataset is large
+      document.getElementById("loadingMessage").style.display = "block";
+      document.getElementById("loadingMessage").textContent = "Rebuilding table...";
+      // small timeout to show message then rebuild (UI nicety)
+      setTimeout(() => {
+        buildTable();
+        document.getElementById("loadingMessage").style.display = "none";
+      }, 50);
+    });
+
+    // Initial load
     loadCSV();
   </script>
 </body>
