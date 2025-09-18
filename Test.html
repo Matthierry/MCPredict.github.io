@@ -14,15 +14,18 @@
   <!-- DataTables JS -->
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
+  <!-- CSV parser -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.21/jquery.csv.min.js"></script>
+
   <style>
-    /* Responsive adjustments */
+    /* Force table to shrink-fit instead of scroll horizontally */
     #predictionsTable {
       width: 100% !important;
       table-layout: auto;
       border-collapse: collapse;
       word-wrap: break-word;
-      white-space: normal; /* allow wrap at spaces only */
-      font-size: 14px; /* base font */
+      white-space: normal; /* wrap only at spaces */
+      font-size: 14px;
     }
 
     #predictionsTable th,
@@ -64,9 +67,7 @@
     <label for="maxDate">To: <input type="date" id="maxDate"></label>
   </div>
 
-  <div style="overflow-x: hidden; width: 100%;">
-    <table id="predictionsTable" class="display nowrap"></table>
-  </div>
+  <table id="predictionsTable" class="display"></table>
 
   <script>
     $(document).ready(function () {
@@ -77,7 +78,7 @@
       $.fn.dataTable.ext.search.push(function (settings, data) {
         const min = $('#minDate').val() ? new Date($('#minDate').val()) : null;
         const max = $('#maxDate').val() ? new Date($('#maxDate').val()) : null;
-        const date = new Date(data[0]); // Column H is index 0 in our mapped data
+        const date = new Date(data[0]); // Column H is index 0
 
         if ((min === null || date >= min) &&
             (max === null || date <= max)) {
@@ -91,9 +92,9 @@
         .then(csvText => {
           const rows = $.csv.toArrays(csvText);
 
-          // Extract headers from row 0
+          // Extract headers (row 0 of sheet)
           const headers = [
-            rows[0][7],   // H
+            rows[0][7],   // H Date
             rows[0][11],  // L
             rows[0][12],  // M
             rows[0][13],  // N
@@ -103,23 +104,23 @@
             rows[0][21],  // V
             rows[0][23],  // X
             rows[0][26],  // AA
-            rows[0][28],  // AC
-            rows[0][29]   // AD
+            rows[0][28],  // AC currency
+            rows[0][29]   // AD (tick/cross)
           ];
 
           // Data rows
           const dataRows = rows.slice(1).map(r => [
-            r[7],   // H Date
+            r[7],   // H
             r[11],  // L
             r[12],  // M
             r[13],  // N
             r[14],  // O
             r[15],  // P
-            r[18],  // S (fractional odds)
-            r[21],  // V (fractional odds)
+            r[18],  // S
+            r[21],  // V
             r[23],  // X
             r[26],  // AA
-            r[28],  // AC currency
+            r[28],  // AC
             r[29] === "1"
               ? '<img src="/images/green-tick.png" alt="✓" width="16">'
               : r[29] === "0"
@@ -127,10 +128,15 @@
                 : ""
           ]);
 
-          // Initialize DataTable
+          // Init DataTable
           const table = $('#predictionsTable').DataTable({
             data: dataRows,
-            columns: headers.map(h => ({ title: h })),
+            columns: headers.map((h, i) => {
+              if (i === 10) { // Column AC (currency)
+                return { title: h, render: $.fn.dataTable.render.number(',', '.', 2, '£') };
+              }
+              return { title: h };
+            }),
             pageLength: 100,
             lengthMenu: [10, 25, 50, 100, 250, 500],
             order: [[0, 'desc']], // sort by date desc
@@ -147,8 +153,5 @@
         });
     });
   </script>
-
-  <!-- CSV parser plugin for jQuery -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.21/jquery.csv.min.js"></script>
 </body>
 </html>
