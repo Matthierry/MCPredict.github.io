@@ -3,14 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MC Predict - Fixtures</title>
-  <link rel="stylesheet" href="style.css">
+  <title>MC Predict - Match Winner Historical Predictions</title>
 
-  <!-- FontAwesome for tick/cross icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- DataTables JS -->
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
   <!-- PapaParse for CSV parsing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <!-- FontAwesome for tick/cross icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     body {
@@ -27,33 +35,44 @@
       color: #fff;
     }
 
+    .filters {
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .filters input {
+      padding: 6px 10px;
+      border: 1px solid #444;
+      border-radius: 5px;
+      background-color: #2c2c2e;
+      color: #bdbdbd;
+    }
+
     .table-container {
       width: 100%;
-      overflow-x: auto; /* fallback scroll if needed */
       background-color: #222224;
       border-radius: 10px;
       padding: 10px;
     }
 
-    table {
-      width: 100%;
+    table.dataTable {
+      width: 100% !important;
       border-collapse: collapse;
-      table-layout: auto; /* fit columns dynamically */
+      background-color: #2c2c2e;
     }
 
     thead {
       background-color: #1a1a1c;
-      position: sticky;
-      top: 0;
-      z-index: 2;
     }
 
     th, td {
       padding: 8px;
       text-align: center;
       border-bottom: 1px solid #333;
-      word-wrap: break-word;
-      white-space: normal; /* allow wrapping */
+      white-space: normal; /* allow wrapping at spaces */
     }
 
     th {
@@ -78,29 +97,7 @@
       color: #e74c3c;
     }
 
-    /* Filters */
-    .filters {
-      margin-bottom: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-    }
-
-    .filters input, 
-    .filters select {
-      padding: 6px 10px;
-      border: 1px solid #444;
-      border-radius: 5px;
-      background-color: #2c2c2e;
-      color: #bdbdbd;
-    }
-
-    .filters label {
-      margin-right: 5px;
-    }
-
-    /* Mobile adjustments */
+    /* Responsive tweaks */
     @media (max-width: 768px) {
       table {
         font-size: 12px;
@@ -112,46 +109,36 @@
   </style>
 </head>
 <body>
-  <h1>MC Predict - Fixtures</h1>
+  <h1>Match Winner Historical Predictions</h1>
 
-  <!-- Filters -->
+  <!-- Date filters -->
   <div class="filters">
     <div>
-      <label for="fromDate">From:</label>
-      <input type="date" id="fromDate">
+      <label for="minDate">From:</label>
+      <input type="date" id="minDate">
     </div>
     <div>
-      <label for="toDate">To:</label>
-      <input type="date" id="toDate">
-    </div>
-    <div>
-      <label for="entries">Show:</label>
-      <select id="entries">
-        <option value="100" selected>100</option>
-        <option value="250">250</option>
-        <option value="500">500</option>
-        <option value="1000">1000</option>
-      </select>
+      <label for="maxDate">To:</label>
+      <input type="date" id="maxDate">
     </div>
   </div>
 
-  <!-- Table -->
   <div class="table-container">
-    <table id="fixturesTable">
+    <table id="predictionsTable" class="display">
       <thead>
         <tr>
-          <th>Date (H)</th>
-          <th>Column L</th>
-          <th>Column M</th>
-          <th>Column N</th>
-          <th>Column O</th>
-          <th>Column P</th>
-          <th>Odds (S)</th>
-          <th>Odds (V)</th>
-          <th>Column X</th>
-          <th>Column AA</th>
-          <th>Column AC</th>
-          <th>Result (AD)</th>
+          <th>Date</th>
+          <th>League</th>
+          <th>Home</th>
+          <th>V</th>
+          <th>Away</th>
+          <th>Prediction</th>
+          <th>Bookmaker Price</th>
+          <th>Model Price</th>
+          <th>Value</th>
+          <th>Result</th>
+          <th>P/L</th>
+          <th>Correct?</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -161,41 +148,54 @@
   <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=0&single=true&output=csv";
 
-    Papa.parse(sheetUrl, {
-      download: true,
-      header: true,
-      complete: function(results) {
-        const data = results.data;
-        const tbody = document.querySelector("#fixturesTable tbody");
-        tbody.innerHTML = "";
+    $(document).ready(function () {
+      // Date filter
+      $.fn.dataTable.ext.search.push(function (settings, data) {
+        const min = $('#minDate').val() ? new Date($('#minDate').val()) : null;
+        const max = $('#maxDate').val() ? new Date($('#maxDate').val()) : null;
+        const date = new Date(data[0]); // first column = Date
 
-        data.forEach(row => {
-          const tr = document.createElement("tr");
+        if ((!min || date >= min) && (!max || date <= max)) {
+          return true;
+        }
+        return false;
+      });
 
-          tr.innerHTML = `
-            <td>${row["H"] || ""}</td>
-            <td>${row["L"] || ""}</td>
-            <td>${row["M"] || ""}</td>
-            <td>${row["N"] || ""}</td>
-            <td>${row["O"] || ""}</td>
-            <td>${row["P"] || ""}</td>
-            <td>${row["S"] || ""}</td>
-            <td>${row["V"] || ""}</td>
-            <td>${row["X"] || ""}</td>
-            <td>${row["AA"] || ""}</td>
-            <td class="currency">${row["AC"] ? "£" + parseFloat(row["AC"]).toFixed(2) : ""}</td>
-            <td>
-              ${row["AD"] == "1" 
-                ? '<i class="fa-solid fa-circle-check icon-yes"></i>' 
-                : row["AD"] == "0"
-                  ? '<i class="fa-solid fa-circle-xmark icon-no"></i>' 
-                  : ""}
-            </td>
-          `;
+      Papa.parse(sheetUrl, {
+        download: true,
+        header: true,
+        complete: function (results) {
+          const data = results.data.map(row => [
+            row["Date"] || "",
+            row["League"] || "",
+            row["Home"] || "",
+            row["V"] || "",
+            row["Away"] || "",
+            row["Prediction"] || "",
+            row["Bookmaker Price"] || "",
+            row["Model Price"] || "",
+            row["Value"] || "",
+            row["Result"] || "",
+            row["P/L"] ? "£" + parseFloat(row["P/L"]).toFixed(2) : "",
+            row["Correct?"] == "1"
+              ? '<i class="fa-solid fa-circle-check icon-yes"></i>'
+              : row["Correct?"] == "0"
+                ? '<i class="fa-solid fa-circle-xmark icon-no"></i>'
+                : ""
+          ]);
 
-          tbody.appendChild(tr);
-        });
-      }
+          const table = $('#predictionsTable').DataTable({
+            data: data,
+            pageLength: 100,
+            lengthMenu: [10, 25, 50, 100, 250, 500],
+            order: [[0, "desc"]], // sort by Date
+          });
+
+          $('#minDate, #maxDate').on('change', function () {
+            table.draw();
+          });
+        }
+      });
     });
   </script>
 </body>
