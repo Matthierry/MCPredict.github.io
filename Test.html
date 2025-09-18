@@ -1,378 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MC PREDICT - MATCH WINNER HISTORICAL PREDICTIONS</title>
+  <meta charset="UTF-8">
+  <title>Match Winner Historical Predictions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- DataTables JS -->
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
-
-    :root{
-      --bg:#2c2c2e;
-      --panel:#3c3c3e;
-      --accent:#f09300;
-      --text:#d3d3d3;
-      --muted:#bdbdbd;
-    }
-
-    html,body{
-      height:100%;
-      margin:0;
-      padding:20px;
-      background:var(--bg);
-      color:var(--text);
-      font-family:'Proxima Nova', Arial, sans-serif;
-      box-sizing:border-box;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:flex-start;
-    }
-
-    .header{ display:flex; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap; text-align:center; }
-    .header img{ width:80px; }
-    .header h1{ font-size:32px; margin:0; text-transform:uppercase; }
-
-    nav{ margin-bottom:10px; text-align:center; }
-    nav a{
-      color:var(--text); text-decoration:none; margin:0 8px; font-size:15px;
-      padding:6px 10px; background:var(--panel); border-radius:5px; display:inline-block;
-    }
-    nav a.active{ background:var(--accent); color:#fff; }
-    nav a:hover{ background:var(--accent); color:#fff; }
-
-    .controls { width:75%; box-sizing:border-box; margin-bottom:10px; display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
-    .date-range { display:flex; gap:8px; align-items:center; }
-    .date-range label { color:var(--muted); font-size:14px; }
-    .date-range input[type="date"]{ padding:6px 8px; border-radius:4px; border:1px solid #444; background:var(--panel); color:var(--text); }
-
-    .table-container { width:75%; box-sizing:border-box; margin:0 auto; background:transparent; }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      background:var(--panel);
+    /* Responsive adjustments */
+    #predictionsTable {
+      width: 100% !important;
       table-layout: auto;
-      font-size:15px;
-    }
-    thead th{
-      background:var(--accent);
-      color:#fff;
-      padding:10px 8px;
-      text-align:center;
-      font-weight:700;
-    }
-    thead input.col-filter {
-      width:100%;
-      box-sizing:border-box;
-      margin-top:6px;
-      padding:6px 6px;
-      border-radius:4px;
-      border:1px solid #4b4b4b;
-      background:#2f2f31;
-      color:var(--text);
-      font-size:13px;
-    }
-    tbody td{
-      padding:10px 8px;
-      color:var(--text);
-      text-align:center;
-      border:none;
-      vertical-align:middle;
-      word-break:normal;         /* avoid mid-word breaks */
-      white-space:normal;        /* allow wrap at spaces */
-      overflow-wrap:normal;      /* avoid breaking inside words */
-    }
-    tbody tr:nth-child(even){ background:var(--bg); }
-    .tick img, .cross img { width:18px; height:18px; vertical-align:middle; }
-
-    /* small screen shrink to fit (Option A) */
-    @media (max-width:900px){
-      .table-container{ width:95%; }
-      table{ font-size:13px; }
-      thead th{ padding:8px 6px; }
-      tbody td{ padding:8px 6px; }
-      .controls{ width:95%; }
-    }
-    @media (max-width:600px){
-      .header img{ width:60px; }
-      .header h1{ font-size:22px; }
-      nav a{ display:block; margin:6px 0; font-size:14px; }
-      .table-container{ width:100%; }
-      table{ font-size:11px; }
-      thead th{ padding:6px 4px; }
-      tbody td{ padding:6px 4px; }
-      .controls{ width:100%; flex-direction:column; align-items:stretch; gap:8px;}
+      border-collapse: collapse;
+      word-wrap: break-word;
+      white-space: normal; /* allow wrap at spaces only */
+      font-size: 14px; /* base font */
     }
 
-    /* DataTables element tweaks */
-    .dataTables_wrapper .dataTables_filter { text-align: right; margin-bottom:8px; }
-    .dataTables_wrapper .dataTables_length { float:left; margin-bottom:8px; }
-    .dataTables_wrapper .dataTables_info { margin-top:8px; color:var(--muted); }
-    .dataTables_wrapper .dataTables_paginate { margin-top:8px; }
+    #predictionsTable th,
+    #predictionsTable td {
+      padding: 6px 4px;
+      text-align: center;
+      vertical-align: middle;
+    }
 
+    @media (max-width: 768px) {
+      #predictionsTable {
+        font-size: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      #predictionsTable {
+        font-size: 11px;
+      }
+      #predictionsTable th,
+      #predictionsTable td {
+        padding: 4px 2px;
+      }
+    }
+
+    .filter-container {
+      margin-bottom: 15px;
+    }
+    .filter-container label {
+      margin-right: 10px;
+    }
   </style>
-
-  <!-- DataTables CSS + jQuery + DataTables JS -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 </head>
 <body>
-  <div class="header">
-    <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
-    <h1>MC PREDICT</h1>
+  <h1>Match Winner Historical Predictions</h1>
+
+  <div class="filter-container">
+    <label for="minDate">From: <input type="date" id="minDate"></label>
+    <label for="maxDate">To: <input type="date" id="maxDate"></label>
   </div>
 
-  <nav>
-    <a href="/index">HOME</a>
-    <a href="/hda-value">MATCH RESULT</a>
-    <a href="/uo-value">UNDER/OVER 2.5</a>
-    <a href="/match-winner-historical" class="active">HISTORICAL PREDICTIONS</a>
-  </nav>
-
-  <div class="controls">
-    <div class="date-range" title="Filter by date range">
-      <label for="minDate">From</label>
-      <input type="date" id="minDate">
-      <label for="maxDate">To</label>
-      <input type="date" id="maxDate">
-    </div>
-    <div class="global-search">
-      <!-- DataTables will add its own search; keeping this placeholder helps layout -->
-    </div>
-  </div>
-
-  <div class="table-container">
-    <table id="predictionsTable" class="display" style="width:100%">
-      <thead id="tableHead"></thead>
-      <tbody id="tableBody"></tbody>
-    </table>
+  <div style="overflow-x: hidden; width: 100%;">
+    <table id="predictionsTable" class="display nowrap"></table>
   </div>
 
   <script>
-    // === Config / column mapping (zero-based) ===
-    // A=0 ... H=7 ... P=15 ... R=17 ... S=18 ... U=20 ... V=21 ... X=23 ... AA=26 ... AC=28 ... AD=29
-    const COL = { H:7, L:11, M:12, N:13, O:14, P:15, S:18, V:21, X:23, AA:26, AC:28, AD:29 };
+    $(document).ready(function () {
+      const sheetUrl =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=0&single=true&output=csv";
 
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=0&single=true&output=csv";
-    const MAX_ROWS = 500;
-    const DEFAULT_PAGE_LENGTH = 100;
+      // Custom date range filter
+      $.fn.dataTable.ext.search.push(function (settings, data) {
+        const min = $('#minDate').val() ? new Date($('#minDate').val()) : null;
+        const max = $('#maxDate').val() ? new Date($('#maxDate').val()) : null;
+        const date = new Date(data[0]); // Column H is index 0 in our mapped data
 
-    // icons on your site (adjust path if needed)
-    const greenTickSrc = "images/green-tick.png";
-    const redCrossSrc = "images/red-cross.png";
-
-    // parsed CSV storage
-    let parsed = [];
-
-    // robust CSV parser (handles quoted fields, escaped quotes)
-    function parseCSV(text){
-      const rows = [];
-      let cur = '', row = [], inQuotes = false;
-      for (let i=0; i<text.length; i++){
-        const ch = text[i];
-        if (ch === '"'){
-          if (inQuotes && text[i+1] === '"'){ cur += '"'; i++; }
-          else { inQuotes = !inQuotes; }
-        } else if (ch === ',' && !inQuotes){
-          row.push(cur);
-          cur = '';
-        } else if ((ch === '\n' || ch === '\r') && !inQuotes){
-          row.push(cur);
-          cur = '';
-          rows.push(row);
-          row = [];
-          if (ch === '\r' && text[i+1] === '\n') i++;
-        } else {
-          cur += ch;
+        if ((min === null || date >= min) &&
+            (max === null || date <= max)) {
+          return true;
         }
-      }
-      if (cur.length>0 || row.length>0){ row.push(cur); rows.push(row); }
-      // normalize & trim
-      return rows.map(r => r.map(c => (c===undefined||c===null) ? '' : c.trim()));
-    }
-
-    // helper to convert DD/MM/YYYY (or D/M/YYYY) to ISO yyyy-mm-dd (for ordering/comparison)
-    function ddmmyyyy_to_iso(ddmmyyyy){
-      if (!ddmmyyyy) return '';
-      const parts = ddmmyyyy.split('/');
-      if (parts.length !== 3) return ''; // unable to parse
-      let [d,m,y] = parts;
-      if (y.length === 2) y = '20'+y;
-      if (d.length === 1) d = '0'+d;
-      if (m.length === 1) m = '0'+m;
-      // basic validation
-      if (isNaN(+d) || isNaN(+m) || isNaN(+y)) return '';
-      return `${y}-${m}-${d}`;
-    }
-
-    // fetch and build
-    async function loadAndBuild(){
-      try {
-        const res = await fetch(csvUrl);
-        if (!res.ok) throw new Error('CSV fetch failed: ' + res.status);
-        const txt = await res.text();
-        parsed = parseCSV(txt);
-        if (!parsed || parsed.length < 1) throw new Error('CSV appears empty or malformed');
-        buildTableFromParsed();
-      } catch(err){
-        console.error(err);
-        document.getElementById('tableBody').innerHTML = `<tr><td colspan="12" style="text-align:center;color:#f88;">Error loading CSV: ${err.message}</td></tr>`;
-      }
-    }
-
-    let dataTable = null;
-
-    function buildTableFromParsed(){
-      // headers are first row
-      const headers = parsed[0];
-      // target columns order: H,L,M,N,O,P,S,V,X,AA,AC,AD
-      const cols = [COL.H, COL.L, COL.M, COL.N, COL.O, COL.P, COL.S, COL.V, COL.X, COL.AA, COL.AC, COL.AD];
-
-      // Build THEAD with two rows: header labels and filter inputs
-      const thead = document.getElementById('tableHead');
-      thead.innerHTML = '';
-
-      const trHead = document.createElement('tr');
-      cols.forEach(ci => {
-        const th = document.createElement('th');
-        th.textContent = headers[ci] || '';
-        trHead.appendChild(th);
+        return false;
       });
-      thead.appendChild(trHead);
 
-      // second header row: column filters
-      const trFilter = document.createElement('tr');
-      cols.forEach((ci, idx) => {
-        const th = document.createElement('th');
-        const input = document.createElement('input');
-        input.className = 'col-filter';
-        input.type = 'text';
-        input.placeholder = 'Filter';
-        // tiny optimization: for currency or date columns, hint type
-        if (ci === COL.H) input.placeholder = 'Filter (date)';
-        if (ci === COL.AC) input.placeholder = 'Filter (currency)';
-        input.dataset.colIndex = idx; // store column index in table
-        th.appendChild(input);
-        trFilter.appendChild(th);
-      });
-      thead.appendChild(trFilter);
+      fetch(sheetUrl)
+        .then(response => response.text())
+        .then(csvText => {
+          const rows = $.csv.toArrays(csvText);
 
-      // Build TBODY rows (limit to MAX_ROWS)
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = '';
-      const dataRows = parsed.slice(1);
-      let added = 0;
-      for (let r=0; r<dataRows.length && added < MAX_ROWS; r++){
-        const row = dataRows[r];
-        if (!row || row.join('').trim() === '') continue; // skip empty
-        const tr = document.createElement('tr');
+          // Extract headers from row 0
+          const headers = [
+            rows[0][7],   // H
+            rows[0][11],  // L
+            rows[0][12],  // M
+            rows[0][13],  // N
+            rows[0][14],  // O
+            rows[0][15],  // P
+            rows[0][18],  // S
+            rows[0][21],  // V
+            rows[0][23],  // X
+            rows[0][26],  // AA
+            rows[0][28],  // AC
+            rows[0][29]   // AD
+          ];
 
-        cols.forEach(ci => {
-          const td = document.createElement('td');
-          let raw = (row[ci] !== undefined && row[ci] !== null) ? row[ci] : '';
+          // Data rows
+          const dataRows = rows.slice(1).map(r => [
+            r[7],   // H Date
+            r[11],  // L
+            r[12],  // M
+            r[13],  // N
+            r[14],  // O
+            r[15],  // P
+            r[18],  // S (fractional odds)
+            r[21],  // V (fractional odds)
+            r[23],  // X
+            r[26],  // AA
+            r[28],  // AC currency
+            r[29] === "1"
+              ? '<img src="/images/green-tick.png" alt="✓" width="16">'
+              : r[29] === "0"
+                ? '<img src="/images/red-cross.png" alt="✗" width="16">'
+                : ""
+          ]);
 
-          // special handling for Date column (H) -> set data-order to ISO for sorting
-          if (ci === COL.H){
-            const iso = ddmmyyyy_to_iso(raw);
-            td.setAttribute('data-order', iso || '');
-            td.textContent = raw;
-          }
-          // AC = currency: set data-order numeric value
-          else if (ci === COL.AC){
-            // parse e.g. £10.00 or 10.00
-            const num = parseFloat(raw.replace(/[^0-9.-]+/g,'')) || 0;
-            td.setAttribute('data-order', num);
-            td.textContent = raw;
-          }
-          // AD = tick/cross; use icons
-          else if (ci === COL.AD){
-            const val = (raw || '').toString().trim();
-            if (val === '1'){
-              const span = document.createElement('span'); span.className = 'tick';
-              const img = document.createElement('img'); img.src = greenTickSrc; img.alt = 'Yes'; img.className='icon';
-              span.appendChild(img);
-              td.appendChild(span);
-            } else if (val === '0'){
-              const span = document.createElement('span'); span.className = 'cross';
-              const img = document.createElement('img'); img.src = redCrossSrc; img.alt = 'No'; img.className='icon';
-              span.appendChild(img);
-              td.appendChild(span);
-            } else {
-              td.textContent = '';
-            }
-          }
-          // all other columns: plain text (no mid-word wrapping)
-          else {
-            td.textContent = raw;
-          }
-          tr.appendChild(td);
+          // Initialize DataTable
+          const table = $('#predictionsTable').DataTable({
+            data: dataRows,
+            columns: headers.map(h => ({ title: h })),
+            pageLength: 100,
+            lengthMenu: [10, 25, 50, 100, 250, 500],
+            order: [[0, 'desc']], // sort by date desc
+            responsive: false,
+            scrollY: "70vh",
+            scrollCollapse: true,
+            paging: true,
+          });
+
+          // Date filter redraw
+          $('#minDate, #maxDate').on('change', function () {
+            table.draw();
+          });
         });
-
-        tbody.appendChild(tr);
-        added++;
-      }
-
-      // Initialize DataTable (or reinitialize)
-      if ($.fn.dataTable.isDataTable('#predictionsTable')){
-        $('#predictionsTable').DataTable().clear().destroy();
-        // remove inline styles DataTables adds
-        $('#predictionsTable').find('thead').attr('style','');
-      }
-
-      dataTable = $('#predictionsTable').DataTable({
-        pageLength: DEFAULT_PAGE_LENGTH,
-        lengthMenu: [10,25,50,100,250,500],
-        order: [],   // no initial ordering
-        deferRender: true,
-        autoWidth: false,
-        columns: cols.map(() => ({ orderable: true })), // allow sorting any column
-        // let DataTables use our data-order attributes for ordering
-        language: { search: "Filter:" },
-        dom: 'lfrtip'
-      });
-
-      // hook column filter inputs
-      $('#predictionsTable thead input.col-filter').off('keyup change').on('keyup change', function(){
-        const colIndex = $(this).data('colIndex');
-        const val = this.value;
-        dataTable.column(colIndex).search(val).draw();
-      });
-
-      // Date range filter using #minDate and #maxDate inputs
-      $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-        // data[] contains the displayed row values; date column is index 0 of our table
-        const min = document.getElementById('minDate').value;
-        const max = document.getElementById('maxDate').value;
-        const dateStr = data[0]; // as shown (DD/MM/YYYY)
-        if ((!min && !max) || !dateStr) return true;
-
-        const iso = ddmmyyyy_to_iso(dateStr);
-        if (!iso) return true; // if can't parse, include
-
-        const rowDate = new Date(iso);
-        if (min){
-          const minDate = new Date(min);
-          if (rowDate < minDate) return false;
-        }
-        if (max){
-          const maxDate = new Date(max);
-          // include rows on the max date as well
-          maxDate.setHours(23,59,59,999);
-          if (rowDate > maxDate) return false;
-        }
-        return true;
-      });
-
-      // redraw on date change
-      document.getElementById('minDate').addEventListener('change', ()=> dataTable.draw());
-      document.getElementById('maxDate').addEventListener('change', ()=> dataTable.draw());
-    }
-
-    // run
-    loadAndBuild();
+    });
   </script>
+
+  <!-- CSV parser plugin for jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.21/jquery.csv.min.js"></script>
 </body>
 </html>
