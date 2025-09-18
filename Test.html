@@ -1,85 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>MC PREDICT - MATCH WINNER HISTORICAL PREDICTIONS</title>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap');
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-      font-family: 'Proxima Nova', Arial, sans-serif;
-      background-color: #2c2c2e;
-      color: #d3d3d3;
-      box-sizing: border-box;
-    }
-    .header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-      text-align: center;
-      flex-wrap: wrap;
-    }
-    .header img { width: 80px; margin-right: 10px; }
-    .header h1 { font-size: 32px; margin: 0; text-transform: uppercase; }
 
-    nav { margin-bottom: 10px; text-align: center; }
-    nav a {
-      color: #d3d3d3; text-decoration: none; margin: 0 10px; font-size: 16px;
-      padding: 5px 10px; background-color: #3c3c3e; border-radius: 5px;
-    }
-    nav a.active { background-color: #f09300; color: white; }
-    nav a:hover { background-color: #f09300; color: white; }
-
-    .filter-title {
-      margin: 15px 0 5px; font-size: 18px; text-align: center; font-weight: bold; color: #f0f0f0;
-    }
-    .filters { display: flex; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
-    .filters label { margin: 0 10px; cursor: pointer; }
-
-    .mobile-info { margin-bottom: 20px; font-size: 16px; text-align: center; color: #f0f0f0; }
-    .loading-message { font-size: 16px; color: #f0f0f0; text-align: center; margin-bottom: 10px; }
-
-    /* Table container (75% on desktop) */
-    .table-container {
-      width: 75%;
-      margin: 0 auto;
-      overflow-x: auto;
-      padding-left: 10px;
-      padding-right: 10px;
-      box-sizing: border-box;
+    :root{
+      --bg:#2c2c2e;
+      --panel:#3c3c3e;
+      --accent:#f09300;
+      --text:#d3d3d3;
+      --muted:#bdbdbd;
     }
 
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-      background-color: #3c3c3e;
-      font-size: 16px;
+    html,body{
+      height:100%;
+      margin:0;
+      padding:20px;
+      background:var(--bg);
+      color:var(--text);
+      font-family:'Proxima Nova', Arial, sans-serif;
+      box-sizing:border-box;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:flex-start;
+    }
+
+    .header{ display:flex; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap; text-align:center; }
+    .header img{ width:80px; }
+    .header h1{ font-size:32px; margin:0; text-transform:uppercase; }
+
+    nav{ margin-bottom:10px; text-align:center; }
+    nav a{
+      color:var(--text); text-decoration:none; margin:0 8px; font-size:15px;
+      padding:6px 10px; background:var(--panel); border-radius:5px; display:inline-block;
+    }
+    nav a.active{ background:var(--accent); color:#fff; }
+    nav a:hover{ background:var(--accent); color:#fff; }
+
+    .filter-title { margin:12px 0 6px; font-size:18px; text-align:center; font-weight:700; color:#f0f0f0; }
+    .filters{ display:flex; gap:14px; align-items:center; justify-content:center; margin-bottom:8px; flex-wrap:wrap; }
+    .filters label{ cursor:pointer; font-size:15px; color:var(--muted); }
+    .mobile-info{ margin-bottom:12px; font-size:14px; text-align:center; color:#f0f0f0; }
+    .loading-message{ font-size:15px; text-align:center; color:#f0f0f0; margin-bottom:10px; }
+
+    .table-container{
+      width:75%;
+      box-sizing:border-box;
+      margin:0 auto;
+      background:transparent;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:var(--panel);
       table-layout: auto;
+      font-size:15px;
     }
-    th, td { padding: 8px; text-align: center; border: none; }
-    th { background-color: #f09300; color: white; }
-    tr:nth-child(even) { background-color: #2c2c2e; }
-    td img { width: 18px; height: 18px; }
+    thead th{
+      background:var(--accent);
+      color:#fff;
+      padding:10px 8px;
+      text-align:center;
+      font-weight:700;
+    }
+    tbody td{
+      padding:10px 8px;
+      color:var(--text);
+      text-align:center;
+      border:none;
+      vertical-align:middle;
+      word-break:break-word;     /* allow wrapping so table shrinks */
+      white-space:normal;        /* allow wrap */
+    }
+    tbody tr:nth-child(even){ background:var(--bg); }
+    .tick{ color:#4CAF50; font-weight:700; }
+    .cross{ color:#F44336; font-weight:700; }
 
-    /* Mobile adjustments */
-    @media (max-width: 600px) {
-      .header img { width: 60px; }
-      .header h1 { font-size: 22px; }
-      nav a { display: block; margin: 5px 0; font-size: 14px; }
-      body, html { margin: 0; padding: 0; overflow-x: hidden; }
-      .table-container { width: 100%; }
-      table { font-size: 10px; }
-      th, td { padding: 2px; }
+    /* Small screen: shrink font & padding to avoid horizontal scroll */
+    @media (max-width:900px){
+      .table-container{ width:95%; }
+      table{ font-size:13px; }
+      thead th{ padding:8px 6px; }
+      tbody td{ padding:8px 6px; }
     }
+    @media (max-width:600px){
+      .header img{ width:60px; }
+      .header h1{ font-size:22px; }
+      nav a{ display:block; margin:6px 0; font-size:14px; }
+      .table-container{ width:100%; }
+      table{ font-size:11px; }
+      thead th{ padding:6px 4px; }
+      tbody td{ padding:6px 4px; }
+    }
+
+    /* DataTables default elements placement tweaks so they blend into your layout */
+    .dataTables_wrapper .dataTables_filter { text-align: right; margin-bottom:8px; }
+    .dataTables_wrapper .dataTables_length { float:left; margin-bottom:8px; }
+    .dataTables_wrapper .dataTables_info { margin-top:8px; color:var(--muted); }
+    .dataTables_wrapper .dataTables_paginate { margin-top:8px; }
+
+    /* Make sure icons used for ticks are vertically centered */
+    td img.icon { width:18px; height:18px; vertical-align:middle; }
   </style>
+
+  <!-- DataTables CSS + jQuery + DataTables JS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
 </head>
 <body>
   <div class="header">
@@ -95,7 +129,7 @@
   </nav>
 
   <div class="filter-title">Odds Format</div>
-  <div class="filters">
+  <div class="filters" role="radiogroup" aria-label="Odds Format">
     <label><input type="radio" name="oddsFormat" value="fractional" checked> Fractional</label>
     <label><input type="radio" name="oddsFormat" value="decimal"> Decimal</label>
   </div>
@@ -103,75 +137,177 @@
   <div class="mobile-info">On mobile, the table resizes automatically to fit your screen</div>
   <div class="loading-message" id="loadingMessage">Loading historical predictions...</div>
 
-  <div class="table-container" id="sheet-data"></div>
+  <div class="table-container">
+    <table id="predictionsTable" class="display" style="width:100%">
+      <thead><tr id="table-header"></tr></thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
 
   <script>
-    let allRows = [];
-    let headerRow = [];
-    let dataRows = [];
-    let oddsFormat = "fractional";
+    // CSV URL
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=0&single=true&output=csv";
 
-    function csvToRows(text) {
-      return text.trim().split("\n").map(r => r.split(","));
+    // Column mapping (zero-based): A=0 ... H=7 ... P=15 ... R=17 ... S=18 ... U=20 ... V=21 ... X=23 ... AA=26 ... AC=28 ... AD=29
+    const COL = {
+      H:7, L:11, M:12, N:13, O:14, P:15, R:17, S:18, U:20, V:21, X:23, AA:26, AC:28, AD:29
+    };
+
+    let parsedRows = [];    // full CSV parsed
+    let dataTable = null;
+    const MAX_ROWS = 500;
+
+    // Robust CSV parser that handles quoted fields & escaped quotes
+    function parseCSV(text){
+      const rows = [];
+      let cur = '';
+      let row = [];
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++){
+        const ch = text[i];
+        if (ch === '"') {
+          if (inQuotes && text[i+1] === '"') { cur += '"'; i++; }
+          else { inQuotes = !inQuotes; }
+        } else if (ch === ',' && !inQuotes){
+          row.push(cur);
+          cur = '';
+        } else if ((ch === '\n' || ch === '\r') && !inQuotes){
+          // end-of-row (handle CRLF)
+          row.push(cur);
+          cur = '';
+          // push row only if it's not a single empty row at end
+          rows.push(row);
+          row = [];
+          if (ch === '\r' && text[i+1] === '\n') i++;
+        } else {
+          cur += ch;
+        }
+      }
+      // final cell/row
+      if (cur.length > 0 || row.length > 0) {
+        row.push(cur);
+        rows.push(row);
+      }
+      // normalize: trim cells
+      return rows.map(r => r.map(c => (c === undefined || c === null) ? '' : c.trim()));
     }
 
-    async function loadCSV() {
-      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=0&single=true&output=csv";
-      const response = await fetch(url);
-      const text = await response.text();
-      allRows = csvToRows(text);
-
-      // Row 1 = headers
-      headerRow = allRows[0] || [];
-      dataRows = allRows.slice(1);
-
-      renderTable();
-      document.getElementById("loadingMessage").style.display = "none";
+    async function loadAndBuild(){
+      try {
+        const res = await fetch(csvUrl);
+        if (!res.ok) throw new Error('CSV fetch failed: ' + res.status);
+        const txt = await res.text();
+        parsedRows = parseCSV(txt);
+        if (!parsedRows || parsedRows.length === 0){
+          document.getElementById('loadingMessage').textContent = "CSV is empty or couldn't be parsed.";
+          return;
+        }
+        // initial build (fractional default)
+        buildTable('fractional');
+        document.getElementById('loadingMessage').style.display = 'none';
+      } catch(err){
+        console.error(err);
+        document.getElementById('loadingMessage').textContent = "Error loading CSV: " + err.message;
+      }
     }
 
-    function renderTable() {
-      const container = document.getElementById("sheet-data");
-      const maxRows = 500;
+    function buildTable(mode){
+      // mode: 'fractional' or 'decimal'
+      const header = parsedRows[0] || [];
+      const rows = parsedRows.slice(1);
 
-      // Column indexes (A=0)
-      const colIndexes = oddsFormat === "fractional"
-        ? [7, 11, 12, 13, 14, 18, 21, 23, 26, 28, 29] // H,L,M,N,O,S,V,X,AA,AC,AD
-        : [7, 11, 12, 13, 14, 15, 20, 23, 26, 28, 29]; // H,L,M,N,O,P,U,X,AA,AC,AD
+      // Determine columns to show in order (per your latest spec)
+      // Always include: H, L, M, N, O, P
+      // Toggle picks: R (decimal) or S (fractional)
+      // Toggle picks: U (decimal) or V (fractional)
+      // Then X, AA, AC, AD (tick/cross)
+      const toggleR = (mode === 'decimal') ? COL.R : COL.S;
+      const toggleU = (mode === 'decimal') ? COL.U : COL.V;
 
-      const colHeaders = colIndexes.map(i => headerRow[i] || "");
+      const cols = [COL.H, COL.L, COL.M, COL.N, COL.O, COL.P, toggleR, toggleU, COL.X, COL.AA, COL.AC, COL.AD];
 
-      let html = "<table><tr>";
-      colHeaders.forEach(h => { html += `<th>${h}</th>`; });
-      html += "</tr>";
-
-      dataRows.slice(0, maxRows).forEach(row => {
-        html += "<tr>";
-        colIndexes.forEach((i, idx) => {
-          let cell = row[i] || "";
-          if (idx === colIndexes.length - 1) { // AD column tick/cross
-            if (cell.trim() === "1") {
-              cell = '<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Yes_Check_Circle.svg/20px-Yes_Check_Circle.svg.png" alt="✔">';
-            } else if (cell.trim() === "0") {
-              cell = '<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Error.svg/20px-Error.svg.png" alt="✘">';
-            }
-          }
-          html += `<td>${cell}</td>`;
-        });
-        html += "</tr>";
+      // Build header row ensuring exact number of th elements
+      const headerRowEl = document.getElementById('table-header');
+      headerRowEl.innerHTML = '';
+      cols.forEach(ci => {
+        const label = header[ci] || ''; // safe fetch
+        const th = document.createElement('th');
+        th.textContent = label;
+        headerRowEl.appendChild(th);
       });
 
-      html += "</table>";
-      container.innerHTML = html;
+      // Build body with up to MAX_ROWS rows
+      const tbodyEl = document.getElementById('table-body');
+      tbodyEl.innerHTML = '';
+      let added = 0;
+      for (let r = 0; r < rows.length && added < MAX_ROWS; r++){
+        const row = rows[r];
+        // skip completely empty rows
+        if (!row || row.join('').trim() === '') continue;
+
+        const tr = document.createElement('tr');
+        cols.forEach((ci, idx) => {
+          let cellVal = (row[ci] !== undefined && row[ci] !== null) ? row[ci] : '';
+          const td = document.createElement('td');
+
+          // AD column index is last in cols array; show tick/cross if present
+          if (ci === COL.AD) {
+            const v = (cellVal || '').toString().trim();
+            if (v === '1') {
+              td.innerHTML = "<span class='tick' aria-label='Yes'>&#10004;</span>";
+            } else if (v === '0') {
+              td.innerHTML = "<span class='cross' aria-label='No'>&#10008;</span>";
+            } else {
+              td.textContent = ''; // leave blank if not 1/0
+            }
+          } else {
+            td.textContent = cellVal;
+          }
+          tr.appendChild(td);
+        });
+        tbodyEl.appendChild(tr);
+        added++;
+      }
+
+      // Initialize or re-draw DataTable
+      if ($.fn.dataTable.isDataTable('#predictionsTable')) {
+        $('#predictionsTable').DataTable().clear().destroy();
+        // remove leftover inline styles added by DataTables to table header/footer
+        $('#predictionsTable').find('thead').attr('style', '');
+      }
+
+      dataTable = $('#predictionsTable').DataTable({
+        pageLength: 25,
+        lengthMenu: [10, 25, 50, 100, 250, 500],
+        order: [],
+        deferRender: true,
+        autoWidth: false,
+        // avoid forcing horizontal scroll; rely on responsive CSS/wrapping above
+        // if you prefer DataTables responsive child rows, we could add that extension later
+        language: {
+          search: "Filter:",
+          lengthMenu: "Show _MENU_",
+          info: "Showing _START_ to _END_ of _TOTAL_ entries"
+        }
+      });
     }
 
-    document.querySelectorAll("input[name='oddsFormat']").forEach(input => {
-      input.addEventListener("change", (e) => {
-        oddsFormat = e.target.value;
-        renderTable();
+    // Toggle handlers
+    document.querySelectorAll('input[name="oddsFormat"]').forEach(el=>{
+      el.addEventListener('change', (e)=>{
+        const mode = e.target.value === 'decimal' ? 'decimal' : 'fractional';
+        // show temporary message for large datasets
+        document.getElementById('loadingMessage').style.display = 'block';
+        document.getElementById('loadingMessage').textContent = 'Rebuilding table...';
+        setTimeout(()=>{
+          buildTable(mode);
+          document.getElementById('loadingMessage').style.display = 'none';
+        }, 50);
       });
     });
 
-    loadCSV();
+    // initial load
+    loadAndBuild();
   </script>
 </body>
 </html>
