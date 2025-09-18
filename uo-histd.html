@@ -36,12 +36,49 @@
     .header img { width: 80px; }
     .header h1 { margin: 0; text-transform: uppercase; font-size: 32px; }
 
-    nav { margin-bottom: 10px; text-align: center; }
-    nav a {
-      color: #d3d3d3; text-decoration: none; margin: 0 8px; font-size: 15px;
-      padding: 6px 10px; background-color: #3c3c3e; border-radius: 5px; display: inline-block;
+    /* Updated nav + subnav styling */
+    nav {
+      margin-bottom: 10px;
+      text-align: center;
     }
-    nav a.active, nav a:hover { background-color: #f09300; color: #fff; }
+    nav a {
+      color: #d3d3d3;
+      text-decoration: none;
+      margin: 0 10px;
+      font-size: 16px;
+      padding: 5px 10px;
+      background-color: #3c3c3e;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    nav a.active, .sub-nav a.active {
+      background-color: #f09300;
+      color: white;
+    }
+    nav a:hover {
+      background-color: #f09300;
+      color: white;
+    }
+
+    .sub-nav {
+      margin-top: 10px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .sub-nav a {
+      color: #d3d3d3;
+      text-decoration: none;
+      margin: 0 10px;
+      font-size: 16px;
+      padding: 5px 10px;
+      background-color: #3c3c3e;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    .sub-nav a:hover {
+      background-color: #f09300;
+      color: white;
+    }
 
     .table-container {
       width: 90%;
@@ -57,7 +94,7 @@
       width: 100% !important;
       border-collapse: collapse;
       background: #3c3c3e;
-      table-layout: auto; /* let columns shrink to fit */
+      table-layout: auto;
       font-size: 15px;
     }
 
@@ -70,7 +107,7 @@
       top: 0;
       z-index: 2;
       padding: 10px 8px !important;
-      white-space: normal; /* wrap only at spaces */
+      white-space: normal;
     }
 
     tbody td {
@@ -79,12 +116,12 @@
       padding: 10px 8px;
       border: none;
       color: #d3d3d3;
-      white-space: normal;     /* allow wrap at spaces */
-      word-break: normal;      /* never break inside words */
-      overflow-wrap: normal;   /* never break inside words */
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: normal;
     }
 
-    /* Prevent wrapping in P/L column (AC = 11th col in table) */
+    /* Prevent wrapping in P/L column */
     td:nth-child(11) {
       white-space: nowrap !important;
     }
@@ -95,7 +132,7 @@
     .fa-circle-check { color: #4CAF50; }
     .fa-circle-xmark { color: #e74c3c; }
 
-    /* Mobile tweaks: shrink without sideways scroll */
+    /* Mobile tweaks */
     @media (max-width: 900px) {
       .table-container { width: 95%; }
       table.dataTable { font-size: 13px; }
@@ -104,7 +141,7 @@
     @media (max-width: 600px) {
       .header img { width: 60px; }
       .header h1 { font-size: 22px; }
-      nav a { display: block; margin: 6px 0; font-size: 14px; }
+      nav a, .sub-nav a { display: block; margin: 6px 0; font-size: 16px; }
       .table-container { width: 100%; }
       table.dataTable { font-size: 11px; }
       thead th, tbody td { padding: 6px 4px; }
@@ -123,7 +160,14 @@
     <a href="/uo-value">UNDER/OVER 2.5</a>
     <a href="/historical" class="active">HISTORICAL DATA</a>
   </nav>
+  <div class="sub-nav">
+    <a href="/uo-histf">FRACTIONAL ODDS</a>
+    <a href="/uo-histd" class="active">DECIMAL ODDS</a>
+  </div>
 
+  <p>
+    NOTE: The returns are calculated on decimal odds and may not perfectly align to the fractional odds represented below. You can view the actual decimal odds using the options above.
+  </p>
   <div class="table-container">
     <table id="predictionsTable" class="display">
       <thead>
@@ -149,7 +193,6 @@
   <script>
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1055864228&single=true&output=csv";
 
-    // Index mapping (A=0)
     const IDX = { H:7, L:11, M:12, N:13, O:14, P:15, S:17, V:20, X:23, AA:27, AC:28, AD:29 };
 
     function ddmmyyyyToISO(str){
