@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MC PREDICT - UNDER/OVER 2.5 HISTORICAL PREDICTIONS</title>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- PapaParse -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <!-- DataTables -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+  <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+  <style>
+    body {
+      background-color: #2c2c2e;
+      color: #d3d3d3;
+      font-family: 'Proxima Nova', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; text-align: center; }
+    .header img { width: 80px; }
+    .header h1 { margin: 0; text-transform: uppercase; font-size: 32px; }
+
+    nav { margin-bottom: 10px; text-align: center; }
+    nav a {
+      color: #d3d3d3; text-decoration: none; margin: 0 8px; font-size: 15px;
+      padding: 6px 10px; background-color: #3c3c3e; border-radius: 5px; display: inline-block;
+    }
+    nav a.active, nav a:hover { background-color: #f09300; color: #fff; }
+
+    .table-container {
+      width: 90%;
+      max-width: 1300px;
+      margin: 0 auto;
+      background: #3c3c3e;
+      border-radius: 8px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    table.dataTable {
+      width: 100% !important;
+      border-collapse: collapse;
+      background: #3c3c3e;
+      table-layout: auto; /* let columns shrink to fit */
+      font-size: 15px;
+    }
+
+    thead th {
+      background: #f09300 !important;
+      color: #fff !important;
+      font-weight: 700;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 10px 8px !important;
+      white-space: normal; /* wrap only at spaces */
+    }
+
+    tbody td {
+      text-align: center;
+      vertical-align: middle;
+      padding: 10px 8px;
+      border: none;
+      color: #d3d3d3;
+      white-space: normal;     /* allow wrap at spaces */
+      word-break: normal;      /* never break inside words */
+      overflow-wrap: normal;   /* never break inside words */
+    }
+
+    /* Prevent wrapping in P/L column (AC = 11th col in table) */
+    td:nth-child(11) {
+      white-space: nowrap !important;
+    }
+
+    tbody tr:nth-child(even){ background: #2c2c2e; }
+    tbody tr:hover { background: #2f2f31; }
+
+    .fa-circle-check { color: #4CAF50; }
+    .fa-circle-xmark { color: #e74c3c; }
+
+    /* Mobile tweaks: shrink without sideways scroll */
+    @media (max-width: 900px) {
+      .table-container { width: 95%; }
+      table.dataTable { font-size: 13px; }
+      thead th, tbody td { padding: 8px 6px; }
+    }
+    @media (max-width: 600px) {
+      .header img { width: 60px; }
+      .header h1 { font-size: 22px; }
+      nav a { display: block; margin: 6px 0; font-size: 14px; }
+      .table-container { width: 100%; }
+      table.dataTable { font-size: 11px; }
+      thead th, tbody td { padding: 6px 4px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header / Nav -->
+  <div class="header">
+    <img src="images/mcpredcirclebg.png" alt="MC Predict Logo" />
+    <h1>MC PREDICT</h1>
+  </div>
+  <nav>
+    <a href="/index">HOME</a>
+    <a href="/hda-value">MATCH RESULT</a>
+    <a href="/uo-value">UNDER/OVER 2.5</a>
+    <a href="/historical" class="active">HISTORICAL DATA</a>
+  </nav>
+
+  <div class="table-container">
+    <table id="predictionsTable" class="display">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>League</th>
+          <th>Home</th>
+          <th>V</th>
+          <th>Away</th>
+          <th>Prediction</th>
+          <th>Bookmaker Price</th>
+          <th>Model Price</th>
+          <th>Value</th>
+          <th>Result</th>
+          <th>P/L</th>
+          <th>Correct?</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1055864228&single=true&output=csv";
+
+    // Index mapping (A=0)
+    const IDX = { H:7, L:11, M:12, N:13, O:14, P:15, S:17, V:20, X:23, AA:27, AC:28, AD:29 };
+
+    function ddmmyyyyToISO(str){
+      if (!str) return "";
+      const parts = str.split("/");
+      if (parts.length !== 3) return "";
+      let [d, m, y] = parts;
+      if (y.length === 2) y = "20" + y;
+      return `${y.padStart(4,"0")}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`;
+    }
+
+    function parseCurrencyToNumber(text){
+      if (!text) return 0;
+      const s = String(text).trim();
+      const sign = s.includes("-") ? -1 : 1;
+      const num = parseFloat(s.replace(/[^0-9.]/g, ""));
+      return (isNaN(num) ? 0 : num) * sign;
+    }
+
+    $(document).ready(function(){
+      Papa.parse(CSV_URL, {
+        download: true,
+        header: false,
+        skipEmptyLines: true,
+        complete: function(res){
+          const rows = (res.data || []).filter(r => Array.isArray(r) && r.length > 0);
+          const data = [];
+
+          for (let i = 1; i < rows.length; i++){
+            const r = rows[i];
+            const dateDisp = r[IDX.H] || "";
+            const dateSort = ddmmyyyyToISO(dateDisp);
+
+            const plDisp = r[IDX.AC] || "";
+            const plSort = parseCurrencyToNumber(plDisp);
+
+            const correct =
+              r[IDX.AD] === "1" ? '<i class="fa-solid fa-circle-check" title="Correct"></i>' :
+              r[IDX.AD] === "0" ? '<i class="fa-solid fa-circle-xmark" title="Incorrect"></i>' : "";
+
+            data.push([
+              { display: dateDisp, sort: dateSort },
+              r[IDX.L] || "",
+              r[IDX.M] || "",
+              r[IDX.N] || "",
+              r[IDX.O] || "",
+              r[IDX.P] || "",
+              r[IDX.S] || "",
+              r[IDX.V] || "",
+              r[IDX.X] || "",
+              r[IDX.AA] || "",
+              { display: plDisp, sort: plSort },
+              correct
+            ]);
+          }
+
+          $('#predictionsTable').DataTable({
+            data,
+            pageLength: 100,
+            lengthMenu: [10, 25, 50, 100, 250, 500],
+            order: [[0, 'desc']],
+            autoWidth: false,
+            deferRender: true,
+            columns: [
+              { title: 'Date', render: { _: 'display', sort: 'sort' } },
+              { title: 'League' },
+              { title: 'Home' },
+              { title: 'V' },
+              { title: 'Away' },
+              { title: 'Prediction' },
+              { title: 'Bookmaker Price' },
+              { title: 'Model Price' },
+              { title: 'Value' },
+              { title: 'Result' },
+              { title: 'P/L', render: { _: 'display', sort: 'sort' } },
+              { title: 'Correct?' }
+            ]
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
