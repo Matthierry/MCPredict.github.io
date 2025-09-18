@@ -84,6 +84,11 @@
       overflow-wrap: normal;   /* never break inside words */
     }
 
+    /* Prevent wrapping in P/L column (AC = 11th col in table) */
+    td:nth-child(11) {
+      white-space: nowrap !important;
+    }
+
     tbody tr:nth-child(even){ background: #2c2c2e; }
     tbody tr:hover { background: #2f2f31; }
 
@@ -145,11 +150,8 @@
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=0&single=true&output=csv";
 
     // Index mapping (A=0)
-    const IDX = {
-      H:7, L:11, M:12, N:13, O:14, P:15, S:18, V:21, X:23, AA:26, AC:28, AD:29
-    };
+    const IDX = { H:7, L:11, M:12, N:13, O:14, P:15, S:18, V:21, X:23, AA:26, AC:28, AD:29 };
 
-    // Convert "DD/MM/YYYY" -> "YYYY-MM-DD" for proper sorting
     function ddmmyyyyToISO(str){
       if (!str) return "";
       const parts = str.split("/");
@@ -159,13 +161,10 @@
       return `${y.padStart(4,"0")}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`;
     }
 
-    // Robust currency parse: handles "£10.00", "-£10.00", "£-10.00", "-10.00"
     function parseCurrencyToNumber(text){
       if (!text) return 0;
       const s = String(text).trim();
-      // keep sign if appears anywhere
       const sign = s.includes("-") ? -1 : 1;
-      // strip everything except digits and dot
       const num = parseFloat(s.replace(/[^0-9.]/g, ""));
       return (isNaN(num) ? 0 : num) * sign;
     }
@@ -173,22 +172,18 @@
     $(document).ready(function(){
       Papa.parse(CSV_URL, {
         download: true,
-        header: false,      // we will index by column numbers
+        header: false,
         skipEmptyLines: true,
         complete: function(res){
           const rows = (res.data || []).filter(r => Array.isArray(r) && r.length > 0);
-
-          // Build DataTables rows with orthogonal data for Date & P/L:
-          // Use objects {display: ..., sort: ...} so sorting uses the right value
           const data = [];
 
-          for (let i = 1; i < rows.length; i++){ // skip header row at index 0
+          for (let i = 1; i < rows.length; i++){
             const r = rows[i];
-
             const dateDisp = r[IDX.H] || "";
             const dateSort = ddmmyyyyToISO(dateDisp);
 
-            const plDisp = r[IDX.AC] || ""; // show exactly as in sheet (may be -£10.00)
+            const plDisp = r[IDX.AC] || "";
             const plSort = parseCurrencyToNumber(plDisp);
 
             const correct =
@@ -196,7 +191,7 @@
               r[IDX.AD] === "0" ? '<i class="fa-solid fa-circle-xmark" title="Incorrect"></i>' : "";
 
             data.push([
-              { display: dateDisp, sort: dateSort }, // Date
+              { display: dateDisp, sort: dateSort },
               r[IDX.L] || "",
               r[IDX.M] || "",
               r[IDX.N] || "",
@@ -206,7 +201,7 @@
               r[IDX.V] || "",
               r[IDX.X] || "",
               r[IDX.AA] || "",
-              { display: plDisp, sort: plSort },     // P/L
+              { display: plDisp, sort: plSort },
               correct
             ]);
           }
@@ -215,11 +210,11 @@
             data,
             pageLength: 100,
             lengthMenu: [10, 25, 50, 100, 250, 500],
-            order: [[0, 'desc']], // newest dates first
+            order: [[0, 'desc']],
             autoWidth: false,
             deferRender: true,
             columns: [
-              { title: 'Date', render: { _: 'display', sort: 'sort' } }, // uses ISO for sort
+              { title: 'Date', render: { _: 'display', sort: 'sort' } },
               { title: 'League' },
               { title: 'Home' },
               { title: 'V' },
@@ -229,7 +224,7 @@
               { title: 'Model Price' },
               { title: 'Value' },
               { title: 'Result' },
-              { title: 'P/L', render: { _: 'display', sort: 'sort' } },   // numeric sort, display unchanged
+              { title: 'P/L', render: { _: 'display', sort: 'sort' } },
               { title: 'Correct?' }
             ]
           });
