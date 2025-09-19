@@ -17,136 +17,9 @@
 
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
-
-  <style>
-    body {
-      background-color: #2c2c2e;
-      color: #d3d3d3;
-      font-family: 'Proxima Nova', Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      box-sizing: border-box;
-    }
-
-    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; text-align: center; }
-    .header img { width: 80px; }
-    .header h1 { margin: 0; text-transform: uppercase; font-size: 32px; }
-
-    /* Updated nav + subnav styling */
-    nav {
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    nav a {
-      color: #d3d3d3;
-      text-decoration: none;
-      margin: 0 10px;
-      font-size: 16px;
-      padding: 5px 10px;
-      background-color: #3c3c3e;
-      border-radius: 5px;
-      transition: background-color 0.3s ease;
-    }
-    nav a.active, .sub-nav a.active {
-      background-color: #f09300;
-      color: white;
-    }
-    nav a:hover {
-      background-color: #f09300;
-      color: white;
-    }
-
-    .sub-nav {
-      margin-top: 10px;
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .sub-nav a {
-      color: #d3d3d3;
-      text-decoration: none;
-      margin: 0 10px;
-      font-size: 16px;
-      padding: 5px 10px;
-      background-color: #3c3c3e;
-      border-radius: 5px;
-      transition: background-color 0.3s ease;
-    }
-    .sub-nav a:hover {
-      background-color: #f09300;
-      color: white;
-    }
-
-    .table-container {
-      width: 90%;
-      max-width: 1300px;
-      margin: 0 auto;
-      background: #3c3c3e;
-      border-radius: 8px;
-      padding: 10px;
-      box-sizing: border-box;
-    }
-
-    table.dataTable {
-      width: 100% !important;
-      border-collapse: collapse;
-      background: #3c3c3e;
-      table-layout: auto;
-      font-size: 15px;
-    }
-
-    thead th {
-      background: #f09300 !important;
-      color: #fff !important;
-      font-weight: 700;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      padding: 10px 8px !important;
-      white-space: normal;
-    }
-
-    tbody td {
-      text-align: center;
-      vertical-align: middle;
-      padding: 10px 8px;
-      border: none;
-      color: #d3d3d3;
-      white-space: normal;
-      word-break: normal;
-      overflow-wrap: normal;
-    }
-
-    /* Prevent wrapping in P/L column */
-    td:nth-child(11) {
-      white-space: nowrap !important;
-    }
-
-    tbody tr:nth-child(even){ background: #2c2c2e; }
-    tbody tr:hover { background: #2f2f31; }
-
-    .fa-circle-check { color: #4CAF50; }
-    .fa-circle-xmark { color: #e74c3c; }
-
-    /* Mobile tweaks */
-    @media (max-width: 900px) {
-      .table-container { width: 95%; }
-      table.dataTable { font-size: 13px; }
-      thead th, tbody td { padding: 8px 6px; }
-    }
-    @media (max-width: 600px) {
-      .header img { width: 60px; }
-      .header h1 { font-size: 22px; }
-      nav a, .sub-nav a { display: block; margin: 6px 0; font-size: 16px; }
-      .table-container { width: 100%; }
-      table.dataTable { font-size: 11px; }
-      thead th, tbody td { padding: 6px 4px; }
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- Header / Nav -->
@@ -169,7 +42,7 @@
   <p>
     NOTE: The returns are calculated on decimal odds and may not perfectly align to the fractional odds represented below. You can view the actual decimal odds using the options above.
   </p>
-  <div class="table-container">
+  <div class="table-container data-table">
     <table id="predictionsTable" class="display">
       <thead>
         <tr>
