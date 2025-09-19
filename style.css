@@ -12,7 +12,7 @@
 }
 
 /* ---------------------------
-   Global reset
+   Global reset + Scroll fix
 --------------------------- */
 *,
 *::before,
@@ -20,19 +20,21 @@
   box-sizing: border-box;
 }
 
+/* Allow the document to grow and scroll vertically */
 html,
 body {
   margin: 0;
   padding: 0;
-  /* removed height:100% which can prevent page scroll */
+  height: auto;              /* was 100%; can lock viewport */
+  min-height: 100%;          /* ensure full document height */
+  overflow-y: auto;          /* vertical page scrolling */
+  overflow-x: hidden;        /* no sideways page scroll */
 }
 
+/* Use block to avoid flex/overflow quirks */
 body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 100vh;     /* allow page to grow and scroll */
+  display: block;            /* was flex */
+  min-height: 100vh;         /* keep background full height */
   padding: 20px;
   background: var(--bg);
   color: var(--text);
@@ -298,7 +300,8 @@ button:disabled {
   margin: 0 auto;
   padding: 0 10px;
   box-sizing: border-box;
-  overflow-x: auto;   /* horizontal scroll if table is wider; vertical page scroll remains */
+  overflow-x: auto;           /* horizontal scroll if table is wider */
+  /* no overflow-y here; page handles vertical scroll */
 }
 
 .table-container--narrow {
@@ -506,12 +509,8 @@ body.subscribe {
 }
 
 @keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 body.subscribe iframe {
@@ -553,15 +552,9 @@ body.cheltenham iframe {
 }
 
 @keyframes gallop {
-  0% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(10px);
-  }
-  100% {
-    transform: translateX(0);
-  }
+  0%   { transform: translateX(0); }
+  50%  { transform: translateX(10px); }
+  100% { transform: translateX(0); }
 }
 
 /* ---------------------------
@@ -595,13 +588,8 @@ body.cheltenham iframe {
 }
 
 @media (max-width: 600px) {
-  .header img {
-    width: 60px;
-  }
-
-  .header h1 {
-    font-size: 24px;
-  }
+  .header img { width: 60px; }
+  .header h1 { font-size: 24px; }
 
   nav a,
   .sub-nav a {
@@ -610,13 +598,8 @@ body.cheltenham iframe {
     font-size: 16px;
   }
 
-  .hero h2 {
-    font-size: 22px;
-  }
-
-  .hero p {
-    font-size: 16px;
-  }
+  .hero h2 { font-size: 22px; }
+  .hero p  { font-size: 16px; }
 
   .table-container {
     width: 100%;
@@ -624,22 +607,12 @@ body.cheltenham iframe {
     padding-right: 0;
   }
 
-  table {
-    font-size: 9px;
-  }
+  table { font-size: 9px; }
 
-  th,
-  td {
-    padding: 2px;
-  }
+  th, td { padding: 2px; }
 
-  .faq h3 {
-    font-size: 18px;
-  }
-
-  .faq p {
-    font-size: 15px;
-  }
+  .faq h3 { font-size: 18px; }
+  .faq p  { font-size: 15px; }
 }
 
 @media (max-width: 600px) {
