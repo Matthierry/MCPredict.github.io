@@ -297,8 +297,8 @@ button:disabled {
   width: 75%;
   margin: 0 auto;
   padding: 0 10px;
-  overflow: hidden;
   box-sizing: border-box;
+  overflow-x: auto;   /* allows horizontal scroll if table is wider */
 }
 
 .table-container--narrow {
