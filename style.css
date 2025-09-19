@@ -22,9 +22,9 @@
 
 html,
 body {
-  height: 100%;
   margin: 0;
   padding: 0;
+  /* removed height:100% which can prevent page scroll */
 }
 
 body {
@@ -32,7 +32,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  min-height: 100vh;
+  min-height: 100vh;     /* allow page to grow and scroll */
   padding: 20px;
   background: var(--bg);
   color: var(--text);
@@ -298,7 +298,7 @@ button:disabled {
   margin: 0 auto;
   padding: 0 10px;
   box-sizing: border-box;
-  overflow-x: auto;   /* allows horizontal scroll if table is wider */
+  overflow-x: auto;   /* horizontal scroll if table is wider; vertical page scroll remains */
 }
 
 .table-container--narrow {
