@@ -147,25 +147,6 @@
 
     loadCSV();
   </script>
-<style>
-  /* ===== vertical scroll fix (page-level) ===== */
-  html, body {
-    height: auto !important;
-    min-height: 100% !important;
-    overflow-y: auto !important;   /* allow vertical page scroll */
-    overflow-x: hidden;            /* avoid sideways page scroll */
-  }
-
-  /* Using flex on body can interact weirdly with overflow on some browsers. */
-  body { display: block !important; }
-
-  /* Make sure the table container never clips vertically. */
-  .table-container {
-    max-height: none !important;
-    overflow-y: visible !important;
-    overflow-x: auto;              /* keep horizontal scroll if table is wide */
-  }
-</style>
 
 </body>
 </html>
