@@ -27,7 +27,7 @@
 
     <script>
         async function loadCSV() {
-            const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pubhtml?gid=1680844079&single=true";
+            const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1680844079&single=true&output=csv";
             const response = await fetch(url);
             const text = await response.text();
             const rows = text.trim().split("\n").map(r => r.split(","));
