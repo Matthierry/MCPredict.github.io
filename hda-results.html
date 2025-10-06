@@ -12,7 +12,6 @@
 
   <style>
     /* Page-scoped helpers that won’t clash with your site-wide style.css */
-
     .mobile-info {
       max-width: 1100px;
       margin: 8px auto 0;
@@ -49,16 +48,18 @@
       border-radius: 6px;
       font-weight: 700;
       letter-spacing: 0.2px;
+      /* Desktop: slightly smaller title */
+      font-size: 16px;
     }
 
     /* Table styling: static, force wrap, responsive */
     .value-table {
       width: 100%;
       border-collapse: collapse;
-      table-layout: fixed;
+      table-layout: fixed;           /* enables wrapping to work consistently */
       background: var(--panel, #3c3c3e);
       border-radius: 10px;
-      overflow: hidden;
+      overflow: hidden;              /* keeps rounded corners with thead background */
       margin-bottom: 28px;
     }
     .value-table thead th {
@@ -68,18 +69,22 @@
       text-align: left;
       padding: 10px 12px;
       border-bottom: 1px solid #4a4a4a;
-      white-space: normal;
+      white-space: normal;           /* allow header wrapping */
       word-wrap: break-word;
       word-break: break-word;
+      /* Desktop: ~2px smaller */
+      font-size: 14px;
     }
     .value-table tbody td {
       color: var(--text, #d3d3d3);
       padding: 10px 12px;
       border-bottom: 1px solid #444;
       vertical-align: top;
-      white-space: normal;
+      white-space: normal;           /* allow cell wrapping */
       word-wrap: break-word;
       word-break: break-word;
+      /* Desktop: ~2px smaller */
+      font-size: 14px;
     }
     .value-table tbody tr:nth-child(even) td {
       background: #363638;
@@ -88,16 +93,18 @@
       border-bottom: none;
     }
 
+    /* Mobile reductions (~4px smaller overall) */
     @media (max-width: 768px) {
       .section-title {
-        font-size: 0.95rem;
+        font-size: 14px;
         line-height: 1.2;
       }
       .value-table thead th,
       .value-table tbody td {
         padding: 9px 10px;
-        font-size: 0.95rem;
+        font-size: 12px;
       }
+      .mobile-info { font-size: 0.8rem; }
     }
   </style>
 </head>
