@@ -10,9 +10,6 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
   <link rel="stylesheet" href="style.css">
 
-  <!-- PapaParse for correct CSV parsing (quoted cells, commas, etc.) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha512-7w7q2H1m2O9jz8uZgQk0lqD0rV2V/2k5HCOk0rU0hYp5xVbRkQjvWIs0q5kJcLp1eFhA7g0rB0LZr1o0mH7QqA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
   <style>
     /* Page-scoped helpers that won’t clash with your site-wide style.css */
 
@@ -58,10 +55,10 @@
     .value-table {
       width: 100%;
       border-collapse: collapse;
-      table-layout: fixed;           /* enables wrapping to work consistently */
+      table-layout: fixed;
       background: var(--panel, #3c3c3e);
       border-radius: 10px;
-      overflow: hidden;              /* keeps rounded corners with thead background */
+      overflow: hidden;
       margin-bottom: 28px;
     }
     .value-table thead th {
@@ -71,7 +68,7 @@
       text-align: left;
       padding: 10px 12px;
       border-bottom: 1px solid #4a4a4a;
-      white-space: normal;           /* allow header wrapping */
+      white-space: normal;
       word-wrap: break-word;
       word-break: break-word;
     }
@@ -80,7 +77,7 @@
       padding: 10px 12px;
       border-bottom: 1px solid #444;
       vertical-align: top;
-      white-space: normal;           /* allow cell wrapping */
+      white-space: normal;
       word-wrap: break-word;
       word-break: break-word;
     }
@@ -91,7 +88,6 @@
       border-bottom: none;
     }
 
-    /* Mobile: keep tables readable without horizontal scrolling when possible */
     @media (max-width: 768px) {
       .section-title {
         font-size: 0.95rem;
@@ -125,6 +121,71 @@
   <div class="tables-wrap" id="tablesWrap"></div>
 
   <script>
+    // Small CSV parser that supports quoted fields and embedded commas.
+    // Returns array of rows; each row is an array of strings.
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cur = '';
+      let i = 0;
+      const len = text.length;
+      let inQuotes = false;
+
+      while (i < len) {
+        const ch = text[i];
+
+        if (inQuotes) {
+          if (ch === '"') {
+            if (i + 1 < len && text[i + 1] === '"') {
+              // Escaped quote ("")
+              cur += '"';
+              i += 2;
+              continue;
+            } else {
+              inQuotes = false;
+              i++;
+              continue;
+            }
+          } else {
+            cur += ch;
+            i++;
+            continue;
+          }
+        } else {
+          if (ch === '"') {
+            inQuotes = true;
+            i++;
+            continue;
+          }
+          if (ch === ',') {
+            row.push(cur);
+            cur = '';
+            i++;
+            continue;
+          }
+          if (ch === '\r') {
+            // ignore, handle on \n
+            i++;
+            continue;
+          }
+          if (ch === '\n') {
+            row.push(cur);
+            rows.push(row);
+            row = [];
+            cur = '';
+            i++;
+            continue;
+          }
+          cur += ch;
+          i++;
+        }
+      }
+      // push last cell
+      row.push(cur);
+      rows.push(row);
+      return rows;
+    }
+
     (async function () {
       const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1680844079&single=true&output=csv";
 
@@ -134,27 +195,20 @@
       const headerRows1Based = [3, 15, 26];
 
       function buildTitleFromRow(rowArr) {
-        // Join all non-empty cells with “ • ” to mimic the sheet’s two-band titles
-        const bits = rowArr.map(x => x.trim()).filter(Boolean);
+        const bits = rowArr.map(x => (x || '').trim()).filter(Boolean);
         return bits.length ? bits.join(" • ") : "";
       }
 
       function buildTableHTML(headers, rows) {
         let html = '<table class="value-table"><thead><tr>';
-        headers.forEach(h => {
-          html += `<th>${h}</th>`;
-        });
+        headers.forEach(h => { html += `<th>${h}</th>`; });
         html += '</tr></thead><tbody>';
 
         rows.forEach(r => {
-          // Pad/truncate to header length to keep columns aligned
           const cells = r.slice(0, headers.length);
           while (cells.length < headers.length) cells.push("");
           html += "<tr>";
-          cells.forEach(c => {
-            // Keep exactly as text; do not coerce numbers/currency/odds
-            html += `<td>${c}</td>`;
-          });
+          cells.forEach(c => { html += `<td>${c}</td>`; });
           html += "</tr>";
         });
 
@@ -164,36 +218,29 @@
 
       try {
         const res = await fetch(csvUrl, { cache: "no-store" });
+        if (!res.ok) {
+          throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
+        }
         const text = await res.text();
 
-        const parsed = Papa.parse(text, {
-          skipEmptyLines: false
-        });
-
-        const data = parsed.data; // array of arrays (strings)
-
-        // Normalize: ensure each row is an array
-        const rows = data.map(r => Array.isArray(r) ? r : [String(r ?? "")]);
+        const rows = parseCSV(text);
 
         // Convert 1-based to 0-based indices
         const headerIdx = headerRows1Based.map(n => n - 1);
-        // Title row sits directly above each header
-        const titleIdx = headerIdx.map(i => Math.max(0, i - 1));
+        const titleIdx  = headerIdx.map(i => Math.max(0, i - 1));
 
-        // Build sections
         const sections = [];
         for (let s = 0; s < headerIdx.length; s++) {
           const hIdx = headerIdx[s];
           const tIdx = titleIdx[s];
-          const nextTitleRow = s < headerIdx.length - 1 ? titleIdx[s + 1] : rows.length; // exclusive end
+          const nextT = s < headerIdx.length - 1 ? titleIdx[s + 1] : rows.length;
 
           const headers = (rows[hIdx] || []).map(x => String(x ?? ""));
           const titleRow = rows[tIdx] || [];
           const title = buildTitleFromRow(titleRow);
 
-          // Data starts after header row, ends right before next section's title row
           const dataStart = hIdx + 1;
-          const dataEnd = Math.max(dataStart, nextTitleRow); // exclusive
+          const dataEnd = Math.max(dataStart, nextT); // exclusive
           const body = rows.slice(dataStart, dataEnd);
 
           sections.push({ title, headers, body });
