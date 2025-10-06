@@ -21,7 +21,6 @@
     <a href="/lucky-dip">LUCKY DIP</a>
     <a href="/historical">HISTORICAL DATA</a>
   </nav>
-  </div>
 
   <section class="hero">
     <h2>Welcome to MC Predict</h2>
@@ -66,18 +65,99 @@
       <a href="/faqs" class="primary">FAQs</a>
     </div>
   </section>
-</body>
-</html>
 
+  <!-- ========= New: Most recent weekend results ========= -->
+  <section id="recent-results" class="results">
+    <h2>Most recent weekend results</h2>
 
+    <!-- Group for first CSV -->
+    <div class="group" id="results-a">
+      <!-- Three tables will be injected here -->
+    </div>
 
+    <!-- Group for second CSV -->
+    <div class="group" id="results-b">
+      <!-- Three tables will be injected here -->
+    </div>
+  </section>
 
+  <!-- PapaParse (CSV parser) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha512-2x1l2UpJ3c7b2D8l0H0cN2r7aU2o0n1Jm2oY4e3rI1kXb0xH1qk6+q9+Q2UOaTh2J3E0m3Wv2qT0gQH8yq9tZg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
+  <script>
+    // Config
+    const CSV_URLS = {
+      a: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=936684559&single=true&output=csv",
+      b: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=2037343333&single=true&output=csv"
+    };
 
+    // We need columns H–O (index 7..14) and rows 1..36 (1-based)
+    const COL_START = 7;       // H
+    const COL_END_EXCL = 15;   // O inclusive -> 15 exclusive
+    const ROW_LIMIT = 36;      // 1..36 inclusive (with header rows inside)
+    const HEADER_ROW_INDEXES = [4, 16, 27]; // rows 5, 17, 28 (0-based)
 
+    function sliceCols(row) {
+      return row.slice(COL_START, COL_END_EXCL);
+    }
 
+    function buildTable(headerCells, bodyRows) {
+      const table = document.createElement('table');
+      // Apply existing theme styles via .results selectors
+      const thead = document.createElement('thead');
+      const trh = document.createElement('tr');
+      headerCells.forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text ?? '';
+        trh.appendChild(th);
+      });
+      thead.appendChild(trh);
+      table.appendChild(thead);
 
+      const tbody = document.createElement('tbody');
+      bodyRows.forEach(r => {
+        // Skip completely empty rows
+        if (!r || r.every(c => (c === null || c === undefined || String(c).trim() === ''))) return;
+        const tr = document.createElement('tr');
+        r.forEach(text => {
+          const td = document.createElement('td');
+          td.textContent = text ?? '';
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
 
+      // Wrap in container that matches your theme
+      const container = document.createElement('div');
+      container.className = 'table-container';
+      container.appendChild(table);
+      return container;
+    }
 
+    function renderCsvIntoGroup(url, groupEl) {
+      Papa.parse(url, {
+        download: true,
+        complete: (results) => {
+          const allRows = results.data || [];
+          const rows = allRows.slice(0, ROW_LIMIT); // rows 0..35
 
+          // For each header start row, build a table until the next header start (or end)
+          HEADER_ROW_INDEXES.forEach((startIdx, i) => {
+            if (!rows[startIdx]) return; // header row might not exist
+            const header = sliceCols(rows[startIdx]);
 
+            const nextStart = HEADER_ROW_INDEXES[i + 1] ?? ROW_LIMIT;
+            const body = [];
+            for (let r = startIdx + 1; r < nextStart && r < rows.length; r++) {
+              body.push(sliceCols(rows[r]));
+            }
+
+            const tableNode = buildTable(header, body);
+            groupEl.appendChild(tableNode);
+          });
+        },
+        error: (err) => {
+          const msg = document.createElement('div');
+          msg.className = 'mobile-info';
+          msg.textContent
