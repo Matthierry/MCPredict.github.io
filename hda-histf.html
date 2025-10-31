@@ -42,6 +42,23 @@
   <p>
     NOTE: The returns are calculated on decimal odds and may not perfectly align to the fractional odds represented below. You can view the actual decimal odds using the options above.
   </p>
+
+  <!-- NEW: Filter controls -->
+  <div class="filter-title">Filter options</div>
+  <div class="filters" id="prediction-filters">
+    <!-- Buttons created in HTML so order is controlled; JS wires them up -->
+    <button data-pred="HOME WIN">Home Win</button>
+    <button data-pred="AWAY WIN">Away Win</button>
+  </div>
+  <div class="filters" id="value-filters">
+    <button data-val="❌">❌</button>
+    <button data-val="❌❌">❌❌</button>
+    <button data-val="❌❌❌">❌❌❌</button>
+    <button data-val="💰">💰</button>
+    <button data-val="💰💰">💰💰</button>
+    <button data-val="💰💰💰">💰💰💰</button>
+  </div>
+
   <div class="table-container data-table">
     <table id="predictionsTable" class="display">
       <thead>
@@ -67,7 +84,17 @@
   <script>
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=0&single=true&output=csv";
 
+    // Column index mapping into the CSV
     const IDX = { H:7, L:11, M:12, N:13, O:14, P:15, S:18, V:21, X:23, AA:26, AC:28, AD:29 };
+
+    // In the DataTable, the visible columns are in this order:
+    // 0: Date, 1: League, 2: Home, 3: V, 4: Away, 5: Prediction, 6: Bookmaker, 7: Model, 8: Value, 9: Result, 10: P/L, 11: Correct?
+    const DT_COL_PREDICTION = 5; // maps to CSV column P
+    const DT_COL_VALUE = 8;      // maps to CSV column X (❌/💰 sequences)
+
+    // Filter state (multi-select). Empty = no restriction for that group.
+    const selectedPredictions = new Set();
+    const selectedValues = new Set();
 
     function ddmmyyyyToISO(str){
       if (!str) return "";
@@ -108,22 +135,22 @@
               r[IDX.AD] === "0" ? '<i class="fa-solid fa-circle-xmark" title="Incorrect"></i>' : "";
 
             data.push([
-              { display: dateDisp, sort: dateSort },
-              r[IDX.L] || "",
-              r[IDX.M] || "",
-              r[IDX.N] || "",
-              r[IDX.O] || "",
-              r[IDX.P] || "",
-              r[IDX.S] || "",
-              r[IDX.V] || "",
-              r[IDX.X] || "",
-              r[IDX.AA] || "",
-              { display: plDisp, sort: plSort },
-              correct
+              { display: dateDisp, sort: dateSort }, // 0 Date
+              r[IDX.L] || "",                         // 1 League
+              r[IDX.M] || "",                         // 2 Home
+              r[IDX.N] || "",                         // 3 V
+              r[IDX.O] || "",                         // 4 Away
+              r[IDX.P] || "",                         // 5 Prediction (HOME WIN / AWAY WIN)
+              r[IDX.S] || "",                         // 6 Bookmaker Price
+              r[IDX.V] || "",                         // 7 Model Price
+              r[IDX.X] || "",                         // 8 Value (❌ / 💰)
+              r[IDX.AA] || "",                        // 9 Result
+              { display: plDisp, sort: plSort },      // 10 P/L
+              correct                                 // 11 Correct?
             ]);
           }
 
-          $('#predictionsTable').DataTable({
+          const table = $('#predictionsTable').DataTable({
             data,
             pageLength: 100,
             lengthMenu: [10, 25, 50, 100, 250, 500],
@@ -145,6 +172,57 @@
               { title: 'Correct?' }
             ]
           });
+
+          // --- Custom filtering: OR within group, AND across groups ---
+          $.fn.dataTable.ext.search.push(function(settings, data /*, dataIndex */) {
+            if (settings.nTable !== document.getElementById('predictionsTable')) {
+              return true; // only apply to this table
+            }
+
+            const predVal = (data[DT_COL_PREDICTION] || "").toUpperCase().trim(); // "HOME WIN" / "AWAY WIN" / ""
+            const valueVal = (data[DT_COL_VALUE] || "").trim();                   // "❌", "💰💰", etc.
+
+            // Group 1: Prediction (OR). Empty selection => pass.
+            const predPass = (selectedPredictions.size === 0) || selectedPredictions.has(predVal);
+
+            // Group 2: Value markers (OR). Empty selection => pass.
+            const valuePass = (selectedValues.size === 0) || selectedValues.has(valueVal);
+
+            // AND across groups
+            return predPass && valuePass;
+          });
+
+          // Wire up filter buttons (toggle .active and update sets)
+          function hookPredictionFilters(){
+            $('#prediction-filters button').on('click', function(){
+              const v = ($(this).data('pred') || "").toString().toUpperCase().trim();
+              if (selectedPredictions.has(v)) {
+                selectedPredictions.delete(v);
+                $(this).removeClass('active');
+              } else {
+                selectedPredictions.add(v);
+                $(this).addClass('active');
+              }
+              table.draw();
+            });
+          }
+
+          function hookValueFilters(){
+            $('#value-filters button').on('click', function(){
+              const v = ($(this).data('val') || "").toString().trim();
+              if (selectedValues.has(v)) {
+                selectedValues.delete(v);
+                $(this).removeClass('active');
+              } else {
+                selectedValues.add(v);
+                $(this).addClass('active');
+              }
+              table.draw();
+            });
+          }
+
+          hookPredictionFilters();
+          hookValueFilters();
         }
       });
     });
