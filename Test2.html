@@ -314,13 +314,19 @@
     .home .table-container td {
       padding: 6px 4px;
       text-align: center;
-      white-space: nowrap;
     }
 
+    /* wrap header text, keep data cells on one line */
     .home .table-container th {
       position: sticky;
       top: 0;
       z-index: 1;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .home .table-container td {
+      white-space: nowrap;
     }
 
     /* Side card (value key / notes) */
