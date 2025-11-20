@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MC PREDICT - Home</title>
+
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
 
@@ -22,7 +23,6 @@
       min-height: 100vh;
       font-family: 'Proxima Nova', Arial, sans-serif;
       color: #d3d3d3;
-      /* Gradient background */
       background:
         radial-gradient(circle at top left, #3c3c3e 0, #2c2c2e 40%, #18181a 100%);
       display: flex;
@@ -33,11 +33,16 @@
       box-sizing: border-box;
     }
 
+    /* Space for the bottom mobile nav, adjusted further below in media queries */
+    body.home {
+      padding-bottom: 70px;
+    }
+
     /* -----------------------------------------
        Layout shell
     ----------------------------------------- */
     .home-page {
-      max-width: 1100px;
+      max-width: 1220px;
       margin: 0 auto;
       padding: 16px 16px 40px;
       display: flex;
@@ -121,6 +126,7 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       flex-shrink: 0;
+      white-space: nowrap;
     }
 
     .topbar-tag-dot {
@@ -138,15 +144,15 @@
       display: flex;
       gap: 8px;
       overflow-x: auto;
-      padding: 6px 2px 4px;
-      margin: 0 -4px;
+      padding: 8px 2px 4px;
+      margin: 0 -4px 4px;
       scrollbar-width: thin;
       -webkit-overflow-scrolling: touch;
     }
 
     .primary-nav a {
       flex: 0 0 auto;
-      padding: 8px 14px;
+      padding: 8px 16px;
       font-size: 13px;
       border-radius: 999px;
       text-decoration: none;
@@ -172,13 +178,6 @@
       color: #111;
       border-color: transparent;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
-    }
-
-    /* Desktop nav tweaks */
-    @media (min-width: 768px) {
-      .primary-nav {
-        justify-content: flex-start;
-      }
     }
 
     /* -----------------------------------------
@@ -285,6 +284,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      margin-top: 14px;
     }
 
     .btn-pill-label {
@@ -307,7 +307,7 @@
       color: #e0e0e0;
       font-size: 13px;
       text-decoration: none;
-      margin-top: 6px;
+      margin-top: 2px;
       transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
     }
 
@@ -417,7 +417,7 @@
        Secondary section: "Quick start"
     ----------------------------------------- */
     .quick-start {
-      margin-top: 6px;
+      margin-top: 10px;
       display: grid;
       grid-template-columns: 1fr;
       gap: 12px;
@@ -481,11 +481,62 @@
     }
 
     /* -----------------------------------------
+       Mobile bottom navigation (Option 2)
+    ----------------------------------------- */
+    .mobile-bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 58px;
+      background: rgba(10, 10, 12, 0.96);
+      backdrop-filter: blur(18px);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-around;
+      align-items: stretch;
+      padding: 0 6px;
+      z-index: 50;
+    }
+
+    .mobile-bottom-nav a {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #e0e0e0;
+      text-decoration: none;
+      border-radius: 999px;
+      margin: 6px 3px;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease;
+    }
+
+    .mobile-bottom-nav a span {
+      line-height: 1.1;
+    }
+
+    .mobile-bottom-nav a.nav-item--active {
+      background: linear-gradient(135deg, #f09300, #ffae33);
+      color: #111;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.65);
+      transform: translateY(-1px);
+    }
+
+    .mobile-bottom-nav a:hover {
+      background: rgba(240, 147, 0, 0.12);
+      text-decoration: none;
+    }
+
+    /* -----------------------------------------
        Responsive tweaks
     ----------------------------------------- */
     @media (min-width: 640px) {
       .home-page {
-        padding: 20px 20px 50px;
+        padding: 20px 24px 60px;
       }
 
       .hero-title {
@@ -507,11 +558,21 @@
 
     @media (min-width: 880px) {
       .hero {
-        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.3fr);
+        grid-template-columns: minmax(0, 1.65fr) minmax(0, 1.35fr);
       }
 
       .quick-start {
         grid-template-columns: 1.3fr 1.7fr;
+      }
+
+      body.home {
+        padding-bottom: 0; /* bottom nav hidden on desktop */
+      }
+    }
+
+    @media (min-width: 880px) {
+      .mobile-bottom-nav {
+        display: none;
       }
     }
 
@@ -528,6 +589,13 @@
       .hero-side-card,
       .quick-start-card {
         padding: 18px 20px 20px;
+      }
+    }
+
+    /* On very small devices, tighten the bottom padding a bit */
+    @media (max-width: 399px) {
+      body.home {
+        padding-bottom: 64px;
       }
     }
   </style>
@@ -548,13 +616,13 @@
       </div>
       <div class="topbar-tag">
         <span class="topbar-tag-dot"></span>
-        <span>Today’s fixtures</span>
+        <span>Today's fixtures</span>
       </div>
     </header>
 
     <!-- Scrollable primary nav -->
     <nav class="primary-nav" aria-label="Primary navigation">
-      <a href="/index" class="active">Home</a>
+      <a href="/index" class="active" aria-current="page">Home</a>
       <a href="/hda-value">Match Result</a>
       <a href="/uo-value">Under/Over 2.5</a>
       <a href="/lucky-dip">Lucky Dip</a>
@@ -569,8 +637,8 @@
         <div class="hero-eyebrow">Welcome</div>
         <h2 class="hero-title">Predict football results with model-driven edges.</h2>
         <p class="hero-subtitle">
-          MC Predict focuses on Europe’s top leagues, combining historical performance, xG
-          data and odds to surface value in full-time result and goals markets.
+          MC Predict focuses on Europe’s top leagues, combining historical performance, xG data
+          and odds to surface value in full-time result and goals markets.
         </p>
 
         <!-- CTAs -->
@@ -583,7 +651,7 @@
           </a>
         </div>
 
-        <div class="btn-pill-group" style="margin-top:14px;">
+        <div class="btn-pill-group">
           <div style="flex:1; min-width:0;">
             <div class="btn-pill-label">Stay updated</div>
             <a
@@ -710,5 +778,24 @@
       MC Predict is for informational purposes only and does not guarantee outcomes. Please bet responsibly.
     </footer>
   </div>
+
+  <!-- Sticky bottom navigation for mobile (Option 2) -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+    <a href="/index" class="nav-item nav-item--active" aria-current="page">
+      <span>Home</span>
+    </a>
+    <a href="/hda-value" class="nav-item">
+      <span>Result</span>
+    </a>
+    <a href="/uo-value" class="nav-item">
+      <span>U/O 2.5</span>
+    </a>
+    <a href="/lucky-dip" class="nav-item">
+      <span>Lucky</span>
+    </a>
+    <a href="/faqs" class="nav-item">
+      <span>FAQs</span>
+    </a>
+  </nav>
 </body>
 </html>
