@@ -3,40 +3,619 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC PREDICT - HDA Highest Chance</title>
+  <title>MC PREDICT - MATCH RESULT HIGHEST CHANCE</title>
+
+  <!-- Global site stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
-  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* --------------------------------------------------
+       Base fixes (same as home)
+    -------------------------------------------------- */
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    body.home {
+      min-height: 100vh;
+      font-family: 'Proxima Nova', Arial, sans-serif;
+      color: #d3d3d3;
+      background: radial-gradient(circle at top left, #3c3c3e 0, #2c2c2e 40%, #18181a 100%);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .home * {
+      box-sizing: border-box;
+    }
+
+    /* Page shell */
+    .home-page {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 14px 14px 70px; /* extra bottom for mobile nav */
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* --------------------------------------------------
+       Top bar (same as home / hda-value)
+    -------------------------------------------------- */
+    .home-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding-bottom: 8px;
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #3a3a3c, #262628);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .topbar-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: radial-gradient(circle at 30% 20%, #f09300, #1d1d1f);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .topbar-logo img {
+      width: 70%;
+      height: 70%;
+      object-fit: contain;
+    }
+
+    .topbar-title {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .topbar-title h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0.18em;
+      color: #ffffff;
+    }
+
+    .topbar-title span {
+      font-size: 12px;
+      color: #a5a5a7;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .topbar-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(240, 147, 0, 0.1);
+      color: #f7b057;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+
+    .topbar-tag-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #40c456;
+      box-shadow: 0 0 0 6px rgba(64, 196, 86, 0.18);
+    }
+
+    /* --------------------------------------------------
+       Desktop nav (top pills)
+    -------------------------------------------------- */
+    .primary-nav {
+      display: none; /* hidden on mobile, shown on desktop */
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .primary-nav a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(31, 31, 33, 0.86);
+      color: #e0e0e0;
+      font-size: 15px;
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: background 0.2s ease, color 0.2s ease,
+                  transform 0.15s ease, box-shadow 0.2s ease,
+                  border-color 0.2s ease;
+    }
+
+    .primary-nav a:hover {
+      background: rgba(240, 147, 0, 0.12);
+      border-color: rgba(240, 147, 0, 0.7);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .primary-nav a.active {
+      background: linear-gradient(135deg, #f09300, #ffae33);
+      color: #111;
+      border-color: transparent;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
+    }
+
+    /* --------------------------------------------------
+       Sub-nav for this page (BEST VALUE / HIGHEST CHANCE)
+    -------------------------------------------------- */
+    .sub-nav-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .sub-nav-pills a {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(24, 24, 26, 0.9);
+      color: #dcdcdc;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+                  transform 0.12s ease;
+    }
+
+    .sub-nav-pills a:hover {
+      background: rgba(240, 147, 0, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .sub-nav-pills a.active {
+      background: linear-gradient(135deg, #f09300, #ffae33);
+      color: #111;
+      border-color: transparent;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6);
+    }
+
+    /* --------------------------------------------------
+       Data layout (filters + table + side card)
+    -------------------------------------------------- */
+    .data-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 4px;
+    }
+
+    .data-main-card {
+      width: 100%;
+      padding: 16px 14px 16px;
+      border-radius: 18px;
+      background: radial-gradient(circle at top right, rgba(240, 147, 0, 0.14), rgba(21, 21, 23, 0.96));
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .data-side-card {
+      width: 100%;
+      padding: 14px 14px 16px;
+      border-radius: 18px;
+      background: rgba(15, 15, 17, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 16px 26px rgba(0, 0, 0, 0.5);
+    }
+
+    .data-eyebrow {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #f7b057;
+      margin-bottom: 4px;
+    }
+
+    .data-title {
+      font-size: 20px;
+      color: #ffffff;
+      margin: 0 0 4px;
+    }
+
+    .data-subtitle {
+      font-size: 13px;
+      color: #bdbdbd;
+      margin: 0 0 10px;
+    }
+
+    .data-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #a5a5a7;
+      margin: 6px 0 4px;
+    }
+
+    /* Filters row */
+    .filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .filters-row button {
+      margin: 0;
+    }
+
+    .mobile-info {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #dcdcdc;
+      text-align: left;
+    }
+
+    .loading-message {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #f7b057;
+      text-align: left;
+    }
+
+    /* Table container override to avoid overflow */
+    .home .table-container {
+      width: 100%;
+      margin: 10px 0 0;
+      padding: 0;
+      box-sizing: border-box;
+      overflow-x: auto;
+    }
+
+    .home .table-container table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px; /* desktop size */
+    }
+
+    .home .table-container th,
+    .home .table-container td {
+      padding: 6px 4px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .home .table-container th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    /* Wrap only for BOOKIE PRICE & MODEL PRICE headers (G & H) */
+    .home .table-container th.wrap-header {
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.2;
+    }
+
+    /* Side card (notes) */
+    .data-side-title {
+      font-size: 14px;
+      color: #ffffff;
+      margin: 0 0 4px;
+    }
+
+    .data-side-subtitle {
+      font-size: 13px;
+      color: #bdbdbd;
+      margin: 0 0 10px;
+    }
+
+    .value-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+      color: #dcdcdc;
+    }
+
+    .value-list li span.emoji {
+      margin-right: 4px;
+    }
+
+    .side-note {
+      margin-top: 12px;
+      font-size: 11px;
+      color: #8c8c8e;
+    }
+
+    /* Footer */
+    .home-footer {
+      margin-top: 18px;
+      font-size: 11px;
+      color: #7a7a7a;
+      text-align: center;
+    }
+
+    /* --------------------------------------------------
+       Bottom mobile nav (Result points to /hda-highchance)
+    -------------------------------------------------- */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 30;
+      height: 58px;
+      padding: 6px 10px 8px;
+      background: linear-gradient(180deg, rgba(10, 10, 12, 0.1), #101012);
+      box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .bottom-nav a {
+      flex: 1 1 0;
+      min-width: 0;
+      height: 100%;
+      border-radius: 999px;
+      padding: 4px 4px;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 11px;
+      text-decoration: none;
+      color: #e0e0e0;
+      opacity: 0.8;
+      transition: background 0.2s ease, color 0.2s ease,
+                  transform 0.12s ease, border-color 0.2s ease,
+                  opacity 0.2s ease;
+    }
+
+    .bottom-nav a .icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .bottom-nav a .label {
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .bottom-nav a:hover {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+
+    .bottom-nav a.active {
+      background: radial-gradient(circle at top, #f09300, #a85e00);
+      color: #101010;
+      border-color: rgba(255, 255, 255, 0.15);
+      opacity: 1;
+      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.75);
+    }
+
+    /* --------------------------------------------------
+       Responsive
+    -------------------------------------------------- */
+    @media (min-width: 640px) {
+      .home-page {
+        padding: 18px 20px 80px;
+      }
+
+      .data-title {
+        font-size: 24px;
+      }
+
+      .data-layout {
+        gap: 16px;
+      }
+    }
+
+    @media (min-width: 880px) {
+      .data-layout {
+        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.3fr);
+      }
+    }
+
+    @media (min-width: 960px) {
+      .primary-nav {
+        display: flex;
+      }
+
+      .bottom-nav {
+        display: none; /* desktop only uses top nav */
+      }
+
+      .home-page {
+        padding-bottom: 40px;
+      }
+    }
+
+    @media (max-width: 959px) {
+      .primary-nav {
+        display: none;
+      }
+
+      .bottom-nav {
+        display: flex;
+      }
+    }
+
+    /* Reduce table font-size by 2px on mobile */
+    @media (max-width: 600px) {
+      .home .table-container table {
+        font-size: 9px;
+      }
+    }
+  </style>
 </head>
-<body>
-  <div class="header">
-    <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
-    <h1>MC PREDICT</h1>
+
+<body class="home">
+  <div class="home-page">
+
+    <!-- Top bar -->
+    <header class="home-topbar">
+      <div class="topbar-inner">
+        <div class="topbar-left">
+          <div class="topbar-logo">
+            <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
+          </div>
+          <div class="topbar-title">
+            <h1>MC PREDICT</h1>
+            <span>Data-driven Football predictions</span>
+          </div>
+        </div>
+        <div class="topbar-tag">
+          <span class="topbar-tag-dot"></span>
+          <span>Match Result</span>
+        </div>
+      </div>
+
+      <!-- Desktop / tablet nav -->
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a href="/index">Home</a>
+        <a href="/hda-highchance" class="active">Match Result</a>
+        <a href="/uo-value">Under/Over 2.5</a>
+        <a href="/lucky-dip">Lucky Dip</a>
+        <a href="/historical">Historical Data</a>
+        <a href="/faqs">FAQs</a>
+      </nav>
+
+      <!-- Sub-nav for this section -->
+      <div class="sub-nav-pills" aria-label="Match Result views">
+        <a href="/hda-value">Best Value</a>
+        <a href="/hda-highchance" class="active">Highest Chance</a>
+      </div>
+    </header>
+
+    <!-- Main data layout -->
+    <section class="data-layout">
+      <!-- Filters + table -->
+      <div class="data-main-card">
+        <div class="data-eyebrow">Match Result</div>
+        <h2 class="data-title">Highest chance selections</h2>
+        <p class="data-subtitle">
+          Use the filters to focus on specific days or outcomes. The table updates instantly
+          using the latest data from the model.
+        </p>
+
+        <!-- Day filters -->
+        <div class="data-label">Filter by day</div>
+        <div class="filters-row" id="day-filters">
+          <!-- buttons injected by JS -->
+        </div>
+
+        <!-- Result filters -->
+        <div class="data-label">Filter by predicted result</div>
+        <div class="filters-row" id="result-filters">
+          <button data-result="HOME WIN">Home Win</button>
+          <button data-result="AWAY WIN">Away Win</button>
+        </div>
+
+        <div class="mobile-info">
+          On mobile, the table is scrollable horizontally if needed.
+        </div>
+        <div class="loading-message" id="loadingMessage">Loading latest data...</div>
+
+        <!-- Table -->
+        <div class="table-container" id="sheet-data"></div>
+      </div>
+
+      <!-- Side info / explanatory card -->
+      <aside class="data-side-card">
+        <h3 class="data-side-title">What does “highest chance” mean?</h3>
+        <p class="data-side-subtitle">
+          These are fixtures where the model assigns the strongest probability to a specific
+          match result (home win or away win), regardless of price.
+        </p>
+        <ul class="value-list">
+          <li><span class="emoji">📈</span> Focuses on win probability, not strictly value.</li>
+          <li><span class="emoji">🏠</span> High-confidence home favourites can appear frequently.</li>
+          <li><span class="emoji">🧳</span> Strong away sides with favourable match-ups also show here.</li>
+        </ul>
+
+        <p class="side-note">
+          You can combine this view with the Best Value page: a selection that appears in both
+          can be a strong candidate, but still never guaranteed.
+        </p>
+      </aside>
+    </section>
+
+    <footer class="home-footer">
+      MC Predict is for informational purposes only and does not guarantee outcomes. Please bet responsibly.
+    </footer>
   </div>
 
-  <nav>
-    <a href="/index">HOME</a>
-    <a href="/hda-highchance" class="active">MATCH RESULT</a>
-    <a href="/uo-highchance">UNDER/OVER 2.5</a>
-    <a href="/lucky-dip">LUCKY DIP</a>
-    <a href="/historical">HISTORICAL DATA</a>
+  <!-- Bottom mobile nav -->
+  <nav class="bottom-nav" aria-label="Primary navigation">
+    <a href="/index" data-key="home">
+      <span class="icon">🏠</span>
+      <span class="label">Home</span>
+    </a>
+    <a href="/hda-highchance" class="active" data-key="hda">
+      <span class="icon">🏆</span>
+      <span class="label">Result</span>
+    </a>
+    <a href="/uo-value" data-key="uo">
+      <span class="icon">⚽</span>
+      <span class="label">U/O 2.5</span>
+    </a>
+    <a href="/lucky-dip" data-key="lucky">
+      <span class="icon">🎲</span>
+      <span class="label">Lucky</span>
+    </a>
+    <a href="/historical" data-key="historical">
+      <span class="icon">📊</span>
+      <span class="label">History</span>
+    </a>
+    <a href="/faqs" data-key="faqs">
+      <span class="icon">❓</span>
+      <span class="label">FAQs</span>
+    </a>
   </nav>
-  <div class="sub-nav">
-    <a href="/hda-value">BEST VALUE</a>
-    <a href="/hda-highchance" class="active">HIGHEST CHANCE</a>
-  </div>
-
-  <div class="filter-title">Filter options</div>
-  <div class="filters" id="day-filters"></div>
-  <div class="filters" id="result-filters">
-    <button data-result="HOME WIN">Home Win</button>
-    <button data-result="AWAY WIN">Away Win</button>
-  </div>
-
-  <div class="mobile-info">If you are viewing on mobile, the table has been resized to fit your screen</div>
-  <div class="loading-message" id="loadingMessage">Loading latest data...</div>
-
-  <div class="table-container" id="sheet-data"></div>
 
   <script>
     let allRows = [];
@@ -47,6 +626,7 @@
     const activeResultFilters = new Set();
 
     function csvToRows(text) {
+      // Simple CSV split; assumes your sheet cells don't contain unescaped commas/newlines.
       return text.trim().split("\n").map(r => r.split(","));
     }
 
@@ -56,6 +636,7 @@
       const text = await response.text();
       allRows = csvToRows(text);
 
+      // Headers are in Row 2 (index 1). Data starts at Row 3 (index 2).
       headerRow = allRows[1] || [];
       dataRows = allRows.slice(2);
 
@@ -66,11 +647,14 @@
     }
 
     function buildDayButtons() {
-      const container = document.getElementById("day-filters");
-      container.innerHTML = "";
+      const dayFiltersDiv = document.getElementById("day-filters");
+      dayFiltersDiv.innerHTML = "";
 
+      // Column A = day (index 0); filter out blanks and normalize
       const uniqueDays = Array.from(new Set(
-        dataRows.map(r => (r[0] || "").trim()).filter(v => v.length > 0)
+        dataRows
+          .map(r => (r[0] || "").trim())
+          .filter(v => v.length > 0)
       ));
 
       uniqueDays.forEach(day => {
@@ -87,19 +671,19 @@
           }
           renderTable();
         });
-        container.appendChild(btn);
+        dayFiltersDiv.appendChild(btn);
       });
     }
 
     function attachResultButtonHandlers() {
       document.querySelectorAll("#result-filters button").forEach(btn => {
         btn.addEventListener("click", () => {
-          const val = btn.dataset.result.trim().toUpperCase();
-          if (activeResultFilters.has(val)) {
-            activeResultFilters.delete(val);
+          const value = (btn.dataset.result || "").trim().toUpperCase(); // e.g., "HOME WIN"
+          if (activeResultFilters.has(value)) {
+            activeResultFilters.delete(value);
             btn.classList.remove("active");
           } else {
-            activeResultFilters.add(val);
+            activeResultFilters.add(value);
             btn.classList.add("active");
           }
           renderTable();
@@ -107,29 +691,40 @@
       });
     }
 
-    function rowMatches(row) {
-      const day = (row[0] || "").trim();
-      const res = (row[5] || "").trim().toUpperCase();
-      const okDay = activeDayFilters.size === 0 || activeDayFilters.has(day);
-      const okRes = activeResultFilters.size === 0 || activeResultFilters.has(res);
-      return okDay && okRes;
+    function rowMatchesFilters(row) {
+      const dayVal = (row[0] || "").trim();                 // Column A
+      const resultVal = (row[5] || "").trim().toUpperCase(); // Column F
+
+      const dayOk = activeDayFilters.size === 0 || activeDayFilters.has(dayVal);
+      const resultOk = activeResultFilters.size === 0 || activeResultFilters.has(resultVal);
+
+      return dayOk && resultOk;
     }
 
     function renderTable() {
+      const container = document.getElementById("sheet-data");
+
       let html = "<table>";
 
+      // Headers
       if (headerRow.length) {
-        html += "<tr>" + headerRow.map(c => `<th>${c}</th>`).join("") + "</tr>";
+        html += "<tr>" + headerRow.map((cell, idx) => {
+          // Columns G (index 6) and H (index 7) => wrap-header
+          const needsWrap = idx === 6 || idx === 7;
+          const cls = needsWrap ? ' class="wrap-header"' : '';
+          return `<th${cls}>${cell}</th>`;
+        }).join("") + "</tr>";
       }
 
-      dataRows.forEach(r => {
-        if (rowMatches(r)) {
-          html += "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>";
+      // Filtered data rows
+      dataRows.forEach(row => {
+        if (rowMatchesFilters(row)) {
+          html += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>";
         }
       });
 
       html += "</table>";
-      document.getElementById("sheet-data").innerHTML = html;
+      container.innerHTML = html;
     }
 
     loadCSV();
