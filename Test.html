@@ -5,26 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MC PREDICT - Home</title>
 
+  <!-- Existing global stylesheet for the rest of the site -->
+  <link rel="stylesheet" href="style.css">
+
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
 
-  <!-- Existing global stylesheet (for other pages) -->
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Home-page specific overrides & new look -->
   <style>
-    /* -----------------------------------------
-       HOME PAGE OVERRIDES
-       Only apply when <body class="home"> is set
-    ----------------------------------------- */
-    body.home {
+    /* --------------------------------------------------
+       Base fixes
+    -------------------------------------------------- */
+    html, body {
       margin: 0;
       padding: 0;
+      overflow-x: hidden; /* kill horizontal scroll on mobile */
+    }
+
+    body.home {
       min-height: 100vh;
       font-family: 'Proxima Nova', Arial, sans-serif;
       color: #d3d3d3;
-      background:
-        radial-gradient(circle at top left, #3c3c3e 0, #2c2c2e 40%, #18181a 100%);
+      background: radial-gradient(circle at top left, #3c3c3e 0, #2c2c2e 40%, #18181a 100%);
       display: flex;
       flex-direction: column;
     }
@@ -33,27 +34,28 @@
       box-sizing: border-box;
     }
 
-    /* Space for the bottom mobile nav, adjusted further below in media queries */
-    body.home {
-      padding-bottom: 70px;
-    }
-
-    /* -----------------------------------------
-       Layout shell
-    ----------------------------------------- */
+    /* Page shell */
     .home-page {
-      max-width: 1220px;
+      width: 100%;
+      max-width: 1120px;
       margin: 0 auto;
-      padding: 16px 16px 40px;
+      padding: 14px 14px 70px; /* extra bottom for mobile nav */
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
 
-    /* -----------------------------------------
+    /* --------------------------------------------------
        Top bar
-    ----------------------------------------- */
-    .topbar {
+    -------------------------------------------------- */
+    .home-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding-bottom: 8px;
+    }
+
+    .topbar-inner {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -61,10 +63,7 @@
       padding: 10px 12px;
       border-radius: 16px;
       background: linear-gradient(135deg, #3a3a3c, #262628);
-      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
-      position: sticky;
-      top: 8px;
-      z-index: 20;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.45);
       backdrop-filter: blur(12px);
     }
 
@@ -78,9 +77,9 @@
     .topbar-logo {
       width: 44px;
       height: 44px;
-      border-radius: 50%;
+      border-radius: 14px;
       overflow: hidden;
-      background: #1d1d1f;
+      background: radial-gradient(circle at 30% 20%, #f09300, #1d1d1f);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -88,8 +87,8 @@
     }
 
     .topbar-logo img {
-      width: 80%;
-      height: 80%;
+      width: 70%;
+      height: 70%;
       object-fit: contain;
     }
 
@@ -126,7 +125,6 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       flex-shrink: 0;
-      white-space: nowrap;
     }
 
     .topbar-tag-dot {
@@ -134,43 +132,42 @@
       height: 7px;
       border-radius: 999px;
       background: #40c456;
-      box-shadow: 0 0 0 6px rgba(64, 196, 86, 0.15);
+      box-shadow: 0 0 0 6px rgba(64, 196, 86, 0.18);
     }
 
-    /* -----------------------------------------
-       Primary navigation (scrollable chips)
-    ----------------------------------------- */
+    /* --------------------------------------------------
+       Desktop nav (top pills)
+    -------------------------------------------------- */
     .primary-nav {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 8px 2px 4px;
-      margin: 0 -4px 4px;
-      scrollbar-width: thin;
-      -webkit-overflow-scrolling: touch;
+      display: none; /* hidden on mobile, shown on desktop */
+      gap: 10px;
+      margin-top: 8px;
     }
 
     .primary-nav a {
-      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       padding: 8px 16px;
-      font-size: 13px;
       border-radius: 999px;
-      text-decoration: none;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(31, 31, 33, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(31, 31, 33, 0.86);
       color: #e0e0e0;
+      font-size: 13px;
+      text-decoration: none;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
       white-space: nowrap;
+      transition: background 0.2s ease, color 0.2s ease,
+                  transform 0.15s ease, box-shadow 0.2s ease,
+                  border-color 0.2s ease;
     }
 
     .primary-nav a:hover {
       background: rgba(240, 147, 0, 0.12);
       border-color: rgba(240, 147, 0, 0.7);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
       transform: translateY(-1px);
-      text-decoration: none;
     }
 
     .primary-nav a.active {
@@ -180,18 +177,19 @@
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
     }
 
-    /* -----------------------------------------
-       Hero section
-    ----------------------------------------- */
+    /* --------------------------------------------------
+       Hero area
+    -------------------------------------------------- */
     .hero {
-      margin-top: 4px;
       display: grid;
       grid-template-columns: 1fr;
       gap: 18px;
+      margin-top: 4px;
     }
 
     .hero-main-card {
-      padding: 18px 18px 20px;
+      width: 100%;
+      padding: 18px 16px 20px;
       border-radius: 20px;
       background: radial-gradient(circle at top right, rgba(240, 147, 0, 0.16), rgba(21, 21, 23, 0.95));
       box-shadow: 0 18px 30px rgba(0, 0, 0, 0.55);
@@ -207,25 +205,25 @@
     }
 
     .hero-title {
-      font-size: 24px;
-      line-height: 1.25;
+      font-size: 22px;
+      line-height: 1.3;
       color: #ffffff;
       margin: 0 0 8px;
     }
 
     .hero-subtitle {
-      margin: 0 0 16px;
+      margin: 0 0 14px;
       font-size: 14px;
       line-height: 1.5;
       color: #bdbdbd;
     }
 
-    /* CTA buttons */
+    /* CTAs */
     .hero-cta-row {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-top: 14px;
+      margin-top: 10px;
     }
 
     .btn {
@@ -242,8 +240,9 @@
       text-transform: uppercase;
       cursor: pointer;
       text-decoration: none;
-      transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
       white-space: nowrap;
+      transition: transform 0.15s ease, box-shadow 0.2s ease,
+                  background 0.2s ease, color 0.2s ease;
     }
 
     .btn-primary {
@@ -267,13 +266,12 @@
     .btn-outline:hover {
       background: rgba(247, 176, 87, 0.12);
       transform: translateY(-1px);
-      text-decoration: none;
     }
 
     .btn-ghost {
       background: transparent;
       color: #e1e1e3;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.16);
     }
 
     .btn-ghost:hover {
@@ -283,8 +281,13 @@
     .btn-pill-group {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       margin-top: 14px;
+    }
+
+    .btn-pill-column {
+      flex: 1;
+      min-width: 0;
     }
 
     .btn-pill-label {
@@ -292,30 +295,22 @@
       text-transform: uppercase;
       letter-spacing: 0.12em;
       color: #a5a5a7;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
 
-    /* Twitter/X pill */
     .twitter-pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
       padding: 8px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       background: rgba(24, 24, 26, 0.95);
       color: #e0e0e0;
       font-size: 13px;
       text-decoration: none;
-      margin-top: 2px;
-      transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
-    }
-
-    .twitter-pill:hover {
-      background: rgba(240, 147, 0, 0.12);
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
-      transform: translateY(-1px);
-      text-decoration: none;
+      transition: background 0.2s ease, transform 0.15s ease,
+                  box-shadow 0.2s ease;
     }
 
     .twitter-pill img {
@@ -328,11 +323,18 @@
       font-weight: 500;
     }
 
+    .twitter-pill:hover {
+      background: rgba(240, 147, 0, 0.12);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
+      transform: translateY(-1px);
+      text-decoration: none;
+    }
+
     .hero-meta-row {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-top: 18px;
+      margin-top: 16px;
       font-size: 11px;
       color: #a5a5a7;
     }
@@ -353,14 +355,13 @@
       text-decoration: underline;
     }
 
-    /* -----------------------------------------
-       League card (flags)
-    ----------------------------------------- */
+    /* League card */
     .hero-side-card {
+      width: 100%;
       padding: 16px;
       border-radius: 18px;
-      background: rgba(17, 17, 19, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(17, 17, 19, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.06);
       box-shadow: 0 16px 26px rgba(0, 0, 0, 0.55);
     }
 
@@ -391,9 +392,9 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 7px 8px;
+      padding: 7px 10px;
       border-radius: 999px;
-      background: rgba(34, 34, 36, 0.9);
+      background: rgba(34, 34, 36, 0.92);
       font-size: 13px;
       color: #e0e0e0;
     }
@@ -413,21 +414,23 @@
       margin-top: 10px;
     }
 
-    /* -----------------------------------------
-       Secondary section: "Quick start"
-    ----------------------------------------- */
+    /* --------------------------------------------------
+       Quick start section
+    -------------------------------------------------- */
     .quick-start {
-      margin-top: 10px;
+      margin-top: 6px;
       display: grid;
       grid-template-columns: 1fr;
       gap: 12px;
     }
 
     .quick-start-card {
+      width: 100%;
       padding: 14px 14px 16px;
       border-radius: 18px;
       background: rgba(15, 15, 17, 0.92);
       border: 1px solid rgba(255, 255, 255, 0.04);
+      box-shadow: 0 14px 24px rgba(0, 0, 0, 0.55);
     }
 
     .quick-start-title {
@@ -472,7 +475,7 @@
       flex-shrink: 0;
     }
 
-    /* Footer / small print */
+    /* Footer */
     .home-footer {
       margin-top: 18px;
       font-size: 11px;
@@ -480,67 +483,88 @@
       text-align: center;
     }
 
-    /* -----------------------------------------
-       Mobile bottom navigation (Option 2)
-    ----------------------------------------- */
-    .mobile-bottom-nav {
+    /* --------------------------------------------------
+       Bottom mobile nav (Option 2)
+    -------------------------------------------------- */
+    .bottom-nav {
       position: fixed;
+      bottom: 0;
       left: 0;
       right: 0;
-      bottom: 0;
+      z-index: 30;
       height: 58px;
-      background: rgba(10, 10, 12, 0.96);
-      backdrop-filter: blur(18px);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 10px 8px;
+      background: linear-gradient(180deg, rgba(10, 10, 12, 0.1), #101012);
+      box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(16px);
       display: flex;
-      justify-content: space-around;
-      align-items: stretch;
-      padding: 0 6px;
-      z-index: 50;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
     }
 
-    .mobile-bottom-nav a {
-      flex: 1;
+    .bottom-nav a {
+      flex: 1 1 0;
+      min-width: 0;
+      height: 100%;
+      border-radius: 999px;
+      padding: 4px 4px;
+      border: 1px solid transparent;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 2px;
       font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #e0e0e0;
       text-decoration: none;
-      border-radius: 999px;
-      margin: 6px 3px;
-      transition: background 0.2s ease, color 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease;
+      color: #e0e0e0;
+      opacity: 0.8;
+      transition: background 0.2s ease, color 0.2s ease,
+                  transform 0.12s ease, border-color 0.2s ease,
+                  opacity 0.2s ease;
     }
 
-    .mobile-bottom-nav a span {
+    .bottom-nav a .icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .bottom-nav a .label {
       line-height: 1.1;
+      white-space: nowrap;
     }
 
-    .mobile-bottom-nav a.nav-item--active {
-      background: linear-gradient(135deg, #f09300, #ffae33);
-      color: #111;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.65);
+    .bottom-nav a:hover {
+      opacity: 1;
       transform: translateY(-1px);
     }
 
-    .mobile-bottom-nav a:hover {
-      background: rgba(240, 147, 0, 0.12);
-      text-decoration: none;
+    .bottom-nav a.active {
+      background: radial-gradient(circle at top, #f09300, #a85e00);
+      color: #101010;
+      border-color: rgba(255, 255, 255, 0.15);
+      opacity: 1;
+      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.75);
     }
 
-    /* -----------------------------------------
-       Responsive tweaks
-    ----------------------------------------- */
+    /* Short labels so they fit comfortably */
+    .bottom-nav a[data-key="home"] .label       { content: "Home"; }
+    .bottom-nav a[data-key="hda"] .label        { content: "Result"; }
+    .bottom-nav a[data-key="uo"] .label         { content: "U/O 2.5"; }
+    .bottom-nav a[data-key="lucky"] .label      { content: "Lucky"; }
+    .bottom-nav a[data-key="historical"] .label { content: "History"; }
+    .bottom-nav a[data-key="faqs"] .label       { content: "FAQs"; }
+
+    /* --------------------------------------------------
+       Responsive
+    -------------------------------------------------- */
     @media (min-width: 640px) {
       .home-page {
-        padding: 20px 24px 60px;
+        padding: 18px 20px 80px;
       }
 
       .hero-title {
-        font-size: 28px;
+        font-size: 26px;
       }
 
       .hero-subtitle {
@@ -558,77 +582,79 @@
 
     @media (min-width: 880px) {
       .hero {
-        grid-template-columns: minmax(0, 1.65fr) minmax(0, 1.35fr);
+        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.3fr);
       }
 
       .quick-start {
         grid-template-columns: 1.3fr 1.7fr;
       }
-
-      body.home {
-        padding-bottom: 0; /* bottom nav hidden on desktop */
-      }
     }
 
-    @media (min-width: 880px) {
-      .mobile-bottom-nav {
-        display: none;
-      }
-    }
-
-    @media (min-width: 1024px) {
+    @media (min-width: 960px) {
       .topbar-title h1 {
         font-size: 22px;
       }
 
       .hero-title {
-        font-size: 32px;
+        font-size: 30px;
       }
 
-      .hero-main-card,
-      .hero-side-card,
-      .quick-start-card {
-        padding: 18px 20px 20px;
+      .primary-nav {
+        display: flex;
+      }
+
+      .bottom-nav {
+        display: none; /* desktop gets top nav only */
+      }
+
+      .home-page {
+        padding-bottom: 40px;
       }
     }
 
-    /* On very small devices, tighten the bottom padding a bit */
-    @media (max-width: 399px) {
-      body.home {
-        padding-bottom: 64px;
+    @media (max-width: 959px) {
+      .primary-nav {
+        display: none;
+      }
+
+      .bottom-nav {
+        display: flex;
       }
     }
   </style>
 </head>
+
 <body class="home">
   <div class="home-page">
 
     <!-- Top bar -->
-    <header class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-logo">
-          <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
+    <header class="home-topbar">
+      <div class="topbar-inner">
+        <div class="topbar-left">
+          <div class="topbar-logo">
+            <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
+          </div>
+          <div class="topbar-title">
+            <h1>MC PREDICT</h1>
+            <span>Data-driven football predictions</span>
+          </div>
         </div>
-        <div class="topbar-title">
-          <h1>MC PREDICT</h1>
-          <span>Data-driven football predictions</span>
+        <div class="topbar-tag">
+          <span class="topbar-tag-dot"></span>
+          <span>Today's fixtures</span>
         </div>
       </div>
-      <div class="topbar-tag">
-        <span class="topbar-tag-dot"></span>
-        <span>Today's fixtures</span>
-      </div>
-    </header>
 
-    <!-- Scrollable primary nav -->
-    <nav class="primary-nav" aria-label="Primary navigation">
-      <a href="/index" class="active" aria-current="page">Home</a>
-      <a href="/hda-value">Match Result</a>
-      <a href="/uo-value">Under/Over 2.5</a>
-      <a href="/lucky-dip">Lucky Dip</a>
-      <a href="/historical">Historical Data</a>
-      <a href="/faqs">FAQs</a>
-    </nav>
+      <!-- Desktop / tablet nav -->
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a href="/index" class="active">Home</a>
+        <a href="/hda-value">Match Result</a>
+        <a href="/uo-value">Under/Over 2.5</a>
+        <a href="/lucky-dip">Lucky Dip</a>
+        <a href="/historical">Historical Data</a>
+        <a href="/faqs">FAQs</a>
+      </nav>
+    </header>
 
     <!-- Hero -->
     <section class="hero">
@@ -637,11 +663,10 @@
         <div class="hero-eyebrow">Welcome</div>
         <h2 class="hero-title">Predict football results with model-driven edges.</h2>
         <p class="hero-subtitle">
-          MC Predict focuses on Europe’s top leagues, combining historical performance, xG data
-          and odds to surface value in full-time result and goals markets.
+          MC Predict focuses on Europe’s top leagues, combining historical performance, xG data and odds to surface
+          value in full-time result and goals markets.
         </p>
 
-        <!-- CTAs -->
         <div class="hero-cta-row">
           <a href="/hda-value" class="btn btn-primary">
             <span>Match Result Picks</span>
@@ -652,7 +677,7 @@
         </div>
 
         <div class="btn-pill-group">
-          <div style="flex:1; min-width:0;">
+          <div class="btn-pill-column">
             <div class="btn-pill-label">Stay updated</div>
             <a
               class="twitter-pill"
@@ -664,7 +689,7 @@
               <span>@MC_Predict</span>
             </a>
           </div>
-          <div style="flex:1; min-width:0;">
+          <div class="btn-pill-column">
             <div class="btn-pill-label">New here?</div>
             <a href="/faqs" class="btn btn-ghost">
               <span>Read the FAQs</span>
@@ -685,7 +710,7 @@
         </div>
       </div>
 
-      <!-- Leagues / coverage card -->
+      <!-- League coverage card -->
       <aside class="hero-side-card">
         <h3 class="hero-side-title">League coverage</h3>
         <p class="hero-side-subtitle">
@@ -729,7 +754,7 @@
       </aside>
     </section>
 
-    <!-- Quick start / How to use -->
+    <!-- Quick start / what’s under the hood -->
     <section class="quick-start" aria-label="How to use MC Predict">
       <div class="quick-start-card">
         <h3 class="quick-start-title">How to use MC Predict</h3>
@@ -779,22 +804,31 @@
     </footer>
   </div>
 
-  <!-- Sticky bottom navigation for mobile (Option 2) -->
-  <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
-    <a href="/index" class="nav-item nav-item--active" aria-current="page">
-      <span>Home</span>
+  <!-- Bottom mobile nav (short labels so everything fits) -->
+  <nav class="bottom-nav" aria-label="Primary navigation">
+    <a href="/index" class="active" data-key="home">
+      <span class="icon">🏠</span>
+      <span class="label">Home</span>
     </a>
-    <a href="/hda-value" class="nav-item">
-      <span>Result</span>
+    <a href="/hda-value" data-key="hda">
+      <span class="icon">📊</span>
+      <span class="label">Result</span>
     </a>
-    <a href="/uo-value" class="nav-item">
-      <span>U/O 2.5</span>
+    <a href="/uo-value" data-key="uo">
+      <span class="icon">⚽</span>
+      <span class="label">U/O 2.5</span>
     </a>
-    <a href="/lucky-dip" class="nav-item">
-      <span>Lucky</span>
+    <a href="/lucky-dip" data-key="lucky">
+      <span class="icon">🎲</span>
+      <span class="label">Lucky</span>
     </a>
-    <a href="/faqs" class="nav-item">
-      <span>FAQs</span>
+    <a href="/historical" data-key="historical">
+      <span class="icon">📚</span>
+      <span class="label">History</span>
+    </a>
+    <a href="/faqs" data-key="faqs">
+      <span class="icon">❓</span>
+      <span class="label">FAQs</span>
     </a>
   </nav>
 </body>
