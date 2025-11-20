@@ -314,19 +314,21 @@
     .home .table-container td {
       padding: 6px 4px;
       text-align: center;
+      white-space: nowrap;
     }
 
-    /* wrap header text, keep data cells on one line */
     .home .table-container th {
       position: sticky;
       top: 0;
       z-index: 1;
-      white-space: normal;
-      overflow-wrap: anywhere;
     }
 
-    .home .table-container td {
-      white-space: nowrap;
+    /* NEW: allow wrapping only for BOOKIE PRICE & MODEL PRICE headers (G & H) */
+    .home .table-container th.wrap-header {
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.2;
     }
 
     /* Side card (value key / notes) */
@@ -482,10 +484,10 @@
       }
     }
 
-    /* NEW: reduce table font-size by 2px on mobile */
+    /* Reduce table font-size by 2px on mobile */
     @media (max-width: 600px) {
       .home .table-container table {
-        font-size: 9px; /* 11 - 2 */
+        font-size: 9px;
       }
     }
   </style>
@@ -706,7 +708,12 @@
 
       // Headers
       if (headerRow.length) {
-        html += "<tr>" + headerRow.map(cell => `<th>${cell}</th>`).join("") + "</tr>";
+        html += "<tr>" + headerRow.map((cell, idx) => {
+          // Columns G (index 6) and H (index 7) => wrap-header
+          const needsWrap = idx === 6 || idx === 7;
+          const cls = needsWrap ? ' class="wrap-header"' : '';
+          return `<th${cls}>${cell}</th>`;
+        }).join("") + "</tr>";
       }
 
       // Filtered data rows
