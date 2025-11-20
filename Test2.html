@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC PREDICT - MATCH RESULT HIGHEST CHANCE</title>
+  <title>MC PREDICT - UNDER/OVER 2.5 GOALS Highest Chance</title>
 
   <!-- Global site stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -13,7 +13,7 @@
 
   <style>
     /* --------------------------------------------------
-       Base fixes (same as home)
+       Base fixes (same as other new pages)
     -------------------------------------------------- */
     html, body {
       margin: 0;
@@ -46,7 +46,7 @@
     }
 
     /* --------------------------------------------------
-       Top bar (same as home / hda-value)
+       Top bar (same pattern as home / HDA pages)
     -------------------------------------------------- */
     .home-topbar {
       position: sticky;
@@ -323,15 +323,7 @@
       z-index: 1;
     }
 
-    /* Wrap only for BOOKIE PRICE & MODEL PRICE headers (G & H) */
-    .home .table-container th.wrap-header {
-      white-space: normal;
-      word-break: break-word;
-      overflow-wrap: anywhere;
-      line-height: 1.2;
-    }
-
-    /* Side card (notes) */
+    /* Side card content */
     .data-side-title {
       font-size: 14px;
       color: #ffffff;
@@ -374,7 +366,7 @@
     }
 
     /* --------------------------------------------------
-       Bottom mobile nav (Result points to /hda-highchance)
+       Bottom mobile nav (same pattern as other pages)
     -------------------------------------------------- */
     .bottom-nav {
       position: fixed;
@@ -484,7 +476,7 @@
       }
     }
 
-    /* Reduce table font-size by 2px on mobile */
+    /* Reduce table font-size slightly on smaller screens */
     @media (max-width: 600px) {
       .home .table-container table {
         font-size: 9px;
@@ -510,24 +502,24 @@
         </div>
         <div class="topbar-tag">
           <span class="topbar-tag-dot"></span>
-          <span>Match Result</span>
+          <span>Under/Over 2.5</span>
         </div>
       </div>
 
       <!-- Desktop / tablet nav -->
       <nav class="primary-nav" aria-label="Primary navigation">
         <a href="/index">Home</a>
-        <a href="/hda-highchance" class="active">Match Result</a>
-        <a href="/uo-value">Under/Over 2.5</a>
+        <a href="/hda-highchance">Match Result</a>
+        <a href="/uo-highchance" class="active">Under/Over 2.5</a>
         <a href="/lucky-dip">Lucky Dip</a>
         <a href="/historical">Historical Data</a>
         <a href="/faqs">FAQs</a>
       </nav>
 
       <!-- Sub-nav for this section -->
-      <div class="sub-nav-pills" aria-label="Match Result views">
-        <a href="/hda-value">Best Value</a>
-        <a href="/hda-highchance" class="active">Highest Chance</a>
+      <div class="sub-nav-pills" aria-label="Under/Over views">
+        <a href="/uo-value">Best Value</a>
+        <a href="/uo-highchance" class="active">Highest Chance</a>
       </div>
     </header>
 
@@ -535,11 +527,11 @@
     <section class="data-layout">
       <!-- Filters + table -->
       <div class="data-main-card">
-        <div class="data-eyebrow">Match Result</div>
+        <div class="data-eyebrow">Under/Over 2.5 Goals</div>
         <h2 class="data-title">Highest chance selections</h2>
         <p class="data-subtitle">
-          Use the filters to focus on specific days or outcomes. The table updates instantly
-          using the latest data from the model.
+          Use the filters to focus on specific days or goal lines. The table updates instantly
+          using the latest probabilities from the model.
         </p>
 
         <!-- Day filters -->
@@ -549,10 +541,10 @@
         </div>
 
         <!-- Result filters -->
-        <div class="data-label">Filter by predicted result</div>
+        <div class="data-label">Filter by predicted outcome</div>
         <div class="filters-row" id="result-filters">
-          <button data-result="HOME WIN">Home Win</button>
-          <button data-result="AWAY WIN">Away Win</button>
+          <button data-result="UNDER 2.5">Under 2.5 Goals</button>
+          <button data-result="OVER 2.5">Over 2.5 Goals</button>
         </div>
 
         <div class="mobile-info">
@@ -564,22 +556,22 @@
         <div class="table-container" id="sheet-data"></div>
       </div>
 
-      <!-- Side info / explanatory card -->
+      <!-- Side info / explanation -->
       <aside class="data-side-card">
-        <h3 class="data-side-title">What does “highest chance” mean?</h3>
+        <h3 class="data-side-title">How to read “Highest Chance”</h3>
         <p class="data-side-subtitle">
-          These are fixtures where the model assigns the strongest probability to a specific
-          match result (home win or away win), regardless of price.
+          This view surfaces fixtures where the model has a strong opinion on whether there will
+          be <strong>under</strong> or <strong>over</strong> 2.5 goals.
         </p>
         <ul class="value-list">
-          <li><span class="emoji">📈</span> Focuses on win probability, not strictly value.</li>
-          <li><span class="emoji">🏠</span> High-confidence home favourites can appear frequently.</li>
-          <li><span class="emoji">🧳</span> Strong away sides with favourable match-ups also show here.</li>
+          <li><span class="emoji">📈</span> Higher model probability &rarr; stronger expectation of that outcome.</li>
+          <li><span class="emoji">✅</span> Use filters to drill into specific days or just “Under” / “Over”.</li>
+          <li><span class="emoji">⚠️</span> Even high probabilities lose sometimes – think in terms of many bets, not one.</li>
         </ul>
 
         <p class="side-note">
-          You can combine this view with the Best Value page: a selection that appears in both
-          can be a strong candidate, but still never guaranteed.
+          This page focuses on <strong>likelihood</strong>, not price. For value-focused picks that
+          compare model price to bookmaker price, use the <strong>Best Value</strong> view instead.
         </p>
       </aside>
     </section>
@@ -595,11 +587,11 @@
       <span class="icon">🏠</span>
       <span class="label">Home</span>
     </a>
-    <a href="/hda-highchance" class="active" data-key="hda">
+    <a href="/hda-highchance" data-key="hda">
       <span class="icon">🏆</span>
       <span class="label">Result</span>
     </a>
-    <a href="/uo-value" data-key="uo">
+    <a href="/uo-highchance" class="active" data-key="uo">
       <span class="icon">⚽</span>
       <span class="label">U/O 2.5</span>
     </a>
@@ -626,12 +618,11 @@
     const activeResultFilters = new Set();
 
     function csvToRows(text) {
-      // Simple CSV split; assumes your sheet cells don't contain unescaped commas/newlines.
       return text.trim().split("\n").map(r => r.split(","));
     }
 
     async function loadCSV() {
-      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv";
+      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1035748278&single=true&output=csv";
       const response = await fetch(url);
       const text = await response.text();
       allRows = csvToRows(text);
@@ -647,14 +638,11 @@
     }
 
     function buildDayButtons() {
-      const dayFiltersDiv = document.getElementById("day-filters");
-      dayFiltersDiv.innerHTML = "";
+      const container = document.getElementById("day-filters");
+      container.innerHTML = "";
 
-      // Column A = day (index 0); filter out blanks and normalize
       const uniqueDays = Array.from(new Set(
-        dataRows
-          .map(r => (r[0] || "").trim())
-          .filter(v => v.length > 0)
+        dataRows.map(r => (r[0] || "").trim()).filter(v => v.length > 0)
       ));
 
       uniqueDays.forEach(day => {
@@ -671,19 +659,19 @@
           }
           renderTable();
         });
-        dayFiltersDiv.appendChild(btn);
+        container.appendChild(btn);
       });
     }
 
     function attachResultButtonHandlers() {
       document.querySelectorAll("#result-filters button").forEach(btn => {
         btn.addEventListener("click", () => {
-          const value = (btn.dataset.result || "").trim().toUpperCase(); // e.g., "HOME WIN"
-          if (activeResultFilters.has(value)) {
-            activeResultFilters.delete(value);
+          const val = (btn.dataset.result || "").trim().toUpperCase();
+          if (activeResultFilters.has(val)) {
+            activeResultFilters.delete(val);
             btn.classList.remove("active");
           } else {
-            activeResultFilters.add(value);
+            activeResultFilters.add(val);
             btn.classList.add("active");
           }
           renderTable();
@@ -691,40 +679,29 @@
       });
     }
 
-    function rowMatchesFilters(row) {
-      const dayVal = (row[0] || "").trim();                 // Column A
-      const resultVal = (row[5] || "").trim().toUpperCase(); // Column F
-
-      const dayOk = activeDayFilters.size === 0 || activeDayFilters.has(dayVal);
-      const resultOk = activeResultFilters.size === 0 || activeResultFilters.has(resultVal);
-
-      return dayOk && resultOk;
+    function rowMatches(row) {
+      const day = (row[0] || "").trim();
+      const res = (row[5] || "").trim().toUpperCase();
+      const okDay = activeDayFilters.size === 0 || activeDayFilters.has(day);
+      const okRes = activeResultFilters.size === 0 || activeResultFilters.has(res);
+      return okDay && okRes;
     }
 
     function renderTable() {
-      const container = document.getElementById("sheet-data");
-
       let html = "<table>";
 
-      // Headers
       if (headerRow.length) {
-        html += "<tr>" + headerRow.map((cell, idx) => {
-          // Columns G (index 6) and H (index 7) => wrap-header
-          const needsWrap = idx === 6 || idx === 7;
-          const cls = needsWrap ? ' class="wrap-header"' : '';
-          return `<th${cls}>${cell}</th>`;
-        }).join("") + "</tr>";
+        html += "<tr>" + headerRow.map(c => `<th>${c}</th>`).join("") + "</tr>";
       }
 
-      // Filtered data rows
-      dataRows.forEach(row => {
-        if (rowMatchesFilters(row)) {
-          html += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>";
+      dataRows.forEach(r => {
+        if (rowMatches(r)) {
+          html += "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>";
         }
       });
 
       html += "</table>";
-      container.innerHTML = html;
+      document.getElementById("sheet-data").innerHTML = html;
     }
 
     loadCSV();
