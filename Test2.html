@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC PREDICT - MATCH RESULT BEST VALUE</title>
+  <title>MC PREDICT - MATCH RESULT HIGHEST CHANCE</title>
 
   <!-- Global site stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -13,7 +13,7 @@
 
   <style>
     /* --------------------------------------------------
-       Base fixes (same as home)
+       Base (same as home / best value)
     -------------------------------------------------- */
     html, body {
       margin: 0;
@@ -46,7 +46,7 @@
     }
 
     /* --------------------------------------------------
-       Top bar (same as home)
+       Top bar
     -------------------------------------------------- */
     .home-topbar {
       position: sticky;
@@ -214,7 +214,7 @@
     }
 
     /* --------------------------------------------------
-       Data layout (Option A: filters + table focus)
+       Data layout
     -------------------------------------------------- */
     .data-layout {
       display: grid;
@@ -269,7 +269,6 @@
       margin: 6px 0 4px;
     }
 
-    /* Use existing .filters styles from style.css but tweak spacing */
     .filters-row {
       display: flex;
       flex-wrap: wrap;
@@ -295,7 +294,7 @@
       text-align: left;
     }
 
-    /* Table container override to avoid overflow */
+    /* Table container override */
     .home .table-container {
       width: 100%;
       margin: 10px 0 0;
@@ -323,7 +322,7 @@
       z-index: 1;
     }
 
-    /* NEW: allow wrapping only for BOOKIE PRICE & MODEL PRICE headers (G & H) */
+    /* Wrap only BOOKIE PRICE & MODEL PRICE headers (G & H) */
     .home .table-container th.wrap-header {
       white-space: normal;
       word-break: break-word;
@@ -331,7 +330,7 @@
       line-height: 1.2;
     }
 
-    /* Side card (value key / notes) */
+    /* Side card */
     .data-side-title {
       font-size: 14px;
       color: #ffffff;
@@ -374,7 +373,7 @@
     }
 
     /* --------------------------------------------------
-       Bottom mobile nav (same pattern as home, but "Result" active)
+       Bottom mobile nav
     -------------------------------------------------- */
     .bottom-nav {
       position: fixed;
@@ -526,8 +525,8 @@
 
       <!-- Sub-nav for this section -->
       <div class="sub-nav-pills" aria-label="Match Result views">
-        <a href="/hda-value" class="active">Best Value</a>
-        <a href="/hda-highchance">Highest Chance</a>
+        <a href="/hda-value">Best Value</a>
+        <a href="/hda-highchance" class="active">Highest Chance</a>
       </div>
     </header>
 
@@ -536,10 +535,10 @@
       <!-- Filters + table -->
       <div class="data-main-card">
         <div class="data-eyebrow">Match Result</div>
-        <h2 class="data-title">Best value selections</h2>
+        <h2 class="data-title">Highest chance selections</h2>
         <p class="data-subtitle">
-          Use the filters to focus on specific days or outcomes. The table updates instantly
-          using the latest data from the model.
+          Use the filters to focus on specific days or outcomes. These selections have the
+          highest model-estimated probability of landing.
         </p>
 
         <!-- Day filters -->
@@ -564,24 +563,22 @@
         <div class="table-container" id="sheet-data"></div>
       </div>
 
-      <!-- Side info / value key -->
+      <!-- Side info / notes -->
       <aside class="data-side-card">
-        <h3 class="data-side-title">Value key</h3>
+        <h3 class="data-side-title">What does “Highest Chance” mean?</h3>
         <p class="data-side-subtitle">
-          Each fixture has a value rating based on how strongly the model disagrees with the market.
+          These fixtures are ranked by the model’s estimated probability of the predicted
+          outcome, not by value.
         </p>
         <ul class="value-list">
-          <li><span class="emoji">💰💰💰</span> Highest perceived value</li>
-          <li><span class="emoji">💰💰</span> Strong value</li>
-          <li><span class="emoji">💰</span> Mild value edge</li>
-          <li><span class="emoji">❌</span> Equal price or mild poor value</li>
-          <li><span class="emoji">❌❌</span> Poor value</li>
-          <li><span class="emoji">❌❌❌</span> Very poor value</li>
+          <li><span class="emoji">📈</span> Higher percentage = model expects this outcome most often.</li>
+          <li><span class="emoji">💰</span> For value-focused picks, use the <strong>Best Value</strong> tab instead.</li>
+          <li><span class="emoji">⚖️</span> Sometimes a high-chance pick can still be poor value if the price is too short.</li>
         </ul>
 
         <p class="side-note">
-          Remember: value does not guarantee a win on a single game. It’s designed for long-term
-          edges across many bets.
+          As always, high probability doesn’t equal certainty — it simply means the outcome
+          is expected more often than the alternatives.
         </p>
       </aside>
     </section>
@@ -628,12 +625,11 @@
     const activeResultFilters = new Set();
 
     function csvToRows(text) {
-      // Simple CSV split; assumes your sheet cells don't contain unescaped commas/newlines.
-      return text.trim().split("\n").map(r => r.split(","));
+      return text.trim().split("\\n").map(r => r.split(","));
     }
 
     async function loadCSV() {
-      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
+      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv";
       const response = await fetch(url);
       const text = await response.text();
       allRows = csvToRows(text);
@@ -649,10 +645,9 @@
     }
 
     function buildDayButtons() {
-      const dayFiltersDiv = document.getElementById("day-filters");
-      dayFiltersDiv.innerHTML = "";
+      const container = document.getElementById("day-filters");
+      container.innerHTML = "";
 
-      // Column A = day (index 0); filter out blanks and normalize
       const uniqueDays = Array.from(new Set(
         dataRows
           .map(r => (r[0] || "").trim())
@@ -673,19 +668,19 @@
           }
           renderTable();
         });
-        dayFiltersDiv.appendChild(btn);
+        container.appendChild(btn);
       });
     }
 
     function attachResultButtonHandlers() {
       document.querySelectorAll("#result-filters button").forEach(btn => {
         btn.addEventListener("click", () => {
-          const value = (btn.dataset.result || "").trim().toUpperCase(); // e.g., "HOME WIN"
-          if (activeResultFilters.has(value)) {
-            activeResultFilters.delete(value);
+          const val = (btn.dataset.result || "").trim().toUpperCase();
+          if (activeResultFilters.has(val)) {
+            activeResultFilters.delete(val);
             btn.classList.remove("active");
           } else {
-            activeResultFilters.add(value);
+            activeResultFilters.add(val);
             btn.classList.add("active");
           }
           renderTable();
@@ -693,40 +688,33 @@
       });
     }
 
-    function rowMatchesFilters(row) {
-      const dayVal = (row[0] || "").trim();                 // Column A
-      const resultVal = (row[5] || "").trim().toUpperCase(); // Column F
-
-      const dayOk = activeDayFilters.size === 0 || activeDayFilters.has(dayVal);
-      const resultOk = activeResultFilters.size === 0 || activeResultFilters.has(resultVal);
-
-      return dayOk && resultOk;
+    function rowMatches(row) {
+      const day = (row[0] || "").trim();
+      const res = (row[5] || "").trim().toUpperCase();
+      const okDay = activeDayFilters.size === 0 || activeDayFilters.has(day);
+      const okRes = activeResultFilters.size === 0 || activeResultFilters.has(res);
+      return okDay && okRes;
     }
 
     function renderTable() {
-      const container = document.getElementById("sheet-data");
-
       let html = "<table>";
 
-      // Headers
       if (headerRow.length) {
         html += "<tr>" + headerRow.map((cell, idx) => {
-          // Columns G (index 6) and H (index 7) => wrap-header
-          const needsWrap = idx === 6 || idx === 7;
-          const cls = needsWrap ? ' class="wrap-header"' : '';
+          const needsWrap = idx === 6 || idx === 7; // G & H
+          const cls = needsWrap ? ' class="wrap-header"' : "";
           return `<th${cls}>${cell}</th>`;
         }).join("") + "</tr>";
       }
 
-      // Filtered data rows
-      dataRows.forEach(row => {
-        if (rowMatchesFilters(row)) {
-          html += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>";
+      dataRows.forEach(r => {
+        if (rowMatches(r)) {
+          html += "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>";
         }
       });
 
       html += "</table>";
-      container.innerHTML = html;
+      document.getElementById("sheet-data").innerHTML = html;
     }
 
     loadCSV();
