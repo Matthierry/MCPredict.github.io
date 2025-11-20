@@ -338,6 +338,45 @@ tr:nth-child(even) {
   background: var(--bg);
 }
 
+/* ------------------------------------
+   Compact table for new "home" layout
+   (used on /index, /hda-value, etc.)
+   Option B – minimal padding on mobile
+------------------------------------ */
+body.home .table-container {
+  width: 100%;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+body.home .table-container table {
+  width: 100%;
+  font-size: 13px;
+}
+
+body.home .table-container th,
+body.home .table-container td {
+  padding: 6px 3px;
+  border: none;
+}
+
+/* Extra tightening on small screens */
+@media (max-width: 600px) {
+  body.home .table-container {
+    width: 100%;
+    padding: 0;
+  }
+
+  body.home .table-container table {
+    font-size: 11px;
+  }
+
+  body.home .table-container th,
+  body.home .table-container td {
+    padding: 4px 2px;
+  }
+}
+
 /* ---------------------------
    Wizard (Lucky Dip)
 --------------------------- */
