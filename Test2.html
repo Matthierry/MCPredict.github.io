@@ -307,7 +307,7 @@
     .home .table-container table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 11px;
+      font-size: 11px; /* desktop size */
     }
 
     .home .table-container th,
@@ -473,6 +473,13 @@
 
       .bottom-nav {
         display: flex;
+      }
+    }
+
+    /* NEW: reduce table font-size by 2px on mobile */
+    @media (max-width: 600px) {
+      .home .table-container table {
+        font-size: 9px; /* 11 - 2 */
       }
     }
   </style>
@@ -711,4 +718,3 @@
   </script>
 </body>
 </html>
-
