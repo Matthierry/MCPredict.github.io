@@ -288,7 +288,28 @@
       text-align: left;
     }
 
-    /* Keep sticky header behaviour only; layout comes from global style.css */
+    /* Table container override to match other pages */
+    .home .table-container {
+      width: 100%;
+      margin: 10px 0 0;
+      padding: 0;
+      box-sizing: border-box;
+      overflow-x: auto;
+    }
+
+    .home .table-container table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px; /* desktop size */
+    }
+
+    .home .table-container th,
+    .home .table-container td {
+      padding: 6px 4px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
     .home .table-container th {
       position: sticky;
       top: 0;
@@ -559,6 +580,13 @@
 
       .bottom-nav {
         display: flex;
+      }
+    }
+
+    /* Reduce table font-size a bit on small screens */
+    @media (max-width: 600px) {
+      .home .table-container table {
+        font-size: 9px;
       }
     }
   </style>
