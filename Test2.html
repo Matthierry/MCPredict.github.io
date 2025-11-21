@@ -214,7 +214,7 @@
     }
 
     /* --------------------------------------------------
-       Data layout (filters + table + side info)
+       Data layout (Option A: filters + table focus)
     -------------------------------------------------- */
     .data-layout {
       display: grid;
@@ -323,7 +323,7 @@
       z-index: 1;
     }
 
-    /* Allow wrapping only for BOOKIE PRICE & MODEL PRICE headers (G & H) */
+    /* Allow wrapping only for BOOKIE PRICE & MODEL PRICE headers (G & H) in main table */
     .home .table-container th.wrap-header {
       white-space: normal;
       word-break: break-word;
@@ -365,42 +365,60 @@
       color: #8c8c8e;
     }
 
-    /* Side tables (three small tables from extra CSV) */
+    /* ---------------------------
+       Side tables (from extra CSV)
+    --------------------------- */
     .side-tables {
-      margin-top: 16px;
+      margin-top: 14px;
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
-    .side-table-block {
-      background: rgba(0, 0, 0, 0.25);
-      border-radius: 10px;
-      padding: 8px 8px 10px;
+    .side-table-card {
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .side-table-title {
+      margin: 0 0 6px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #f7b057;
+    }
+
+    .side-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
     }
 
     .side-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 11px;
+      background: transparent;
     }
 
     .side-table th,
     .side-table td {
-      padding: 4px 6px;
-      text-align: left;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      white-space: nowrap;
+      padding: 4px 3px;
+      text-align: center;
+      border: none;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .side-table th {
-      background: transparent;
-      font-weight: 600;
+      background: rgba(240, 147, 0, 0.2);
       color: #ffffff;
+      font-weight: 600;
+      line-height: 1.25;
     }
 
-    .side-table tr:last-child td {
-      border-bottom: none;
+    .side-table tr:nth-child(even) td {
+      background: rgba(0, 0, 0, 0.15);
     }
 
     /* Footer */
@@ -522,14 +540,19 @@
       }
     }
 
-    /* Reduce main table font-size by 2px on mobile */
+    /* Reduce main table font-size by 2px on mobile; also shrink side tables */
     @media (max-width: 600px) {
       .home .table-container table {
         font-size: 9px;
       }
 
       .side-table {
-        font-size: 10px;
+        font-size: 9px;
+      }
+
+      .side-table th,
+      .side-table td {
+        padding: 3px 2px;
       }
     }
   </style>
@@ -602,7 +625,7 @@
         </div>
         <div class="loading-message" id="loadingMessage">Loading latest data...</div>
 
-        <!-- Table -->
+        <!-- Main table -->
         <div class="table-container" id="sheet-data"></div>
       </div>
 
@@ -626,10 +649,8 @@
           edges across many bets.
         </p>
 
-        <!-- Extra side tables from second CSV -->
-        <div class="side-tables" id="side-tables">
-          <!-- Filled by JS -->
-        </div>
+        <!-- Extra side tables from secondary CSV -->
+        <div id="side-tables" class="side-tables"></div>
       </aside>
     </section>
 
@@ -776,55 +797,94 @@
       container.innerHTML = html;
     }
 
-    /* ------------------------------
-       Load side tables from 2nd CSV
-       Headers in rows 3, 15, 26
-    ------------------------------ */
+    /* -----------------------------
+       Load side tables from CSV
+       ----------------------------- */
     async function loadSideTables() {
-      const url2 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1680844079&single=true&output=csv";
-      const response = await fetch(url2);
-      const text = await response.text();
-      const rows = csvToRows(text);
+      const urlSide = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1680844079&single=true&output=csv";
 
-      const container = document.getElementById("side-tables");
-      if (!container) return;
+      try {
+        const response = await fetch(urlSide);
+        const text = await response.text();
+        const rows = csvToRows(text);
 
-      // Header rows are 3, 15, 26 (1-based) => 2, 14, 25 (0-based)
-      const headerIndices = [2, 14, 25];
-      let html = "";
+        if (!rows || !rows.length) return;
 
-      headerIndices.forEach((hi, index) => {
-        if (!rows[hi]) return;
-        const headers = rows[hi];
-        const nextHi = headerIndices[index + 1] ?? rows.length;
+        const container = document.getElementById("side-tables");
+        if (!container) return;
 
-        // Data rows from hi+1 up to nextHi (exclusive), remove blank rows
-        const data = rows
-          .slice(hi + 1, nextHi)
-          .filter(r => r.some(c => c && c.trim() !== ""));
+        container.innerHTML = "";
 
-        if (!data.length) return;
-
-        html += '<div class="side-table-block">';
-        html += '<table class="side-table">';
-        html += "<thead><tr>" +
-          headers.map(h => `<th>${h}</th>`).join("") +
-          "</tr></thead>";
-        html += "<tbody>";
-
-        data.forEach(r => {
-          html += "<tr>" +
-            headers.map((_, colIdx) => {
-              const val = r[colIdx] || "";
-              return `<td>${val}</td>`;
-            }).join("") +
-            "</tr>";
+        // Find header rows for each side table: first cell "VALUE"
+        const headerIndices = [];
+        rows.forEach((row, idx) => {
+          const first = (row[0] || "").trim().toUpperCase();
+          if (first === "VALUE") {
+            headerIndices.push(idx);
+          }
         });
 
-        html += "</tbody></table></div>";
-      });
+        headerIndices.forEach((hIdx, index) => {
+          const headerRow = rows[hIdx] || [];
 
-      container.innerHTML = html;
+          // Title is in the row above header
+          const titleRowIdx = hIdx - 1;
+          let title = (rows[titleRowIdx] && rows[titleRowIdx][0] || "").trim();
+          if (!title) {
+            title = `Set ${index + 1}`;
+          }
+
+          // Collect data rows until blank row or next header
+          const data = [];
+          for (let r = hIdx + 1; r < rows.length; r++) {
+            const row = rows[r];
+
+            if (!row) break;
+
+            const firstCell = (row[0] || "").trim().toUpperCase();
+
+            // Stop if we hit another header row
+            if (firstCell === "VALUE") break;
+
+            const isBlank = row.every(c => !c || c.trim() === "");
+            if (isBlank) break;
+
+            data.push(row);
+          }
+
+          // Build side table HTML
+          let tableHtml = '<div class="side-table-card">';
+          tableHtml += `<h4 class="side-table-title">${title}</h4>`;
+          tableHtml += '<div class="side-table-wrapper"><table class="side-table">';
+
+          // Headers: wrap at spaces using <br> to shrink horizontally
+          tableHtml += "<tr>";
+          headerRow.forEach(cell => {
+            const clean = (cell || "").trim();
+            const display = clean.replace(/\s+/g, "<br>");
+            tableHtml += `<th>${display}</th>`;
+          });
+          tableHtml += "</tr>";
+
+          // Data rows (align to header length)
+          data.forEach(row => {
+            tableHtml += "<tr>";
+            headerRow.forEach((_, colIdx) => {
+              const val = row[colIdx] || "";
+              tableHtml += `<td>${val}</td>`;
+            });
+            tableHtml += "</tr>";
+          });
+
+          tableHtml += "</table></div></div>";
+
+          container.insertAdjacentHTML("beforeend", tableHtml);
+        });
+
+      } catch (err) {
+        // Fail silently in UI; you can log if needed
+        console.error("Error loading side tables", err);
+      }
     }
 
     // Kick off both loads
