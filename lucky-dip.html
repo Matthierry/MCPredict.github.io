@@ -1,485 +1,432 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MC PREDICT — Lucky Dip</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="header">
-    <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
-    <h1>MC PREDICT</h1>
-  </div>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MC PREDICT - LUCKY DIP</title>
 
-  <nav>
-    <a href="/index">HOME</a>
-    <a href="/hda-value">MATCH RESULT</a>
-    <a href="/uo-value">UNDER/OVER 2.5</a>
-    <a href="/lucky-dip" class="active">LUCKY DIP</a>
-    <a href="/historical">HISTORICAL DATA</a>
-  </nav>
+  <!-- Global site stylesheet -->
+  <link rel="stylesheet" href="style.css">
 
-  <!-- No-data notice -->
-  <div id="no-data" style="display:none;color:#fff;margin:12px 0;text-align:center">
-    The model currently has no fixtures to process, please check again later. It is normally ready by 5pm UK time on a Friday but can sometimes be later.
-  </div>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
 
-  <main class="wizard" id="wizard" style="display:none">
-    <!-- Step 1 -->
-    <div class="step" id="step-market">
-      <div class="title">Step 1 — Market</div>
-      <div class="controls" id="market-controls"></div>
-    </div>
-
-    <!-- Step 2 -->
-    <div class="step" id="step-type" style="display:none">
-      <div class="title">Step 2 — Outcome Type</div>
-      <div class="controls" id="type-controls"></div>
-    </div>
-
-    <!-- Step 3 -->
-    <div class="step" id="step-pref" style="display:none">
-      <div class="title">Step 3 — Preference</div>
-      <div class="controls" id="pref-controls"></div>
-    </div>
-
-    <!-- Loading message will be positioned below the current step -->
-    <div id="loadingMsg" class="loadingMsg" style="display:none"></div>
-
-    <!-- Step 4 -->
-    <div class="step" id="step-days" style="display:none">
-      <div class="title">Step 4 — Day(s)</div>
-      <div class="controls" id="day-controls"></div>
-    </div>
-
-    <!-- Step 5 -->
-    <div class="step" id="step-number" style="display:none">
-      <div class="title">Step 5 — Number of selections</div>
-      <div class="controls" id="num-controls"></div>
-    </div>
-
-    <div class="generate-row">
-      <button id="generateBtn" style="display:none">Generate</button>
-      <div style="height:12px"></div>
-      <button id="regenerateBtn">Regenerate</button>
-    </div>
-  </main>
-
-  <div class="table-container" id="resultsContainer"></div>
-
-<script>
-/* ---------------------------
-   Configuration & sources
-   --------------------------- */
-const CHECK_SHEET = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
-
-const SOURCE_MAP = {
-  "Match Winner|Value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv",
-  "Match Winner|Chance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv",
-  "UO|Value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv",
-  "UO|Chance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1035748278&single=true&output=csv"
-};
-
-const DAY_ORDER = ["Friday","Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday"];
-
-/* ---------------------------
-   State
-   ---------------------------*/
-const state = {
-  market: null,   // "Match Winner" or "UO"
-  type: null,     // "HOME WIN"/"AWAY WIN"/"BOTH" or "UNDER"/"OVER"/"BOTH"
-  pref: null,     // "Value" or "Chance"
-  days: [],       // array of normalized day names
-  num: null,      // int 1..8
-  header: [],     // header row (sheet row 2)
-  dataRows: []    // sheet rows 3+ (array of arrays)
-};
-
-/* ---------------------------
-   Helpers
-   ---------------------------*/
-function $(id){ return document.getElementById(id); }
-
-function csvToRows(text){
-  // simple CSV split (assumes no unescaped commas, which you said is fine)
-  return text.trim().split(/\r?\n/).map(r => r.split(","));
-}
-
-function normalizeDay(raw){
-  if(!raw) return "";
-  const s = raw.trim().toLowerCase();
-  if(s.startsWith("fri")) return "Friday";
-  if(s.startsWith("sat")) return "Saturday";
-  if(s.startsWith("sun")) return "Sunday";
-  if(s.startsWith("mon")) return "Monday";
-  if(s.startsWith("tue")) return "Tuesday";
-  if(s.startsWith("wed")) return "Wednesday";
-  if(s.startsWith("thu")) return "Thursday";
-  // fallback capitalise
-  return raw.trim().charAt(0).toUpperCase() + raw.trim().slice(1);
-}
-
-function sortDays(days){
-  const set = new Set(days);
-  return DAY_ORDER.filter(d => set.has(d));
-}
-
-function showLoadingBelow(stepId, text="Loading questions..."){
-  const el = $("loadingMsg");
-  el.textContent = text;
-  el.style.display = "block";
-  // Move below the step if exists
-  const step = $(stepId);
-  if(step && step.parentNode){
-    step.parentNode.insertBefore(el, step.nextSibling);
-  }
-}
-function hideLoading(){ $("loadingMsg").style.display = "none"; }
-
-/* ---------------------------
-   CSV check (row 20) and init
-   ---------------------------*/
-async function init(){
-  try {
-    const txt = await fetchText(CHECK_SHEET);
-    const rows = csvToRows(txt);
-    const row20 = rows[19]; // index 19 = row 20
-    if(!row20 || row20.every(cell => (cell||"").trim() === "")){
-      $("no-data").style.display = "block";
-      $("wizard").style.display = "none";
-      return;
+  <style>
+    /* --------------------------------------------------
+       Base fixes (same as other new pages)
+    -------------------------------------------------- */
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
     }
-    $("wizard").style.display = "flex";
-    buildMarketControls();
-  } catch(e){
-    console.error(e);
-    $("no-data").style.display = "block";
-    $("no-data").textContent = "Error loading data. Please try again later.";
-  }
-}
 
-async function fetchText(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error("fetch failed");
-  return await r.text();
-}
+    body.home {
+      min-height: 100vh;
+      font-family: 'Proxima Nova', Arial, sans-serif;
+      color: #d3d3d3;
+      background: radial-gradient(circle at top left, #3c3c3e 0, #2c2c2e 40%, #18181a 100%);
+      display: flex;
+      flex-direction: column;
+    }
 
-/* ---------------------------
-   Build UI steps
-   ---------------------------*/
-function clear(el){ el.innerHTML = ""; }
+    .home * {
+      box-sizing: border-box;
+    }
 
-function setActive(container, btn){
-  Array.from(container.querySelectorAll("button")).forEach(b => b.classList.remove("active"));
-  if(btn) btn.classList.add("active");
-}
+    /* Page shell */
+    .home-page {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 14px 14px 70px; /* extra bottom for mobile nav */
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
 
-function buildMarketControls(){
-  const c = $("market-controls"); clear(c);
-  const m1 = document.createElement("button"); m1.textContent = "Match Winner";
-  const m2 = document.createElement("button"); m2.textContent = "Under/Over 2.5 Goals";
-  m1.onclick = () => {
-    setActive(c,m1);
-    state.market = "Match Winner";
-    // reset downstream
-    state.type = state.pref = null; state.days = []; state.num = null;
-    clear($("type-controls")); clear($("pref-controls")); clear($("day-controls")); clear($("num-controls")); $("resultsContainer").innerHTML = "";
-    $("step-type").style.display = "block";
-    $("step-pref").style.display = "none";
-    $("step-days").style.display = "none";
-    $("step-number").style.display = "none";
-    $("generateBtn").style.display = "none";
-    $("regenerateBtn").style.display = "none";
-    buildTypeControls();
-  };
-  m2.onclick = () => {
-    setActive(c,m2);
-    state.market = "UO";
-    state.type = state.pref = null; state.days = []; state.num = null;
-    clear($("type-controls")); clear($("pref-controls")); clear($("day-controls")); clear($("num-controls")); $("resultsContainer").innerHTML = "";
-    $("step-type").style.display = "block";
-    $("step-pref").style.display = "none";
-    $("step-days").style.display = "none";
-    $("step-number").style.display = "none";
-    $("generateBtn").style.display = "none";
-    $("regenerateBtn").style.display = "none";
-    buildTypeControls();
-  };
-  c.appendChild(m1); c.appendChild(m2);
-}
+    /* --------------------------------------------------
+       Top bar
+    -------------------------------------------------- */
+    .home-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding-bottom: 8px;
+    }
 
-function buildTypeControls(){
-  const c = $("type-controls"); clear(c);
-  if(state.market === "Match Winner"){
-    ["HOME WIN","AWAY WIN","BOTH"].forEach(lbl => {
-      const b = document.createElement("button"); b.textContent = lbl;
-      b.onclick = () => {
-        setActive(c,b);
-        state.type = lbl; // exact form for matching column F
-        state.pref = null; state.days=[]; state.num=null;
-        clear($("pref-controls")); clear($("day-controls")); clear($("num-controls")); $("resultsContainer").innerHTML="";
-        $("step-pref").style.display = "block";
-        $("step-days").style.display = "none";
-        $("step-number").style.display = "none";
-        $("generateBtn").style.display = "none"; $("regenerateBtn").style.display = "none";
-        buildPrefControls();
-      };
-      c.appendChild(b);
-    });
-  } else {
-    // UO variants - we store simplified type tokens 'UNDER'/'OVER'/'BOTH'
-    ["UNDER","OVER","BOTH"].forEach(tok => {
-      const label = tok === "UNDER" ? "UNDER 2.5 GOALS" : tok === "OVER" ? "OVER 2.5 GOALS" : "BOTH";
-      const b = document.createElement("button"); b.textContent = label;
-      b.onclick = () => {
-        setActive(c,b);
-        state.type = tok; // 'UNDER' / 'OVER' / 'BOTH'
-        state.pref = null; state.days=[]; state.num=null;
-        clear($("pref-controls")); clear($("day-controls")); clear($("num-controls")); $("resultsContainer").innerHTML="";
-        $("step-pref").style.display = "block";
-        $("step-days").style.display = "none";
-        $("step-number").style.display = "none";
-        $("generateBtn").style.display = "none"; $("regenerateBtn").style.display = "none";
-        buildPrefControls();
-      };
-      c.appendChild(b);
-    });
-  }
-}
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #3a3a3c, #262628);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(12px);
+    }
 
-function buildPrefControls(){
-  const c = $("pref-controls"); clear(c);
-  const b1 = document.createElement("button"); b1.textContent = "A good value bet";
-  const b2 = document.createElement("button"); b2.textContent = "A higher chance of winning";
-  b1.onclick = async () => {
-    setActive(c,b1); state.pref = "Value"; state.days=[]; state.num=null;
-    clear($("day-controls")); clear($("num-controls")); $("resultsContainer").innerHTML="";
-    $("generateBtn").style.display = "none"; $("regenerateBtn").style.display = "none";
-    await loadSheetForSelection();
-  };
-  b2.onclick = async () => {
-    setActive(c,b2); state.pref = "Chance"; state.days=[]; state.num=null;
-    clear($("day-controls")); clear($("num-controls")); $("resultsContainer").innerHTML="";
-    $("generateBtn").style.display = "none"; $("regenerateBtn").style.display = "none";
-    await loadSheetForSelection();
-  };
-  c.appendChild(b1); c.appendChild(b2);
-}
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
 
-/* ---------------------------
-   Load sheet for current selection and build day buttons
-   ---------------------------*/
-async function loadSheetForSelection(){
-  if(!state.market || !state.pref) return;
-  showLoadingBelow("step-pref", "Loading days...");
-  const key = (state.market === "Match Winner" ? "Match Winner" : "UO") + "|" + state.pref;
-  const url = SOURCE_MAP[key];
-  try {
-    const txt = await fetchText(url);
-    const rows = csvToRows(txt);
-    state.header = rows[1] || [];
-    state.dataRows = rows.slice(2); // data from row 3 onwards
-    // unique normalized days
-    const rawDays = Array.from(new Set(state.dataRows.map(r => (r[0]||"").trim()).filter(x => x && x.length>0)));
-    const normDays = rawDays.map(d => normalizeDay(d));
-    const ordered = sortDays(normDays);
+    .topbar-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: radial-gradient(circle at 30% 20%, #f09300, #1d1d1f);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
 
-    // create day buttons
-    const container = $("day-controls"); clear(container);
-    ordered.forEach(day => {
-      const b = document.createElement("button"); b.textContent = day; b.dataset.day = day;
-      b.onclick = () => {
-        if(b.classList.contains("active")){
-          b.classList.remove("active");
-          state.days = state.days.filter(x=>x !== day);
-        } else {
-          b.classList.add("active");
-          state.days.push(day);
-        }
-        // rebuild number buttons (available count changes)
-        buildNumberButtons();
-        // hide prior results
-        $("resultsContainer").innerHTML = "";
-        $("regenerateBtn").style.display = "none";
-        $("generateBtn").style.display = isReadyToGenerate() ? "inline-block" : "none";
-      };
-      container.appendChild(b);
-    });
+    .topbar-logo img {
+      width: 70%;
+      height: 70%;
+      object-fit: contain;
+    }
 
-    $("step-days").style.display = "block";
-    hideLoading();
-  } catch(e){
-    console.error(e);
-    hideLoading();
-    $("no-data").style.display = "block";
-    $("no-data").textContent = "Error loading selected sheet. Please try again later.";
-  }
-}
+    .topbar-title {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
 
-/* ---------------------------
-   Build numbers (1..8) and disable if not available
-   ---------------------------*/
-function buildNumberButtons(){
-  const container = $("num-controls"); clear(container);
-  $("step-number").style.display = "block";
-  const available = getFilteredIndexed().length;
-  for(let i=1;i<=8;i++){
-    const b = document.createElement("button"); b.textContent = String(i);
-    b.disabled = i > available;
-    b.onclick = () => {
-      if(b.disabled) return;
-      Array.from(container.querySelectorAll("button")).forEach(x=>x.classList.remove("active"));
-      b.classList.add("active");
-      state.num = i;
-      $("generateBtn").style.display = isReadyToGenerate() ? "inline-block" : "none";
-      $("resultsContainer").innerHTML = "";
-      $("regenerateBtn").style.display = "none";
-    };
-    container.appendChild(b);
-  }
-}
+    .topbar-title h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0.18em;
+      color: #ffffff;
+    }
 
-/* ---------------------------
-   Filter rows (return items with idx)
-   Uses Column A index 0 = day, Column F index 5 = result/type
-   ---------------------------*/
-function getFilteredIndexed(){
-  if(!state.dataRows) return [];
-  const matched = [];
-  state.dataRows.forEach((r, idx) => {
-    // normalize day
-    const rowDay = normalizeDay((r[0]||"").trim());
-    if(state.days.length > 0 && !state.days.includes(rowDay)) return;
-    // type matching
-    if(state.type && state.type !== "BOTH"){
-      const cell = ((r[5]||"").trim()).toUpperCase();
-      if(state.market === "Match Winner"){
-        // expect exact 'HOME WIN' or 'AWAY WIN' in column F
-        if(state.type === "HOME WIN" && cell !== "HOME WIN") return;
-        if(state.type === "AWAY WIN" && cell !== "AWAY WIN") return;
-      } else {
-        // UO: look for 'UNDER' or 'OVER' word inside cell
-        if(state.type === "UNDER" && !cell.includes("UNDER")) return;
-        if(state.type === "OVER" && !cell.includes("OVER")) return;
+    .topbar-title span {
+      font-size: 12px;
+      color: #a5a5a7;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .topbar-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(240, 147, 0, 0.1);
+      color: #f7b057;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+
+    .topbar-tag-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #40c456;
+      box-shadow: 0 0 0 6px rgba(64, 196, 86, 0.18);
+    }
+
+    /* --------------------------------------------------
+       Desktop nav (top pills)
+    -------------------------------------------------- */
+    .primary-nav {
+      display: none; /* hidden on mobile, shown on desktop */
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .primary-nav a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(31, 31, 33, 0.86);
+      color: #e0e0e0;
+      font-size: 15px;
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: background 0.2s ease, color 0.2s ease,
+                  transform 0.15s ease, box-shadow 0.2s ease,
+                  border-color 0.2s ease;
+    }
+
+    .primary-nav a:hover {
+      background: rgba(240, 147, 0, 0.12);
+      border-color: rgba(240, 147, 0, 0.7);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .primary-nav a.active {
+      background: linear-gradient(135deg, #f09300, #ffae33);
+      color: #111;
+      border-color: transparent;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
+    }
+
+    /* --------------------------------------------------
+       Under construction card
+    -------------------------------------------------- */
+    .construction-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    .construction-card {
+      width: 100%;
+      max-width: 720px;
+      padding: 24px 20px 26px;
+      border-radius: 20px;
+      background: radial-gradient(circle at top right, rgba(240, 147, 0, 0.18), rgba(21, 21, 23, 0.96));
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: center;
+    }
+
+    .construction-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .construction-eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #f7b057;
+      margin-bottom: 6px;
+    }
+
+    .construction-title {
+      margin: 0 0 10px;
+      font-size: 22px;
+      color: #ffffff;
+    }
+
+    .construction-subtitle {
+      margin: 0 0 14px;
+      font-size: 14px;
+      color: #bdbdbd;
+    }
+
+    .construction-detail {
+      margin: 0;
+      font-size: 13px;
+      color: #a5a5a7;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    .home-footer {
+      margin-top: 24px;
+      font-size: 11px;
+      color: #7a7a7a;
+      text-align: center;
+    }
+
+    /* --------------------------------------------------
+       Bottom mobile nav
+    -------------------------------------------------- */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 30;
+      height: 58px;
+      padding: 6px 10px 8px;
+      background: linear-gradient(180deg, rgba(10, 10, 12, 0.1), #101012);
+      box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .bottom-nav a {
+      flex: 1 1 0;
+      min-width: 0;
+      height: 100%;
+      border-radius: 999px;
+      padding: 4px 4px;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 11px;
+      text-decoration: none;
+      color: #e0e0e0;
+      opacity: 0.8;
+      transition: background 0.2s ease, color 0.2s ease,
+                  transform 0.12s ease, border-color 0.2s ease,
+                  opacity 0.2s ease;
+    }
+
+    .bottom-nav a .icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .bottom-nav a .label {
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .bottom-nav a:hover {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+
+    .bottom-nav a.active {
+      background: radial-gradient(circle at top, #f09300, #a85e00);
+      color: #101010;
+      border-color: rgba(255, 255, 255, 0.15);
+      opacity: 1;
+      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.75);
+    }
+
+    /* --------------------------------------------------
+       Responsive
+    -------------------------------------------------- */
+    @media (min-width: 640px) {
+      .home-page {
+        padding: 18px 20px 80px;
+      }
+
+      .construction-title {
+        font-size: 24px;
+      }
+
+      .construction-subtitle {
+        font-size: 15px;
       }
     }
-    matched.push({row: r, idx: idx});
-  });
-  return matched;
-}
 
-/* ---------------------------
-   Readiness check
-   ---------------------------*/
-function isReadyToGenerate(){
-  return !!state.market && !!state.type && !!state.pref && state.days.length > 0 && Number.isInteger(state.num) && state.num > 0;
-}
+    @media (min-width: 960px) {
+      .primary-nav {
+        display: flex;
+      }
 
-/* ---------------------------
-   Weighted sampling without replacement (Efraimidis–Spirakis)
-   Preference for dataRows indices 0..47 (sheet rows 3..50)
-   weight = (topLimit - idx) for idx < topLimit, else 1
-   ---------------------------*/
-function weightedWithoutReplacement(filteredIndexed, k){
-  if(filteredIndexed.length <= k) return filteredIndexed.map(x => x.row);
-  const topLimit = 48;
-  // compute key = Math.random() ** (1/weight) and pick top k items by key
-  const candidates = filteredIndexed.map(obj => {
-    const idx = obj.idx;
-    const weight = (idx >= 0 && idx < topLimit) ? Math.max(1, topLimit - idx) : 1;
-    const key = Math.pow(Math.random(), 1 / weight); // E-S method
-    return { obj, key };
-  });
-  // sort by key desc
-  candidates.sort((a,b) => b.key - a.key);
-  const picks = candidates.slice(0, k).map(c => c.obj.row);
-  return picks;
-}
+      .bottom-nav {
+        display: none; /* desktop only uses top nav */
+      }
 
-/* ---------------------------
-   Render results table (show header from row2 and all columns except day col0)
-   Align columns by index; skip column 0
-   ---------------------------*/
-function renderResults(rows){
-  const container = $("resultsContainer");
-  if(!rows || rows.length === 0){
-    container.innerHTML = "<p style='text-align:center;color:#fff'>No matches found for the selected criteria.</p>";
-    return;
-  }
-  // compute number of columns to render (use header length and rows actual lengths)
-  const header = state.header || [];
-  let maxCols = header.length;
-  rows.forEach(r => { if(r.length > maxCols) maxCols = r.length; });
-
-  const tbl = document.createElement("table");
-  // header row: skip col 0
-  const thr = document.createElement("tr");
-  for(let c = 1; c < maxCols; c++){
-    const th = document.createElement("th");
-    th.textContent = header[c] ? header[c] : ""; 
-    thr.appendChild(th);
-  }
-  tbl.appendChild(thr);
-
-  // body rows
-  rows.forEach(r => {
-    const tr = document.createElement("tr");
-    for(let c = 1; c < maxCols; c++){
-      const td = document.createElement("td");
-      td.textContent = r[c] ? r[c] : "";
-      tr.appendChild(td);
+      .home-page {
+        padding-bottom: 40px;
+      }
     }
-    tbl.appendChild(tr);
-  });
 
-  container.innerHTML = "";
-  container.appendChild(tbl);
-}
+    @media (max-width: 959px) {
+      .primary-nav {
+        display: none;
+      }
 
-/* ---------------------------
-   Generate & Regenerate handlers
-   ---------------------------*/
-function onGenerate(){
-  if(!isReadyToGenerate()) return;
-  const filteredIndexed = getFilteredIndexed();
-  if(filteredIndexed.length === 0){
-    $("resultsContainer").innerHTML = "<p style='text-align:center;color:#fff'>No matches match your criteria.</p>";
-    $("regenerateBtn").style.display = "none";
-    return;
-  }
-  const picks = weightedWithoutReplacement(filteredIndexed, state.num);
-  renderResults(picks);
+      .bottom-nav {
+        display: flex;
+      }
+    }
+  </style>
+</head>
 
-  // fade out generate and hide it, then show regenerate where generate was
-  const gen = $("generateBtn"), reg = $("regenerateBtn");
-  gen.classList.add("fade");
-  setTimeout(()=>{ gen.style.display = "none"; gen.classList.remove("fade"); }, 500);
-  reg.style.display = "inline-block";
-}
+<body class="home">
+  <div class="home-page">
 
-function onRegenerate(){
-  if(!isReadyToGenerate()) return;
-  const filteredIndexed = getFilteredIndexed();
-  if(filteredIndexed.length === 0){
-    $("resultsContainer").innerHTML = "<p style='text-align:center;color:#fff'>No matches match your criteria.</p>";
-    return;
-  }
-  const picks = weightedWithoutReplacement(filteredIndexed, state.num);
-  renderResults(picks);
-}
+    <!-- Top bar -->
+    <header class="home-topbar">
+      <div class="topbar-inner">
+        <div class="topbar-left">
+          <div class="topbar-logo">
+            <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
+          </div>
+          <div class="topbar-title">
+            <h1>MC PREDICT</h1>
+            <span>Data-driven Football predictions</span>
+          </div>
+        </div>
+        <div class="topbar-tag">
+          <span class="topbar-tag-dot"></span>
+          <span>Lucky Dip</span>
+        </div>
+      </div>
 
-/* ---------------------------
-   Event wiring & start
-   ---------------------------*/
-$("generateBtn").addEventListener("click", onGenerate);
-$("regenerateBtn").addEventListener("click", onRegenerate);
+      <!-- Desktop / tablet nav -->
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a href="/index">Home</a>
+        <a href="/hda-value">Match Result</a>
+        <a href="/uo-value">Under/Over 2.5</a>
+        <a href="/lucky-dip" class="active">Lucky Dip</a>
+        <a href="/historical">Historical Data</a>
+        <a href="/faqs">FAQs</a>
+      </nav>
+    </header>
 
-buildMarketControls(); // initial controls placed
-init(); // start by checking row20
+    <!-- Under construction content -->
+    <main class="construction-wrapper">
+      <section class="construction-card" aria-labelledby="construction-title">
+        <div class="construction-icon">🚧</div>
+        <div class="construction-eyebrow">Lucky Dip</div>
+        <h2 id="construction-title" class="construction-title">This page is under construction</h2>
+        <p class="construction-subtitle">
+          Due to the recent redesign of the website and the complexity of the Lucky Dip,
+          this page is not ready yet.
+        </p>
+        <p class="construction-detail">
+          Please check back soon!
+        </p>
+      </section>
+    </main>
 
-</script>
+    <footer class="home-footer">
+      MC Predict is for informational purposes only and does not guarantee outcomes. Please bet responsibly.
+    </footer>
+  </div>
+
+  <!-- Bottom mobile nav -->
+  <nav class="bottom-nav" aria-label="Primary navigation">
+    <a href="/index" data-key="home">
+      <span class="icon">🏠</span>
+      <span class="label">Home</span>
+    </a>
+    <a href="/hda-value" data-key="hda">
+      <span class="icon">🏆</span>
+      <span class="label">Result</span>
+    </a>
+    <a href="/uo-value" data-key="uo">
+      <span class="icon">⚽</span>
+      <span class="label">U/O 2.5</span>
+    </a>
+    <a href="/lucky-dip" class="active" data-key="lucky">
+      <span class="icon">🎲</span>
+      <span class="label">Lucky</span>
+    </a>
+    <a href="/historical" data-key="historical">
+      <span class="icon">📊</span>
+      <span class="label">History</span>
+    </a>
+    <a href="/faqs" data-key="faqs">
+      <span class="icon">❓</span>
+      <span class="label">FAQs</span>
+    </a>
+  </nav>
 </body>
 </html>
