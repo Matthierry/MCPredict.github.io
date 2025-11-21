@@ -288,13 +288,6 @@
       text-align: left;
     }
 
-    .loading-message {
-      margin-top: 6px;
-      font-size: 14px;
-      color: #f7b057;
-      text-align: left;
-    }
-
     /* Table container override to avoid overflow & keep behaviour */
     .home .table-container {
       width: 100%;
@@ -430,6 +423,111 @@
     }
 
     /* --------------------------------------------------
+       Soccer-themed loading overlay
+    -------------------------------------------------- */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background:
+        radial-gradient(circle at top, rgba(240, 147, 0, 0.25), rgba(10, 10, 12, 0.98));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 18px;
+      text-align: center;
+      color: #f5f5f7;
+      padding: 24px;
+      transition: opacity 0.4s ease;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-ball {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      background: radial-gradient(circle at 30% 30%, #f09300, #313133);
+      box-shadow:
+        0 0 0 4px rgba(0, 0, 0, 0.3),
+        0 10px 26px rgba(0, 0, 0, 0.7);
+      animation: bounce 0.9s infinite ease-in-out;
+    }
+
+    .loading-pitch-line {
+      width: 160px;
+      height: 2px;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.7),
+        transparent
+      );
+      position: relative;
+      overflow: hidden;
+    }
+
+    .loading-pitch-line::before {
+      content: "";
+      position: absolute;
+      left: -40%;
+      top: 0;
+      width: 40%;
+      height: 100%;
+      background: rgba(240, 147, 0, 0.8);
+      animation: run 1.1s linear infinite;
+    }
+
+    .loading-title {
+      font-size: 18px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .loading-subtitle {
+      font-size: 13px;
+      color: #d0d0d2;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+
+    .loading-ticker {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #f7b057;
+      margin-top: 4px;
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      45% {
+        transform: translateY(-14px);
+      }
+      55% {
+        transform: translateY(-8px);
+      }
+    }
+
+    @keyframes run {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(260%);
+      }
+    }
+
+    /* --------------------------------------------------
        Responsive
     -------------------------------------------------- */
     @media (min-width: 640px) {
@@ -443,6 +541,15 @@
 
       .data-layout {
         gap: 16px;
+      }
+
+      .loading-title {
+        font-size: 20px;
+      }
+
+      .loading-subtitle {
+        font-size: 14px;
+        max-width: 360px;
       }
     }
 
@@ -486,6 +593,17 @@
 </head>
 
 <body class="home">
+  <!-- Soccer-themed loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay" aria-live="polite">
+    <div class="loading-ball">⚽</div>
+    <div class="loading-pitch-line"></div>
+    <div class="loading-title">Calculating Goal Value</div>
+    <p class="loading-subtitle">
+      We&#39;re checking where the model and the market disagree most on the 2.5 goals line.
+    </p>
+    <div class="loading-ticker">Loading match data...</div>
+  </div>
+
   <div class="home-page">
 
     <!-- Top bar -->
@@ -550,7 +668,6 @@
         <div class="mobile-info">
           On mobile, the table is scrollable horizontally if needed.
         </div>
-        <div class="loading-message" id="loadingMessage">Loading latest data...</div>
 
         <!-- Table -->
         <div class="table-container" id="sheet-data"></div>
@@ -624,20 +741,43 @@
       return text.trim().split("\n").map(r => r.split(","));
     }
 
+    function hideLoadingOverlay() {
+      const overlay = document.getElementById("loadingOverlay");
+      if (!overlay) return;
+      overlay.classList.add("hidden");
+      // Optional: fully remove from flow after transition
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 450);
+    }
+
     async function loadCSV() {
       const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv";
-      const response = await fetch(url);
-      const text = await response.text();
-      allRows = csvToRows(text);
 
-      // Headers in row 2 (index 1), data from row 3 (index 2)
-      headerRow = allRows[1] || [];
-      dataRows = allRows.slice(2);
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const text = await response.text();
+        allRows = csvToRows(text);
 
-      buildDayButtons();
-      attachResultButtonHandlers();
-      renderTable();
-      document.getElementById("loadingMessage").style.display = "none";
+        // Headers in row 2 (index 1), data from row 3 (index 2)
+        headerRow = allRows[1] || [];
+        dataRows = allRows.slice(2);
+
+        buildDayButtons();
+        attachResultButtonHandlers();
+        renderTable();
+      } catch (err) {
+        console.error("Error loading CSV:", err);
+        const container = document.getElementById("sheet-data");
+        if (container) {
+          container.innerHTML = "<p style='font-size:13px;color:#f7b057;margin:8px 0;'>We couldn&#39;t load today&#39;s data. Please refresh the page in a moment.</p>";
+        }
+      } finally {
+        hideLoadingOverlay();
+      }
     }
 
     function buildDayButtons() {
