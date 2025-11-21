@@ -214,7 +214,7 @@
     }
 
     /* --------------------------------------------------
-       Data layout (Option A: filters + table focus)
+       Data layout (filters + table + side info)
     -------------------------------------------------- */
     .data-layout {
       display: grid;
@@ -323,7 +323,7 @@
       z-index: 1;
     }
 
-    /* Wrap only BOOKIE PRICE & MODEL PRICE (G & H) headers */
+    /* Allow wrapping only for BOOKIE PRICE & MODEL PRICE headers (G & H) */
     .home .table-container th.wrap-header {
       white-space: normal;
       word-break: break-word;
@@ -365,49 +365,42 @@
       color: #8c8c8e;
     }
 
-    /* --- NEW: extra side tables from second sheet --- */
-    .side-table-container {
+    /* Side tables (three small tables from extra CSV) */
+    .side-tables {
       margin-top: 16px;
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
-    .side-table-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: #ffffff;
-      margin: 8px 0 4px;
-    }
-
-    .side-table-wrapper {
-      width: 100%;
-      overflow-x: auto;
+    .side-table-block {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+      padding: 8px 8px 10px;
     }
 
     .side-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 11px;
-      background: rgba(10, 10, 12, 0.9);
     }
 
     .side-table th,
     .side-table td {
       padding: 4px 6px;
       text-align: left;
-      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       white-space: nowrap;
     }
 
     .side-table th {
-      background: rgba(240, 147, 0, 0.25);
-      color: #ffffff;
+      background: transparent;
       font-weight: 600;
+      color: #ffffff;
     }
 
-    .side-table tr:nth-child(even) td {
-      background: rgba(255, 255, 255, 0.03);
+    .side-table tr:last-child td {
+      border-bottom: none;
     }
 
     /* Footer */
@@ -536,7 +529,7 @@
       }
 
       .side-table {
-        font-size: 9px;
+        font-size: 10px;
       }
     }
   </style>
@@ -582,7 +575,7 @@
 
     <!-- Main data layout -->
     <section class="data-layout">
-      <!-- Filters + main table -->
+      <!-- Filters + table -->
       <div class="data-main-card">
         <div class="data-eyebrow">Match Result</div>
         <h2 class="data-title">Best value selections</h2>
@@ -609,7 +602,7 @@
         </div>
         <div class="loading-message" id="loadingMessage">Loading latest data...</div>
 
-        <!-- Main table -->
+        <!-- Table -->
         <div class="table-container" id="sheet-data"></div>
       </div>
 
@@ -633,8 +626,10 @@
           edges across many bets.
         </p>
 
-        <!-- NEW: container for the three extra tables -->
-        <div id="side-sheet-data" class="side-table-container"></div>
+        <!-- Extra side tables from second CSV -->
+        <div class="side-tables" id="side-tables">
+          <!-- Filled by JS -->
+        </div>
       </aside>
     </section>
 
@@ -684,9 +679,6 @@
       return text.trim().split("\n").map(r => r.split(","));
     }
 
-    /* -------------------------
-       Main table CSV
-    ------------------------- */
     async function loadCSV() {
       const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
       const response = await fetch(url);
@@ -784,66 +776,52 @@
       container.innerHTML = html;
     }
 
-    /* -------------------------
-       Side tables CSV
-       Titles: rows 2,14,25
-       Headers: rows 2,15,26 (1-based)
-    ------------------------- */
-    async function loadSideCSV() {
-      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1680844079&single=true&output=csv";
-      const response = await fetch(url);
+    /* ------------------------------
+       Load side tables from 2nd CSV
+       Headers in rows 3, 15, 26
+    ------------------------------ */
+    async function loadSideTables() {
+      const url2 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1680844079&single=true&output=csv";
+      const response = await fetch(url2);
       const text = await response.text();
       const rows = csvToRows(text);
 
-      const container = document.getElementById("side-sheet-data");
-      if (!container || rows.length === 0) return;
+      const container = document.getElementById("side-tables");
+      if (!container) return;
 
-      // 0-based indices for the key rows
-      const tablesConfig = [
-        {
-          titleRow: 1,  // row 2
-          headerRow: 1, // headers also row 2
-          startData: 2, // row 3
-          endBefore: 13 // row 13 (before title at row 14 / index 13)
-        },
-        {
-          titleRow: 13, // row 14
-          headerRow: 14, // row 15
-          startData: 15, // row 16
-          endBefore: 24  // row 24 (before title at row 25 / index 24)
-        },
-        {
-          titleRow: 24, // row 25
-          headerRow: 25, // row 26
-          startData: 26, // row 27
-          endBefore: rows.length
-        }
-      ];
-
+      // Header rows are 3, 15, 26 (1-based) => 2, 14, 25 (0-based)
+      const headerIndices = [2, 14, 25];
       let html = "";
 
-      tablesConfig.forEach(cfg => {
-        if (!rows[cfg.headerRow]) return;
+      headerIndices.forEach((hi, index) => {
+        if (!rows[hi]) return;
+        const headers = rows[hi];
+        const nextHi = headerIndices[index + 1] ?? rows.length;
 
-        const titleCells = rows[cfg.titleRow] || [];
-        const titleText = (titleCells[0] || "").trim();
+        // Data rows from hi+1 up to nextHi (exclusive), remove blank rows
+        const data = rows
+          .slice(hi + 1, nextHi)
+          .filter(r => r.some(c => c && c.trim() !== ""));
 
-        if (titleText) {
-          html += `<h4 class="side-table-title">${titleText}</h4>`;
-        }
+        if (!data.length) return;
 
-        html += '<div class="side-table-wrapper"><table class="side-table">';
+        html += '<div class="side-table-block">';
+        html += '<table class="side-table">';
+        html += "<thead><tr>" +
+          headers.map(h => `<th>${h}</th>`).join("") +
+          "</tr></thead>";
+        html += "<tbody>";
 
-        const headerCells = rows[cfg.headerRow] || [];
-        html += "<tr>" + headerCells.map(c => `<th>${c}</th>`).join("") + "</tr>";
+        data.forEach(r => {
+          html += "<tr>" +
+            headers.map((_, colIdx) => {
+              const val = r[colIdx] || "";
+              return `<td>${val}</td>`;
+            }).join("") +
+            "</tr>";
+        });
 
-        for (let r = cfg.startData; r < cfg.endBefore && r < rows.length; r++) {
-          const row = rows[r];
-          if (!row || row.every(cell => (cell || "").trim() === "")) continue;
-          html += "<tr>" + row.map(c => `<td>${c}</td>`).join("") + "</tr>";
-        }
-
-        html += "</table></div>";
+        html += "</tbody></table></div>";
       });
 
       container.innerHTML = html;
@@ -851,7 +829,7 @@
 
     // Kick off both loads
     loadCSV();
-    loadSideCSV();
+    loadSideTables();
   </script>
 </body>
 </html>
