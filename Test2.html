@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC PREDICT - MATCH RESULT BEST VALUE</title>
+  <title>MC PREDICT - MATCH RESULT HIGHEST CHANCE</title>
 
   <!-- Global site stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -46,7 +46,7 @@
     }
 
     /* --------------------------------------------------
-       Top bar (same as home)
+       Top bar (same as home / hda-value)
     -------------------------------------------------- */
     .home-topbar {
       position: sticky;
@@ -214,7 +214,7 @@
     }
 
     /* --------------------------------------------------
-       Data layout (Option A: filters + table focus)
+       Data layout (filters + table + side card)
     -------------------------------------------------- */
     .data-layout {
       display: grid;
@@ -269,7 +269,7 @@
       margin: 6px 0 4px;
     }
 
-    /* Use existing .filters styles from style.css but tweak spacing */
+    /* Filters row */
     .filters-row {
       display: flex;
       flex-wrap: wrap;
@@ -316,7 +316,7 @@
       z-index: 1;
     }
 
-    /* Allow wrapping only for BOOKIE PRICE & MODEL PRICE headers (G & H) */
+    /* Wrap only for BOOKIE PRICE & MODEL PRICE headers (G & H) */
     .home .table-container th.wrap-header {
       white-space: normal;
       word-break: break-word;
@@ -324,7 +324,7 @@
       line-height: 1.2;
     }
 
-    /* Side card (value key / notes) */
+    /* Side card (notes) */
     .data-side-title {
       font-size: 14px;
       color: #ffffff;
@@ -367,7 +367,7 @@
     }
 
     /* --------------------------------------------------
-       Bottom mobile nav (same pattern as home, but "Result" active)
+       Bottom mobile nav (Result points to /hda-highchance)
     -------------------------------------------------- */
     .bottom-nav {
       position: fixed;
@@ -463,7 +463,7 @@
       align-items: center;
       justify-content: center;
       font-size: 30px;
-      background: radial-gradient(circle at 30% 30%, #313133, #d0d0d0);
+      background: radial-gradient(circle at 30% 30%, #ffffff, #d0d0d0);
       box-shadow:
         0 0 0 4px rgba(0, 0, 0, 0.3),
         0 10px 26px rgba(0, 0, 0, 0.7);
@@ -605,9 +605,9 @@
   <div class="loading-overlay" id="loadingOverlay" aria-live="polite">
     <div class="loading-ball">⚽</div>
     <div class="loading-pitch-line"></div>
-    <div class="loading-title">Calculating Value</div>
+    <div class="loading-title">Finding High-Probability Picks</div>
     <p class="loading-subtitle">
-      We&#39;re lining up today&#39;s best value fixtures based on the latest model and market prices.
+      We&#39;re surfacing the fixtures where the model sees the strongest chances for a result.
     </p>
     <div class="loading-ticker">Loading match data...</div>
   </div>
@@ -635,7 +635,7 @@
       <!-- Desktop / tablet nav -->
       <nav class="primary-nav" aria-label="Primary navigation">
         <a href="/index">Home</a>
-        <a href="/hda-value" class="active">Match Result</a>
+        <a href="/hda-highchance" class="active">Match Result</a>
         <a href="/uo-value">Under/Over 2.5</a>
         <a href="/lucky-dip">Lucky Dip</a>
         <a href="/historical">Historical Data</a>
@@ -644,8 +644,8 @@
 
       <!-- Sub-nav for this section -->
       <div class="sub-nav-pills" aria-label="Match Result views">
-        <a href="/hda-value" class="active">Best Value</a>
-        <a href="/hda-highchance">Highest Chance</a>
+        <a href="/hda-value">Best Value</a>
+        <a href="/hda-highchance" class="active">Highest Chance</a>
       </div>
     </header>
 
@@ -654,7 +654,7 @@
       <!-- Filters + table -->
       <div class="data-main-card">
         <div class="data-eyebrow">Match Result</div>
-        <h2 class="data-title">Best value selections</h2>
+        <h2 class="data-title">Highest chance selections</h2>
         <p class="data-subtitle">
           Use the filters to focus on specific days or outcomes. The table updates instantly
           using the latest data from the model.
@@ -681,24 +681,22 @@
         <div class="table-container" id="sheet-data"></div>
       </div>
 
-      <!-- Side info / value key -->
+      <!-- Side info / explanatory card -->
       <aside class="data-side-card">
-        <h3 class="data-side-title">Value key</h3>
+        <h3 class="data-side-title">What does “highest chance” mean?</h3>
         <p class="data-side-subtitle">
-          Each fixture has a value rating based on how strongly the model disagrees with the market.
+          These are fixtures where the model assigns the strongest probability to a specific
+          match result (home win or away win), regardless of price.
         </p>
         <ul class="value-list">
-          <li><span class="emoji">💰💰💰</span> Highest perceived value</li>
-          <li><span class="emoji">💰💰</span> Strong value</li>
-          <li><span class="emoji">💰</span> Mild value edge</li>
-          <li><span class="emoji">❌</span> Equal price or mild poor value</li>
-          <li><span class="emoji">❌❌</span> Poor value</li>
-          <li><span class="emoji">❌❌❌</span> Very poor value</li>
+          <li><span class="emoji">📈</span> Focuses on win probability, not strictly value.</li>
+          <li><span class="emoji">🏠</span> High-confidence home favourites can appear frequently.</li>
+          <li><span class="emoji">🧳</span> Strong away sides with favourable match-ups also show here.</li>
         </ul>
 
         <p class="side-note">
-          Remember: value does not guarantee a win on a single game. It’s designed for long-term
-          edges across many bets.
+          You can combine this view with the Best Value page: a selection that appears in both
+          can be a strong candidate, but still never guaranteed.
         </p>
       </aside>
     </section>
@@ -714,7 +712,7 @@
       <span class="icon">🏠</span>
       <span class="label">Home</span>
     </a>
-    <a href="/hda-value" class="active" data-key="hda">
+    <a href="/hda-highchance" class="active" data-key="hda">
       <span class="icon">🏆</span>
       <span class="label">Result</span>
     </a>
@@ -760,7 +758,7 @@
     }
 
     async function loadCSV() {
-      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
+      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv";
 
       try {
         const response = await fetch(url);
