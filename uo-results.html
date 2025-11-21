@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MC PREDICT - MATCH WINNER BEST VALUE</title>
+  <title>MC PREDICT - MATCH RESULT BEST VALUE</title>
 
   <!-- Fonts + site stylesheet -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,261 +11,386 @@
   <link rel="stylesheet" href="style.css">
 
   <style>
-    /* Page-scoped helpers that won’t clash with your site-wide style.css */
+    /* --------------------------------------------------
+       PAGE-SPECIFIC STYLING — matches new redesign
+    -------------------------------------------------- */
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    body.home {
+      min-height: 100vh;
+      font-family: 'Proxima Nova', Arial, sans-serif;
+      color: #d3d3d3;
+      background: radial-gradient(circle at top left, #3c3c3e 0, #2c2c2e 40%, #18181a 100%);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .home-page {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 14px 14px 70px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* ---------------- TOP BAR --------------- */
+    .home-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding-bottom: 8px;
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #3a3a3c, #262628);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: radial-gradient(circle at 30% 20%, #f09300, #1d1d1f);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .topbar-logo img {
+      width: 70%;
+      height: 70%;
+      object-fit: contain;
+    }
+
+    .topbar-title h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0.18em;
+      color: #ffffff;
+    }
+
+    .topbar-title span {
+      font-size: 12px;
+      color: #a5a5a7;
+    }
+
+    .topbar-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(240,147,0,0.1);
+      color: #f7b057;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .topbar-tag-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #40c456;
+      box-shadow: 0 0 0 6px rgba(64,196,86,0.18);
+    }
+
+    /* ---------------- DESKTOP NAV --------------- */
+    .primary-nav {
+      display: none;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .primary-nav a {
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(31,31,33,0.86);
+      border: 1px solid rgba(255,255,255,0.08);
+      text-decoration: none;
+      color: #e0e0e0;
+      letter-spacing: 0.08em;
+      font-size: 15px;
+      text-transform: uppercase;
+    }
+
+    .primary-nav a.active {
+      background: linear-gradient(135deg, #f09300, #e8a94a);
+      color: #111;
+      border-color: rgba(255,255,255,0.18);
+    }
+
+    /* ---------------- PAGE HEADER --------------- */
+    .results-header {
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .results-eyebrow {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #f7b057;
+    }
+
+    .results-title {
+      margin: 0;
+      font-size: 22px;
+      color: #ffffff;
+    }
+
+    .results-subtitle {
+      margin: 0;
+      font-size: 13px;
+      color: #bdbdbd;
+    }
+
     .mobile-info {
-      max-width: 1100px;
-      margin: 8px auto 0;
+      margin-top: 6px;
       padding: 8px 12px;
-      border-top: 4px solid var(--accent, #f09300);
-      color: var(--muted, #7a7a7a);
-      font-size: 0.9rem;
-      text-align: center;
+      border-radius: 10px;
+      background: rgba(24,24,26,0.96);
+      border-left: 4px solid #f09300;
+      font-size: 12px;
+      color: #e0e0e0;
     }
 
     .loading-message {
-      max-width: 1100px;
-      margin: 14px auto;
+      margin-top: 10px;
       padding: 10px 14px;
-      background: var(--panel, #3c3c3e);
-      color: var(--text, #d3d3d3);
-      border-left: 4px solid var(--accent, #f09300);
-      border-radius: 8px;
-      font-weight: 700;
-      text-align: center;
+      border-radius: 10px;
+      background: rgba(60,60,62,0.96);
+      border-left: 4px solid #f09300;
+      color: #f5f5f7;
+      font-size: 13px;
+      font-weight: 600;
     }
 
+    /* ---------------- TABLE STYLING --------------- */
     .tables-wrap {
-      max-width: 1100px;
-      margin: 10px auto 60px;
-      padding: 0 10px 20px;
+      margin-top: 12px;
     }
 
     .section-title {
-      margin: 22px 0 8px;
-      padding: 10px 12px;
-      background: linear-gradient(90deg, var(--accent, #f09300), transparent 75%);
-      color: var(--accent-text, #ffffff);
-      border-radius: 6px;
+      margin: 18px 0 6px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #f09300, transparent 75%);
+      color: #ffffff;
+      font-size: 14px;
       font-weight: 700;
-      letter-spacing: 0.2px;
-      /* Desktop: slightly smaller title */
-      font-size: 16px;
+      text-transform: uppercase;
     }
 
-    /* Table styling: static, force wrap, responsive */
     .value-table {
       width: 100%;
       border-collapse: collapse;
-      table-layout: fixed;           /* enables wrapping to work consistently */
-      background: var(--panel, #3c3c3e);
-      border-radius: 10px;
-      overflow: hidden;              /* keeps rounded corners with thead background */
-      margin-bottom: 28px;
+      table-layout: fixed;
+      background: rgba(24,24,26,0.96);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 24px;
     }
+
     .value-table thead th {
       background: #2f2f31;
-      color: var(--text, #d3d3d3);
-      font-weight: 700;
-      text-align: left;
-      padding: 10px 12px;
+      color: #e5e5e7;
+      padding: 8px 10px;
       border-bottom: 1px solid #4a4a4a;
-      white-space: normal;           /* allow header wrapping */
-      word-wrap: break-word;
+      font-size: 12px;
       word-break: break-word;
-      /* Desktop: ~2px smaller */
-      font-size: 14px;
-    }
-    .value-table tbody td {
-      color: var(--text, #d3d3d3);
-      padding: 10px 12px;
-      border-bottom: 1px solid #444;
-      vertical-align: top;
-      white-space: normal;           /* allow cell wrapping */
-      word-wrap: break-word;
-      word-break: break-word;
-      /* Desktop: ~2px smaller */
-      font-size: 14px;
-    }
-    .value-table tbody tr:nth-child(even) td {
-      background: #363638;
-    }
-    .value-table tbody tr:last-child td {
-      border-bottom: none;
     }
 
-    /* Mobile reductions (~4px smaller overall) */
+    .value-table tbody td {
+      padding: 8px 10px;
+      color: #dcdcdc;
+      border-bottom: 1px solid #3e3e40;
+      font-size: 12px;
+      word-break: break-word;
+    }
+
+    .value-table tbody tr:nth-child(even) td {
+      background: #2c2c2e;
+    }
+
+    @media (min-width: 960px) {
+      .primary-nav { display: flex; }
+    }
+
     @media (max-width: 768px) {
-      .section-title {
-        font-size: 12px;
-        line-height: 1.2;
-      }
       .value-table thead th,
       .value-table tbody td {
-        padding: 9px 10px;
-        font-size: 8px;
+        font-size: 9px;
+        padding: 6px;
       }
-      .mobile-info { font-size: 0.8rem; }
+      .section-title {
+        font-size: 11px;
+      }
     }
+
   </style>
 </head>
-<body>
-  <div class="header">
-    <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
-    <h1>MC PREDICT</h1>
+
+<body class="home">
+  <div class="home-page">
+
+    <!-- ---------------- TOP BAR ---------------- -->
+    <header class="home-topbar">
+      <div class="topbar-inner">
+        <div class="topbar-left">
+          <div class="topbar-logo">
+            <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
+          </div>
+          <div class="topbar-title">
+            <h1>MC PREDICT</h1>
+            <span>Data-driven football predictions</span>
+          </div>
+        </div>
+        <div class="topbar-tag">
+          <span class="topbar-tag-dot"></span>
+          <span>Historical · Match Result</span>
+        </div>
+      </div>
+
+      <!-- Desktop nav -->
+      <nav class="primary-nav">
+        <a href="/index">Home</a>
+        <a href="/hda-value">Match Result</a>
+        <a href="/uo-value">Under/Over 2.5</a>
+        <a href="/lucky-dip">Lucky Dip</a>
+        <a href="/historical" class="active">Historical</a>
+        <a href="/faqs">FAQs</a>
+      </nav>
+    </header>
+
+
+    <!-- ---------------- PAGE HEADER ---------------- -->
+    <section>
+      <div class="results-header">
+        <div class="results-eyebrow">Historical Summary</div>
+        <h2 class="results-title">Match Result – Best Value</h2>
+        <p class="results-subtitle">
+          A breakdown of how the best-value categories have performed across multiple seasons.
+        </p>
+      </div>
+
+      <div class="mobile-info">
+        Mobile view is optimised so tables fit without sideways scrolling.
+      </div>
+
+      <div class="loading-message" id="loadingMessage">Loading latest data…</div>
+
+      <div class="tables-wrap" id="tablesWrap"></div>
+    </section>
   </div>
 
-  <nav>
-    <a href="/index">HOME</a>
-    <a href="/hda-value">MATCH RESULT</a>
-    <a href="/uo-value">UNDER/OVER 2.5</a>
-    <a href="/lucky-dip">LUCKY DIP</a>
-    <a href="/historical" class="active">HISTORICAL DATA</a>
-  </nav>
 
-  <div class="mobile-info">If you are viewing on mobile, the tables are resized to fit your screen.</div>
-  <div class="loading-message" id="loadingMessage">Loading latest data…</div>
-
-  <div class="tables-wrap" id="tablesWrap"></div>
-
+  <!-- ---------------- JAVASCRIPT (CSV → TABLES) ---------------- -->
   <script>
-    // Small CSV parser that supports quoted fields and embedded commas.
-    // Returns array of rows; each row is an array of strings.
     function parseCSV(text) {
       const rows = [];
-      let row = [];
-      let cur = '';
-      let i = 0;
-      const len = text.length;
+      let row = [], cur = "", i = 0;
       let inQuotes = false;
 
-      while (i < len) {
+      while (i < text.length) {
         const ch = text[i];
 
         if (inQuotes) {
           if (ch === '"') {
-            if (i + 1 < len && text[i + 1] === '"') {
-              // Escaped quote ("")
-              cur += '"';
-              i += 2;
-              continue;
-            } else {
-              inQuotes = false;
-              i++;
-              continue;
-            }
-          } else {
-            cur += ch;
-            i++;
-            continue;
+            if (text[i+1] === '"') { cur += '"'; i += 2; continue; }
+            inQuotes = false; i++; continue;
           }
-        } else {
-          if (ch === '"') {
-            inQuotes = true;
-            i++;
-            continue;
-          }
-          if (ch === ',') {
-            row.push(cur);
-            cur = '';
-            i++;
-            continue;
-          }
-          if (ch === '\r') {
-            // ignore, handle on \n
-            i++;
-            continue;
-          }
-          if (ch === '\n') {
-            row.push(cur);
-            rows.push(row);
-            row = [];
-            cur = '';
-            i++;
-            continue;
-          }
-          cur += ch;
-          i++;
+          cur += ch; i++; continue;
         }
+
+        if (ch === '"') { inQuotes = true; i++; continue; }
+        if (ch === ',') { row.push(cur); cur = ""; i++; continue; }
+        if (ch === '\n') { row.push(cur); rows.push(row); row = []; cur = ""; i++; continue; }
+
+        i++; cur += ch;
       }
-      // push last cell
+
       row.push(cur);
       rows.push(row);
       return rows;
     }
 
     (async function () {
-      const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1843663391&single=true&output=csv";
+      const csvUrl =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1843663391&single=true&output=csv";
 
-      // Sheet structure (1-based row numbers as per your confirmation):
-      // - Header rows for the three tables: 3, 15, 26
-      // - Title row is the row immediately ABOVE each header row
-      const headerRows1Based = [3, 15, 26];
+      const headerRows = [3, 15, 26]; // 1-based
 
-      function buildTitleFromRow(rowArr) {
-        const bits = rowArr.map(x => (x || '').trim()).filter(Boolean);
-        return bits.length ? bits.join(" • ") : "";
+      function buildTitle(row) {
+        return row.map(x => x.trim()).filter(Boolean).join(" • ");
       }
 
-      function buildTableHTML(headers, rows) {
+      function buildTable(headers, rows) {
         let html = '<table class="value-table"><thead><tr>';
-        headers.forEach(h => { html += `<th>${h}</th>`; });
+        headers.forEach(h => html += `<th>${h}</th>`);
         html += '</tr></thead><tbody>';
 
         rows.forEach(r => {
-          const cells = r.slice(0, headers.length);
-          while (cells.length < headers.length) cells.push("");
-          html += "<tr>";
-          cells.forEach(c => { html += `<td>${c}</td>`; });
-          html += "</tr>";
+          html += '<tr>';
+          headers.forEach((_, idx) => html += `<td>${r[idx] || ""}</td>`);
+          html += '</tr>';
         });
 
-        html += "</tbody></table>";
-        return html;
+        return html + '</tbody></table>';
       }
 
       try {
         const res = await fetch(csvUrl, { cache: "no-store" });
-        if (!res.ok) {
-          throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
-        }
         const text = await res.text();
-
         const rows = parseCSV(text);
 
-        // Convert 1-based to 0-based indices
-        const headerIdx = headerRows1Based.map(n => n - 1);
-        const titleIdx  = headerIdx.map(i => Math.max(0, i - 1));
+        const output = [];
+        for (let s = 0; s < headerRows.length; s++) {
+          const headerIndex = headerRows[s] - 1;
+          const titleIndex = headerIndex - 1;
 
-        const sections = [];
-        for (let s = 0; s < headerIdx.length; s++) {
-          const hIdx = headerIdx[s];
-          const tIdx = titleIdx[s];
-          const nextT = s < headerIdx.length - 1 ? titleIdx[s + 1] : rows.length;
+          const headers = rows[headerIndex];
+          const title = buildTitle(rows[titleIndex] || []);
 
-          const headers = (rows[hIdx] || []).map(x => String(x ?? ""));
-          const titleRow = rows[tIdx] || [];
-          const title = buildTitleFromRow(titleRow);
+          const nextStart = (headerRows[s+1] || rows.length + 1) - 1;
+          const sectionRows = rows.slice(headerIndex + 1, nextStart);
 
-          const dataStart = hIdx + 1;
-          const dataEnd = Math.max(dataStart, nextT); // exclusive
-          const body = rows.slice(dataStart, dataEnd);
-
-          sections.push({ title, headers, body });
+          output.push(
+            (title ? `<div class="section-title">${title}</div>` : "") +
+            buildTable(headers, sectionRows)
+          );
         }
 
-        const wrap = document.getElementById("tablesWrap");
-        wrap.innerHTML = sections.map(sec => {
-          const titleBar = sec.title ? `<div class="section-title">${sec.title}</div>` : "";
-          return `${titleBar}${buildTableHTML(sec.headers, sec.body)}`;
-        }).join("");
+        document.getElementById("tablesWrap").innerHTML = output.join("");
 
       } catch (err) {
-        console.error(err);
         document.getElementById("tablesWrap").innerHTML =
-          '<div class="loading-message">Sorry, something went wrong loading the data.</div>';
-      } finally {
-        document.getElementById("loadingMessage").style.display = "none";
+          '<div class="loading-message">Error loading data.</div>';
       }
+
+      document.getElementById("loadingMessage").style.display = "none";
     })();
   </script>
 </body>
