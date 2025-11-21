@@ -288,28 +288,7 @@
       text-align: left;
     }
 
-    /* Table container override to avoid overflow & keep behaviour */
-    .home .table-container {
-      width: 100%;
-      margin: 10px 0 0;
-      padding: 0;
-      box-sizing: border-box;
-      overflow-x: auto; /* horizontal scroll if needed */
-    }
-
-    .home .table-container table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px; /* desktop size */
-    }
-
-    .home .table-container th,
-    .home .table-container td {
-      padding: 6px 4px;
-      text-align: center;
-      white-space: nowrap; /* keep cells tight; user can scroll horizontally */
-    }
-
+    /* Keep sticky header behaviour only; layout comes from global style.css */
     .home .table-container th {
       position: sticky;
       top: 0;
@@ -359,7 +338,7 @@
     }
 
     /* --------------------------------------------------
-       Bottom mobile nav (same pattern as home, "U/O 2.5" active)
+       Bottom mobile nav
     -------------------------------------------------- */
     .bottom-nav {
       position: fixed;
@@ -582,13 +561,6 @@
         display: flex;
       }
     }
-
-    /* Reduce table font-size by 2px on small mobile */
-    @media (max-width: 600px) {
-      .home .table-container table {
-        font-size: 9px;
-      }
-    }
   </style>
 </head>
 
@@ -666,7 +638,7 @@
         </div>
 
         <div class="mobile-info">
-          On mobile, the table is scrollable horizontally if needed.
+          BO - Bookies Odds &nbsp;&nbsp;|&nbsp;&nbsp; MO - Model Odds
         </div>
 
         <!-- Table -->
@@ -745,7 +717,6 @@
       const overlay = document.getElementById("loadingOverlay");
       if (!overlay) return;
       overlay.classList.add("hidden");
-      // Optional: fully remove from flow after transition
       setTimeout(() => {
         overlay.style.display = "none";
       }, 450);
