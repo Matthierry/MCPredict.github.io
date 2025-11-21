@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC PREDICT - MATCH RESULT HIGHEST CHANCE</title>
+  <title>MC PREDICT - UNDER/OVER 2.5 GOALS BEST VALUE</title>
 
   <!-- Global site stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -46,7 +46,7 @@
     }
 
     /* --------------------------------------------------
-       Top bar (same as home / hda-value)
+       Top bar (same as home)
     -------------------------------------------------- */
     .home-topbar {
       position: sticky;
@@ -214,7 +214,7 @@
     }
 
     /* --------------------------------------------------
-       Data layout (filters + table + side card)
+       Data layout (filters + table focus)
     -------------------------------------------------- */
     .data-layout {
       display: grid;
@@ -288,13 +288,13 @@
       text-align: left;
     }
 
-    /* Table container override to avoid overflow */
+    /* Table container override to avoid overflow & keep behaviour */
     .home .table-container {
       width: 100%;
       margin: 10px 0 0;
       padding: 0;
       box-sizing: border-box;
-      overflow-x: auto;
+      overflow-x: auto; /* horizontal scroll if needed */
     }
 
     .home .table-container table {
@@ -307,7 +307,7 @@
     .home .table-container td {
       padding: 6px 4px;
       text-align: center;
-      white-space: nowrap;
+      white-space: nowrap; /* keep cells tight; user can scroll horizontally */
     }
 
     .home .table-container th {
@@ -316,15 +316,7 @@
       z-index: 1;
     }
 
-    /* Wrap only for BOOKIE PRICE & MODEL PRICE headers (G & H) */
-    .home .table-container th.wrap-header {
-      white-space: normal;
-      word-break: break-word;
-      overflow-wrap: anywhere;
-      line-height: 1.2;
-    }
-
-    /* Side card (notes) */
+    /* Side card (value key / notes) */
     .data-side-title {
       font-size: 14px;
       color: #ffffff;
@@ -367,7 +359,7 @@
     }
 
     /* --------------------------------------------------
-       Bottom mobile nav (Result points to /hda-highchance)
+       Bottom mobile nav (same pattern as home, "U/O 2.5" active)
     -------------------------------------------------- */
     .bottom-nav {
       position: fixed;
@@ -463,7 +455,7 @@
       align-items: center;
       justify-content: center;
       font-size: 30px;
-      background: radial-gradient(circle at 30% 30%, #313133, #f09300);
+      background: radial-gradient(circle at 30% 30%, #ffffff, #d0d0d0);
       box-shadow:
         0 0 0 4px rgba(0, 0, 0, 0.3),
         0 10px 26px rgba(0, 0, 0, 0.7);
@@ -591,7 +583,7 @@
       }
     }
 
-    /* Reduce table font-size by 2px on mobile */
+    /* Reduce table font-size by 2px on small mobile */
     @media (max-width: 600px) {
       .home .table-container table {
         font-size: 9px;
@@ -605,9 +597,9 @@
   <div class="loading-overlay" id="loadingOverlay" aria-live="polite">
     <div class="loading-ball">⚽</div>
     <div class="loading-pitch-line"></div>
-    <div class="loading-title">Finding High-Probability Picks</div>
+    <div class="loading-title">Calculating Goal Value</div>
     <p class="loading-subtitle">
-      We&#39;re surfacing the fixtures where the model sees the strongest chances for a result.
+      We&#39;re checking where the model and the market disagree most on the 2.5 goals line.
     </p>
     <div class="loading-ticker">Loading match data...</div>
   </div>
@@ -628,24 +620,24 @@
         </div>
         <div class="topbar-tag">
           <span class="topbar-tag-dot"></span>
-          <span>Match Result</span>
+          <span>Under/Over 2.5</span>
         </div>
       </div>
 
       <!-- Desktop / tablet nav -->
       <nav class="primary-nav" aria-label="Primary navigation">
         <a href="/index">Home</a>
-        <a href="/hda-highchance" class="active">Match Result</a>
-        <a href="/uo-value">Under/Over 2.5</a>
+        <a href="/hda-value">Match Result</a>
+        <a href="/uo-value" class="active">Under/Over 2.5</a>
         <a href="/lucky-dip">Lucky Dip</a>
         <a href="/historical">Historical Data</a>
         <a href="/faqs">FAQs</a>
       </nav>
 
       <!-- Sub-nav for this section -->
-      <div class="sub-nav-pills" aria-label="Match Result views">
-        <a href="/hda-value">Best Value</a>
-        <a href="/hda-highchance" class="active">Highest Chance</a>
+      <div class="sub-nav-pills" aria-label="Under/Over views">
+        <a href="/uo-value" class="active">Best Value</a>
+        <a href="/uo-highchance">Highest Chance</a>
       </div>
     </header>
 
@@ -653,10 +645,10 @@
     <section class="data-layout">
       <!-- Filters + table -->
       <div class="data-main-card">
-        <div class="data-eyebrow">Match Result</div>
-        <h2 class="data-title">Highest chance selections</h2>
+        <div class="data-eyebrow">Under/Over 2.5 Goals</div>
+        <h2 class="data-title">Best value selections</h2>
         <p class="data-subtitle">
-          Use the filters to focus on specific days or outcomes. The table updates instantly
+          Use the filters to focus on specific days or goal outcomes. The table updates instantly
           using the latest data from the model.
         </p>
 
@@ -667,10 +659,10 @@
         </div>
 
         <!-- Result filters -->
-        <div class="data-label">Filter by predicted result</div>
+        <div class="data-label">Filter by predicted outcome</div>
         <div class="filters-row" id="result-filters">
-          <button data-result="HOME WIN">Home Win</button>
-          <button data-result="AWAY WIN">Away Win</button>
+          <button data-result="UNDER 2.5">Under 2.5 Goals</button>
+          <button data-result="OVER 2.5">Over 2.5 Goals</button>
         </div>
 
         <div class="mobile-info">
@@ -681,22 +673,25 @@
         <div class="table-container" id="sheet-data"></div>
       </div>
 
-      <!-- Side info / explanatory card -->
+      <!-- Side info / value key -->
       <aside class="data-side-card">
-        <h3 class="data-side-title">What does “highest chance” mean?</h3>
+        <h3 class="data-side-title">Value key</h3>
         <p class="data-side-subtitle">
-          These are fixtures where the model assigns the strongest probability to a specific
-          match result (home win or away win), regardless of price.
+          Each fixture has a value rating based on how strongly the model disagrees with the market
+          on the 2.5 goals line.
         </p>
         <ul class="value-list">
-          <li><span class="emoji">📈</span> Focuses on win probability, not strictly value.</li>
-          <li><span class="emoji">🏠</span> High-confidence home favourites can appear frequently.</li>
-          <li><span class="emoji">🧳</span> Strong away sides with favourable match-ups also show here.</li>
+          <li><span class="emoji">💰💰💰</span> Highest perceived value</li>
+          <li><span class="emoji">💰💰</span> Strong value</li>
+          <li><span class="emoji">💰</span> Mild value edge</li>
+          <li><span class="emoji">❌</span> Equal price or mild poor value</li>
+          <li><span class="emoji">❌❌</span> Poor value</li>
+          <li><span class="emoji">❌❌❌</span> Very poor value</li>
         </ul>
 
         <p class="side-note">
-          You can combine this view with the Best Value page: a selection that appears in both
-          can be a strong candidate, but still never guaranteed.
+          As with all value-based approaches, the goal is long-term edges across many bets,
+          not certainty on individual matches.
         </p>
       </aside>
     </section>
@@ -712,11 +707,11 @@
       <span class="icon">🏠</span>
       <span class="label">Home</span>
     </a>
-    <a href="/hda-highchance" class="active" data-key="hda">
+    <a href="/hda-value" data-key="hda">
       <span class="icon">🏆</span>
       <span class="label">Result</span>
     </a>
-    <a href="/uo-value" data-key="uo">
+    <a href="/uo-value" class="active" data-key="uo">
       <span class="icon">⚽</span>
       <span class="label">U/O 2.5</span>
     </a>
@@ -743,7 +738,6 @@
     const activeResultFilters = new Set();
 
     function csvToRows(text) {
-      // Simple CSV split; assumes your sheet cells don't contain unescaped commas/newlines.
       return text.trim().split("\n").map(r => r.split(","));
     }
 
@@ -758,7 +752,7 @@
     }
 
     async function loadCSV() {
-      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv";
+      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv";
 
       try {
         const response = await fetch(url);
@@ -768,7 +762,7 @@
         const text = await response.text();
         allRows = csvToRows(text);
 
-        // Headers are in Row 2 (index 1). Data starts at Row 3 (index 2).
+        // Headers in row 2 (index 1), data from row 3 (index 2)
         headerRow = allRows[1] || [];
         dataRows = allRows.slice(2);
 
@@ -787,14 +781,11 @@
     }
 
     function buildDayButtons() {
-      const dayFiltersDiv = document.getElementById("day-filters");
-      dayFiltersDiv.innerHTML = "";
+      const container = document.getElementById("day-filters");
+      container.innerHTML = "";
 
-      // Column A = day (index 0); filter out blanks and normalize
       const uniqueDays = Array.from(new Set(
-        dataRows
-          .map(r => (r[0] || "").trim())
-          .filter(v => v.length > 0)
+        dataRows.map(r => (r[0] || "").trim()).filter(v => v.length > 0)
       ));
 
       uniqueDays.forEach(day => {
@@ -811,19 +802,19 @@
           }
           renderTable();
         });
-        dayFiltersDiv.appendChild(btn);
+        container.appendChild(btn);
       });
     }
 
     function attachResultButtonHandlers() {
       document.querySelectorAll("#result-filters button").forEach(btn => {
         btn.addEventListener("click", () => {
-          const value = (btn.dataset.result || "").trim().toUpperCase(); // e.g., "HOME WIN"
-          if (activeResultFilters.has(value)) {
-            activeResultFilters.delete(value);
+          const val = (btn.dataset.result || "").trim().toUpperCase();
+          if (activeResultFilters.has(val)) {
+            activeResultFilters.delete(val);
             btn.classList.remove("active");
           } else {
-            activeResultFilters.add(value);
+            activeResultFilters.add(val);
             btn.classList.add("active");
           }
           renderTable();
@@ -831,40 +822,31 @@
       });
     }
 
-    function rowMatchesFilters(row) {
-      const dayVal = (row[0] || "").trim();                  // Column A
-      const resultVal = (row[5] || "").trim().toUpperCase(); // Column F
-
-      const dayOk = activeDayFilters.size === 0 || activeDayFilters.has(dayVal);
-      const resultOk = activeResultFilters.size === 0 || activeResultFilters.has(resultVal);
-
-      return dayOk && resultOk;
+    function rowMatches(row) {
+      const day = (row[0] || "").trim();
+      const res = (row[5] || "").trim().toUpperCase();
+      const okDay = activeDayFilters.size === 0 || activeDayFilters.has(day);
+      const okRes = activeResultFilters.size === 0 || activeResultFilters.has(res);
+      return okDay && okRes;
     }
 
     function renderTable() {
-      const container = document.getElementById("sheet-data");
-
       let html = "<table>";
 
       // Headers
       if (headerRow.length) {
-        html += "<tr>" + headerRow.map((cell, idx) => {
-          // Columns G (index 6) and H (index 7) => wrap-header
-          const needsWrap = idx === 6 || idx === 7;
-          const cls = needsWrap ? ' class="wrap-header"' : '';
-          return `<th${cls}>${cell}</th>`;
-        }).join("") + "</tr>";
+        html += "<tr>" + headerRow.map(c => `<th>${c}</th>`).join("") + "</tr>";
       }
 
-      // Filtered data rows
-      dataRows.forEach(row => {
-        if (rowMatchesFilters(row)) {
-          html += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>";
+      // Rows
+      dataRows.forEach(r => {
+        if (rowMatches(r)) {
+          html += "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>";
         }
       });
 
       html += "</table>";
-      container.innerHTML = html;
+      document.getElementById("sheet-data").innerHTML = html;
     }
 
     loadCSV();
