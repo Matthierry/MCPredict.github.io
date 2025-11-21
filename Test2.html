@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC PREDICT - UNDER/OVER 2.5 GOALS Highest Chance</title>
+  <title>MC PREDICT - UNDER/OVER 2.5 GOALS BEST VALUE</title>
 
   <!-- Global site stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -13,7 +13,7 @@
 
   <style>
     /* --------------------------------------------------
-       Base fixes (same as other new pages)
+       Base fixes (same as home)
     -------------------------------------------------- */
     html, body {
       margin: 0;
@@ -46,7 +46,7 @@
     }
 
     /* --------------------------------------------------
-       Top bar (same pattern as home / HDA pages)
+       Top bar (same as home)
     -------------------------------------------------- */
     .home-topbar {
       position: sticky;
@@ -214,7 +214,7 @@
     }
 
     /* --------------------------------------------------
-       Data layout (filters + table + side card)
+       Data layout (filters + table focus)
     -------------------------------------------------- */
     .data-layout {
       display: grid;
@@ -225,7 +225,7 @@
 
     .data-main-card {
       width: 100%;
-      padding: 16px 5px 16px;
+      padding: 16px 14px 16px;
       border-radius: 18px;
       background: radial-gradient(circle at top right, rgba(240, 147, 0, 0.14), rgba(21, 21, 23, 0.96));
       box-shadow: 0 18px 30px rgba(0, 0, 0, 0.55);
@@ -288,7 +288,14 @@
       text-align: left;
     }
 
-    /* Side card content */
+    /* Keep sticky header behaviour only; layout comes from global style.css */
+    .home .table-container th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    /* Side card (value key / notes) */
     .data-side-title {
       font-size: 14px;
       color: #ffffff;
@@ -331,7 +338,7 @@
     }
 
     /* --------------------------------------------------
-       Bottom mobile nav (same pattern as other pages)
+       Bottom mobile nav
     -------------------------------------------------- */
     .bottom-nav {
       position: fixed;
@@ -427,7 +434,7 @@
       align-items: center;
       justify-content: center;
       font-size: 30px;
-      background: radial-gradient(circle at 30% 30%, #ffffff, #d0d0d0);
+      background: radial-gradient(circle at 30% 30%, #f09300, #313133);
       box-shadow:
         0 0 0 4px rgba(0, 0, 0, 0.3),
         0 10px 26px rgba(0, 0, 0, 0.7);
@@ -562,9 +569,9 @@
   <div class="loading-overlay" id="loadingOverlay" aria-live="polite">
     <div class="loading-ball">⚽</div>
     <div class="loading-pitch-line"></div>
-    <div class="loading-title">Finding High-Probability Goals</div>
+    <div class="loading-title">Calculating Goal Value</div>
     <p class="loading-subtitle">
-      We&#39;re surfacing fixtures where the model strongly favours under or over 2.5 goals.
+      We&#39;re checking where the model and the market disagree most on the 2.5 goals line.
     </p>
     <div class="loading-ticker">Loading match data...</div>
   </div>
@@ -592,8 +599,8 @@
       <!-- Desktop / tablet nav -->
       <nav class="primary-nav" aria-label="Primary navigation">
         <a href="/index">Home</a>
-        <a href="/hda-highchance">Match Result</a>
-        <a href="/uo-highchance" class="active">Under/Over 2.5</a>
+        <a href="/hda-value">Match Result</a>
+        <a href="/uo-value" class="active">Under/Over 2.5</a>
         <a href="/lucky-dip">Lucky Dip</a>
         <a href="/historical">Historical Data</a>
         <a href="/faqs">FAQs</a>
@@ -601,8 +608,8 @@
 
       <!-- Sub-nav for this section -->
       <div class="sub-nav-pills" aria-label="Under/Over views">
-        <a href="/uo-value">Best Value</a>
-        <a href="/uo-highchance" class="active">Highest Chance</a>
+        <a href="/uo-value" class="active">Best Value</a>
+        <a href="/uo-highchance">Highest Chance</a>
       </div>
     </header>
 
@@ -611,10 +618,10 @@
       <!-- Filters + table -->
       <div class="data-main-card">
         <div class="data-eyebrow">Under/Over 2.5 Goals</div>
-        <h2 class="data-title">Highest chance selections</h2>
+        <h2 class="data-title">Best value selections</h2>
         <p class="data-subtitle">
-          Use the filters to focus on specific days or goal lines. The table updates instantly
-          using the latest probabilities from the model.
+          Use the filters to focus on specific days or goal outcomes. The table updates instantly
+          using the latest data from the model.
         </p>
 
         <!-- Day filters -->
@@ -631,30 +638,32 @@
         </div>
 
         <div class="mobile-info">
-          <div>BO - Bookies Odds</div>
-          <div>MO - Model Odds</div>
+          BO - Bookies Odds &nbsp;&nbsp;|&nbsp;&nbsp; MO - Model Odds
         </div>
 
         <!-- Table -->
         <div class="table-container" id="sheet-data"></div>
       </div>
 
-      <!-- Side info / explanation -->
+      <!-- Side info / value key -->
       <aside class="data-side-card">
-        <h3 class="data-side-title">How to read “Highest Chance”</h3>
+        <h3 class="data-side-title">Value key</h3>
         <p class="data-side-subtitle">
-          This view surfaces fixtures where the model has a strong opinion on whether there will
-          be <strong>under</strong> or <strong>over</strong> 2.5 goals.
+          Each fixture has a value rating based on how strongly the model disagrees with the market
+          on the 2.5 goals line.
         </p>
         <ul class="value-list">
-          <li><span class="emoji">📈</span> Higher model probability &rarr; stronger expectation of that outcome.</li>
-          <li><span class="emoji">✅</span> Use filters to drill into specific days or just “Under” / “Over”.</li>
-          <li><span class="emoji">⚠️</span> Even high probabilities lose sometimes – think in terms of many bets, not one.</li>
+          <li><span class="emoji">💰💰💰</span> Highest perceived value</li>
+          <li><span class="emoji">💰💰</span> Strong value</li>
+          <li><span class="emoji">💰</span> Mild value edge</li>
+          <li><span class="emoji">❌</span> Equal price or mild poor value</li>
+          <li><span class="emoji">❌❌</span> Poor value</li>
+          <li><span class="emoji">❌❌❌</span> Very poor value</li>
         </ul>
 
         <p class="side-note">
-          This page focuses on <strong>likelihood</strong>, not price. For value-focused picks that
-          compare model price to bookmaker price, use the <strong>Best Value</strong> view instead.
+          As with all value-based approaches, the goal is long-term edges across many bets,
+          not certainty on individual matches.
         </p>
       </aside>
     </section>
@@ -670,11 +679,11 @@
       <span class="icon">🏠</span>
       <span class="label">Home</span>
     </a>
-    <a href="/hda-highchance" data-key="hda">
+    <a href="/hda-value" data-key="hda">
       <span class="icon">🏆</span>
       <span class="label">Result</span>
     </a>
-    <a href="/uo-highchance" class="active" data-key="uo">
+    <a href="/uo-value" class="active" data-key="uo">
       <span class="icon">⚽</span>
       <span class="label">U/O 2.5</span>
     </a>
@@ -714,7 +723,7 @@
     }
 
     async function loadCSV() {
-      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1035748278&single=true&output=csv";
+      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv";
 
       try {
         const response = await fetch(url);
@@ -724,7 +733,7 @@
         const text = await response.text();
         allRows = csvToRows(text);
 
-        // Headers are in Row 2 (index 1). Data starts at Row 3 (index 2).
+        // Headers in row 2 (index 1), data from row 3 (index 2)
         headerRow = allRows[1] || [];
         dataRows = allRows.slice(2);
 
@@ -795,10 +804,12 @@
     function renderTable() {
       let html = "<table>";
 
+      // Headers
       if (headerRow.length) {
         html += "<tr>" + headerRow.map(c => `<th>${c}</th>`).join("") + "</tr>";
       }
 
+      // Rows
       dataRows.forEach(r => {
         if (rowMatches(r)) {
           html += "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>";
