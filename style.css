@@ -25,16 +25,16 @@ html,
 body {
   margin: 0;
   padding: 0;
-  height: auto;              /* was 100%; can lock viewport */
-  min-height: 100%;          /* ensure full document height */
-  overflow-y: auto;          /* vertical page scrolling */
-  overflow-x: hidden;        /* no sideways page scroll */
+  height: auto;
+  min-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Use block to avoid flex/overflow quirks */
 body {
-  display: block;            /* was flex */
-  min-height: 100vh;         /* keep background full height */
+  display: block;
+  min-height: 100vh;
   padding: 20px;
   background: var(--bg);
   color: var(--text);
@@ -293,15 +293,14 @@ button:disabled {
 }
 
 /* ---------------------------
-   Table layout
+   Table layout (default)
 --------------------------- */
 .table-container {
   width: 75%;
   margin: 0 auto;
   padding: 0 10px;
   box-sizing: border-box;
-  overflow-x: auto;           /* horizontal scroll if table is wider */
-  /* no overflow-y here; page handles vertical scroll */
+  overflow-x: auto;           /* generic pages can still scroll horizontally */
 }
 
 .table-container--narrow {
@@ -340,17 +339,20 @@ tr:nth-child(even) {
 
 /* ------------------------------------
    Compact table for new "home" layout
-   (used on /index, /hda-value, etc.)
-   Option B – minimal padding on mobile
+   (used on /index, /hda-value, /uo-*, etc.)
+   NO HORIZONTAL SCROLL – columns wrap
 ------------------------------------ */
 body.home .table-container {
   width: 100%;
   margin: 10px 0 0;
   padding: 0;
+  overflow-x: visible;        /* override generic scroll */
 }
 
 body.home .table-container table {
   width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;        /* squeeze columns evenly */
   font-size: 10px;
 }
 
@@ -358,22 +360,19 @@ body.home .table-container th,
 body.home .table-container td {
   padding: 6px 3px;
   border: none;
+  white-space: normal;        /* allow wrapping */
+  word-break: break-word;     /* break long words if needed */
 }
 
 /* Extra tightening on small screens */
 @media (max-width: 600px) {
-  body.home .table-container {
-    width: 100%;
-    padding: 0;
-  }
-
   body.home .table-container table {
-    font-size: 9px;
+    font-size: 7px;           /* smaller text on mobile */
   }
 
   body.home .table-container th,
   body.home .table-container td {
-    padding: 4px 2px;
+    padding: 3px 1px;
   }
 }
 
