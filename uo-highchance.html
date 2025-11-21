@@ -288,6 +288,34 @@
       text-align: left;
     }
 
+    /* Table container layout to match other pages */
+    .home .table-container {
+      width: 100%;
+      margin: 10px 0 0;
+      padding: 0;
+      box-sizing: border-box;
+      overflow-x: auto; /* horizontal scroll if needed */
+    }
+
+    .home .table-container table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px; /* desktop size */
+    }
+
+    .home .table-container th,
+    .home .table-container td {
+      padding: 6px 4px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .home .table-container th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
     /* Side card content */
     .data-side-title {
       font-size: 14px;
@@ -552,6 +580,13 @@
 
       .bottom-nav {
         display: flex;
+      }
+    }
+
+    /* Slightly smaller table font on small screens */
+    @media (max-width: 600px) {
+      .home .table-container table {
+        font-size: 9px;
       }
     }
   </style>
