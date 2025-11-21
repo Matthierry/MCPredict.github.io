@@ -5,254 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MC PREDICT - UNDER/OVER 2.5 BEST VALUE</title>
 
-  <!-- Fonts + site stylesheet -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="home.css">
 
-  <style>
-    /* --------------------------------------------------
-       PAGE-SPECIFIC STYLING — matches new redesign
-    -------------------------------------------------- */
+  <!-- Fonts + site stylesheet -->
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-    }
-
-    body.home {
-      min-height: 100vh;
-      font-family: 'Proxima Nova', Arial, sans-serif;
-      color: #d3d3d3;
-      background: radial-gradient(circle at top left, #3c3c3e 0, #2c2c2e 40%, #18181a 100%);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .home-page {
-      width: 100%;
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 14px 14px 70px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    /* ---------------- TOP BAR --------------- */
-    .home-topbar {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      padding-bottom: 8px;
-    }
-
-    .topbar-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, #3a3a3c, #262628);
-      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(12px);
-    }
-
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .topbar-logo {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      overflow: hidden;
-      background: radial-gradient(circle at 30% 20%, #f09300, #1d1d1f);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .topbar-logo img {
-      width: 70%;
-      height: 70%;
-      object-fit: contain;
-    }
-
-    .topbar-title h1 {
-      margin: 0;
-      font-size: 20px;
-      letter-spacing: 0.18em;
-      color: #ffffff;
-    }
-
-    .topbar-title span {
-      font-size: 12px;
-      color: #a5a5a7;
-    }
-
-    .topbar-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(240,147,0,0.1);
-      color: #f7b057;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .topbar-tag-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #40c456;
-      box-shadow: 0 0 0 6px rgba(64,196,86,0.18);
-    }
-
-    /* ---------------- DESKTOP NAV --------------- */
-    .primary-nav {
-      display: none;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .primary-nav a {
-      padding: 8px 16px;
-      border-radius: 999px;
-      background: rgba(31,31,33,0.86);
-      border: 1px solid rgba(255,255,255,0.08);
-      text-decoration: none;
-      color: #e0e0e0;
-      letter-spacing: 0.08em;
-      font-size: 15px;
-      text-transform: uppercase;
-    }
-
-    .primary-nav a.active {
-      background: linear-gradient(135deg, #f09300, #e8a94a);
-      color: #111;
-      border-color: rgba(255,255,255,0.18);
-    }
-
-    /* ---------------- PAGE HEADER --------------- */
-    .results-header {
-      margin-top: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .results-eyebrow {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: #f7b057;
-    }
-
-    .results-title {
-      margin: 0;
-      font-size: 22px;
-      color: #ffffff;
-    }
-
-    .results-subtitle {
-      margin: 0;
-      font-size: 13px;
-      color: #bdbdbd;
-    }
-
-    .mobile-info {
-      margin-top: 6px;
-      padding: 8px 12px;
-      border-radius: 10px;
-      background: rgba(24,24,26,0.96);
-      border-left: 4px solid #f09300;
-      font-size: 12px;
-      color: #e0e0e0;
-    }
-
-    .loading-message {
-      margin-top: 10px;
-      padding: 10px 14px;
-      border-radius: 10px;
-      background: rgba(60,60,62,0.96);
-      border-left: 4px solid #f09300;
-      color: #f5f5f7;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    /* ---------------- TABLE STYLING --------------- */
-    .tables-wrap {
-      margin-top: 12px;
-    }
-
-    .section-title {
-      margin: 18px 0 6px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      background: linear-gradient(90deg, #f09300, transparent 75%);
-      color: #ffffff;
-      font-size: 14px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .value-table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-      background: rgba(24,24,26,0.96);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 24px;
-    }
-
-    .value-table thead th {
-      background: #2f2f31;
-      color: #e5e5e7;
-      padding: 8px 10px;
-      border-bottom: 1px solid #4a4a4a;
-      font-size: 12px;
-      word-break: break-word;
-    }
-
-    .value-table tbody td {
-      padding: 8px 10px;
-      color: #dcdcdc;
-      border-bottom: 1px solid #3e3e40;
-      font-size: 12px;
-      word-break: break-word;
-    }
-
-    .value-table tbody tr:nth-child(even) td {
-      background: #2c2c2e;
-    }
-
-    @media (min-width: 960px) {
-      .primary-nav { display: flex; }
-    }
-
-    @media (max-width: 768px) {
-      .value-table thead th,
-      .value-table tbody td {
-        font-size: 9px;
-        padding: 6px;
-      }
-      .section-title {
-        font-size: 11px;
-      }
-    }
-
-  </style>
+  
 </head>
-
 <body class="home">
   <div class="home-page">
 
@@ -285,7 +47,6 @@
       </nav>
     </header>
 
-
     <!-- ---------------- PAGE HEADER ---------------- -->
     <section>
       <div class="results-header">
@@ -301,7 +62,6 @@
       <div class="tables-wrap" id="tablesWrap"></div>
     </section>
   </div>
-
 
   <!-- ---------------- JAVASCRIPT (CSV → TABLES) ---------------- -->
   <script>
