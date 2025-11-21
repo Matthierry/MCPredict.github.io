@@ -46,7 +46,7 @@
     }
 
     /* --------------------------------------------------
-       Top bar (same as home / hda-value)
+       Top bar
     -------------------------------------------------- */
     .home-topbar {
       position: sticky;
@@ -178,7 +178,7 @@
     }
 
     /* --------------------------------------------------
-       Sub-nav for this page (BEST VALUE / HIGHEST CHANCE)
+       Sub-nav
     -------------------------------------------------- */
     .sub-nav-pills {
       display: flex;
@@ -288,35 +288,14 @@
       text-align: left;
     }
 
-    /* Table container override to avoid overflow */
-    .home .table-container {
-      width: 100%;
-      margin: 10px 0 0;
-      padding: 0;
-      box-sizing: border-box;
-      overflow-x: auto;
-    }
-
-    .home .table-container table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px; /* desktop size */
-    }
-
-    .home .table-container th,
-    .home .table-container td {
-      padding: 6px 4px;
-      text-align: center;
-      white-space: nowrap;
-    }
-
+    /* Only keep sticky header – layout comes from global style.css */
     .home .table-container th {
       position: sticky;
       top: 0;
       z-index: 1;
     }
 
-    /* Wrap only for BOOKIE PRICE & MODEL PRICE headers (G & H) */
+    /* Optional: still allow extra wrapping on specific headers if you want */
     .home .table-container th.wrap-header {
       white-space: normal;
       word-break: break-word;
@@ -367,7 +346,7 @@
     }
 
     /* --------------------------------------------------
-       Bottom mobile nav (Result points to /hda-highchance)
+       Bottom mobile nav
     -------------------------------------------------- */
     .bottom-nav {
       position: fixed;
@@ -590,13 +569,6 @@
         display: flex;
       }
     }
-
-    /* Reduce table font-size by 2px on mobile */
-    @media (max-width: 600px) {
-      .home .table-container table {
-        font-size: 9px;
-      }
-    }
   </style>
 </head>
 
@@ -674,7 +646,7 @@
         </div>
 
         <div class="mobile-info">
-          On mobile, the table is scrollable horizontally if needed.
+          Bookmaker and model prices are shown in the price columns.
         </div>
 
         <!-- Table -->
@@ -751,7 +723,6 @@
       const overlay = document.getElementById("loadingOverlay");
       if (!overlay) return;
       overlay.classList.add("hidden");
-      // Optional: fully remove from flow after transition
       setTimeout(() => {
         overlay.style.display = "none";
       }, 450);
@@ -849,8 +820,9 @@
       // Headers
       if (headerRow.length) {
         html += "<tr>" + headerRow.map((cell, idx) => {
-          // Columns G (index 6) and H (index 7) => wrap-header
-          const needsWrap = idx === 6 || idx === 7;
+          // If you still want extra wrapping on certain headers, you can flag them here:
+          // const needsWrap = idx === 6 || idx === 7;
+          const needsWrap = false;
           const cls = needsWrap ? ' class="wrap-header"' : '';
           return `<th${cls}>${cell}</th>`;
         }).join("") + "</tr>";
