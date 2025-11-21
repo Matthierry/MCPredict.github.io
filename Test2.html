@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC PREDICT - UNDER/OVER 2.5 GOALS BEST VALUE</title>
+  <title>MC PREDICT - MATCH RESULT BEST VALUE</title>
 
   <!-- Global site stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -214,7 +214,7 @@
     }
 
     /* --------------------------------------------------
-       Data layout (filters + table focus)
+       Data layout (Option A: filters + table focus)
     -------------------------------------------------- */
     .data-layout {
       display: grid;
@@ -269,7 +269,7 @@
       margin: 6px 0 4px;
     }
 
-    /* Filters row */
+    /* Use existing .filters styles from style.css but tweak spacing */
     .filters-row {
       display: flex;
       flex-wrap: wrap;
@@ -295,13 +295,13 @@
       text-align: left;
     }
 
-    /* Table container override to avoid overflow & keep behaviour */
+    /* Table container override to avoid overflow */
     .home .table-container {
       width: 100%;
       margin: 10px 0 0;
       padding: 0;
       box-sizing: border-box;
-      overflow-x: auto; /* horizontal scroll if needed */
+      overflow-x: auto;
     }
 
     .home .table-container table {
@@ -314,13 +314,21 @@
     .home .table-container td {
       padding: 6px 4px;
       text-align: center;
-      white-space: nowrap; /* keep cells tight; user can scroll horizontally */
+      white-space: nowrap;
     }
 
     .home .table-container th {
       position: sticky;
       top: 0;
       z-index: 1;
+    }
+
+    /* Wrap only BOOKIE PRICE & MODEL PRICE (G & H) headers */
+    .home .table-container th.wrap-header {
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.2;
     }
 
     /* Side card (value key / notes) */
@@ -357,6 +365,51 @@
       color: #8c8c8e;
     }
 
+    /* --- NEW: extra side tables from second sheet --- */
+    .side-table-container {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .side-table-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 8px 0 4px;
+    }
+
+    .side-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .side-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      background: rgba(10, 10, 12, 0.9);
+    }
+
+    .side-table th,
+    .side-table td {
+      padding: 4px 6px;
+      text-align: left;
+      border: none;
+      white-space: nowrap;
+    }
+
+    .side-table th {
+      background: rgba(240, 147, 0, 0.25);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .side-table tr:nth-child(even) td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
     /* Footer */
     .home-footer {
       margin-top: 18px;
@@ -366,7 +419,7 @@
     }
 
     /* --------------------------------------------------
-       Bottom mobile nav (same pattern as home, "U/O 2.5" active)
+       Bottom mobile nav (same pattern as home, but "Result" active)
     -------------------------------------------------- */
     .bottom-nav {
       position: fixed;
@@ -476,9 +529,13 @@
       }
     }
 
-    /* Reduce table font-size by 2px on small mobile */
+    /* Reduce main table font-size by 2px on mobile */
     @media (max-width: 600px) {
       .home .table-container table {
+        font-size: 9px;
+      }
+
+      .side-table {
         font-size: 9px;
       }
     }
@@ -502,35 +559,35 @@
         </div>
         <div class="topbar-tag">
           <span class="topbar-tag-dot"></span>
-          <span>Under/Over 2.5</span>
+          <span>Match Result</span>
         </div>
       </div>
 
       <!-- Desktop / tablet nav -->
       <nav class="primary-nav" aria-label="Primary navigation">
         <a href="/index">Home</a>
-        <a href="/hda-value">Match Result</a>
-        <a href="/uo-value" class="active">Under/Over 2.5</a>
+        <a href="/hda-value" class="active">Match Result</a>
+        <a href="/uo-value">Under/Over 2.5</a>
         <a href="/lucky-dip">Lucky Dip</a>
         <a href="/historical">Historical Data</a>
         <a href="/faqs">FAQs</a>
       </nav>
 
       <!-- Sub-nav for this section -->
-      <div class="sub-nav-pills" aria-label="Under/Over views">
-        <a href="/uo-value" class="active">Best Value</a>
-        <a href="/uo-highchance">Highest Chance</a>
+      <div class="sub-nav-pills" aria-label="Match Result views">
+        <a href="/hda-value" class="active">Best Value</a>
+        <a href="/hda-highchance">Highest Chance</a>
       </div>
     </header>
 
     <!-- Main data layout -->
     <section class="data-layout">
-      <!-- Filters + table -->
+      <!-- Filters + main table -->
       <div class="data-main-card">
-        <div class="data-eyebrow">Under/Over 2.5 Goals</div>
-        <h2 class="data-title">Best value goal-line selections</h2>
+        <div class="data-eyebrow">Match Result</div>
+        <h2 class="data-title">Best value selections</h2>
         <p class="data-subtitle">
-          Use the filters to focus on specific days or goal outcomes. The table updates instantly
+          Use the filters to focus on specific days or outcomes. The table updates instantly
           using the latest data from the model.
         </p>
 
@@ -541,10 +598,10 @@
         </div>
 
         <!-- Result filters -->
-        <div class="data-label">Filter by predicted outcome</div>
+        <div class="data-label">Filter by predicted result</div>
         <div class="filters-row" id="result-filters">
-          <button data-result="UNDER 2.5">Under 2.5 Goals</button>
-          <button data-result="OVER 2.5">Over 2.5 Goals</button>
+          <button data-result="HOME WIN">Home Win</button>
+          <button data-result="AWAY WIN">Away Win</button>
         </div>
 
         <div class="mobile-info">
@@ -552,16 +609,15 @@
         </div>
         <div class="loading-message" id="loadingMessage">Loading latest data...</div>
 
-        <!-- Table -->
+        <!-- Main table -->
         <div class="table-container" id="sheet-data"></div>
       </div>
 
-      <!-- Side info / value key -->
+      <!-- Side info / value key + extra tables -->
       <aside class="data-side-card">
         <h3 class="data-side-title">Value key</h3>
         <p class="data-side-subtitle">
-          Each fixture has a value rating based on how strongly the model disagrees with the market
-          on the 2.5 goals line.
+          Each fixture has a value rating based on how strongly the model disagrees with the market.
         </p>
         <ul class="value-list">
           <li><span class="emoji">💰💰💰</span> Highest perceived value</li>
@@ -573,9 +629,12 @@
         </ul>
 
         <p class="side-note">
-          As with all value-based approaches, the goal is long-term edges across many bets,
-          not certainty on individual matches.
+          Remember: value does not guarantee a win on a single game. It’s designed for long-term
+          edges across many bets.
         </p>
+
+        <!-- NEW: container for the three extra tables -->
+        <div id="side-sheet-data" class="side-table-container"></div>
       </aside>
     </section>
 
@@ -590,11 +649,11 @@
       <span class="icon">🏠</span>
       <span class="label">Home</span>
     </a>
-    <a href="/hda-value" data-key="hda">
+    <a href="/hda-value" class="active" data-key="hda">
       <span class="icon">🏆</span>
       <span class="label">Result</span>
     </a>
-    <a href="/uo-value" class="active" data-key="uo">
+    <a href="/uo-value" data-key="uo">
       <span class="icon">⚽</span>
       <span class="label">U/O 2.5</span>
     </a>
@@ -621,16 +680,20 @@
     const activeResultFilters = new Set();
 
     function csvToRows(text) {
+      // Simple CSV split; assumes your sheet cells don't contain unescaped commas/newlines.
       return text.trim().split("\n").map(r => r.split(","));
     }
 
+    /* -------------------------
+       Main table CSV
+    ------------------------- */
     async function loadCSV() {
-      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv";
+      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
       const response = await fetch(url);
       const text = await response.text();
       allRows = csvToRows(text);
 
-      // Headers in row 2 (index 1), data from row 3 (index 2)
+      // Headers are in Row 2 (index 1). Data starts at Row 3 (index 2).
       headerRow = allRows[1] || [];
       dataRows = allRows.slice(2);
 
@@ -641,11 +704,14 @@
     }
 
     function buildDayButtons() {
-      const container = document.getElementById("day-filters");
-      container.innerHTML = "";
+      const dayFiltersDiv = document.getElementById("day-filters");
+      dayFiltersDiv.innerHTML = "";
 
+      // Column A = day (index 0); filter out blanks and normalize
       const uniqueDays = Array.from(new Set(
-        dataRows.map(r => (r[0] || "").trim()).filter(v => v.length > 0)
+        dataRows
+          .map(r => (r[0] || "").trim())
+          .filter(v => v.length > 0)
       ));
 
       uniqueDays.forEach(day => {
@@ -662,19 +728,19 @@
           }
           renderTable();
         });
-        container.appendChild(btn);
+        dayFiltersDiv.appendChild(btn);
       });
     }
 
     function attachResultButtonHandlers() {
       document.querySelectorAll("#result-filters button").forEach(btn => {
         btn.addEventListener("click", () => {
-          const val = (btn.dataset.result || "").trim().toUpperCase();
-          if (activeResultFilters.has(val)) {
-            activeResultFilters.delete(val);
+          const value = (btn.dataset.result || "").trim().toUpperCase(); // e.g., "HOME WIN"
+          if (activeResultFilters.has(value)) {
+            activeResultFilters.delete(value);
             btn.classList.remove("active");
           } else {
-            activeResultFilters.add(val);
+            activeResultFilters.add(value);
             btn.classList.add("active");
           }
           renderTable();
@@ -682,34 +748,110 @@
       });
     }
 
-    function rowMatches(row) {
-      const day = (row[0] || "").trim();
-      const res = (row[5] || "").trim().toUpperCase();
-      const okDay = activeDayFilters.size === 0 || activeDayFilters.has(day);
-      const okRes = activeResultFilters.size === 0 || activeResultFilters.has(res);
-      return okDay && okRes;
+    function rowMatchesFilters(row) {
+      const dayVal = (row[0] || "").trim();                 // Column A
+      const resultVal = (row[5] || "").trim().toUpperCase(); // Column F
+
+      const dayOk = activeDayFilters.size === 0 || activeDayFilters.has(dayVal);
+      const resultOk = activeResultFilters.size === 0 || activeResultFilters.has(resultVal);
+
+      return dayOk && resultOk;
     }
 
     function renderTable() {
+      const container = document.getElementById("sheet-data");
+
       let html = "<table>";
 
       // Headers
       if (headerRow.length) {
-        html += "<tr>" + headerRow.map(c => `<th>${c}</th>`).join("") + "</tr>";
+        html += "<tr>" + headerRow.map((cell, idx) => {
+          // Columns G (index 6) and H (index 7) => wrap-header
+          const needsWrap = idx === 6 || idx === 7;
+          const cls = needsWrap ? ' class="wrap-header"' : '';
+          return `<th${cls}>${cell}</th>`;
+        }).join("") + "</tr>";
       }
 
-      // Rows
-      dataRows.forEach(r => {
-        if (rowMatches(r)) {
-          html += "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>";
+      // Filtered data rows
+      dataRows.forEach(row => {
+        if (rowMatchesFilters(row)) {
+          html += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>";
         }
       });
 
       html += "</table>";
-      document.getElementById("sheet-data").innerHTML = html;
+      container.innerHTML = html;
     }
 
+    /* -------------------------
+       Side tables CSV
+       Titles: rows 2,14,25
+       Headers: rows 2,15,26 (1-based)
+    ------------------------- */
+    async function loadSideCSV() {
+      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1680844079&single=true&output=csv";
+      const response = await fetch(url);
+      const text = await response.text();
+      const rows = csvToRows(text);
+
+      const container = document.getElementById("side-sheet-data");
+      if (!container || rows.length === 0) return;
+
+      // 0-based indices for the key rows
+      const tablesConfig = [
+        {
+          titleRow: 1,  // row 2
+          headerRow: 1, // headers also row 2
+          startData: 2, // row 3
+          endBefore: 13 // row 13 (before title at row 14 / index 13)
+        },
+        {
+          titleRow: 13, // row 14
+          headerRow: 14, // row 15
+          startData: 15, // row 16
+          endBefore: 24  // row 24 (before title at row 25 / index 24)
+        },
+        {
+          titleRow: 24, // row 25
+          headerRow: 25, // row 26
+          startData: 26, // row 27
+          endBefore: rows.length
+        }
+      ];
+
+      let html = "";
+
+      tablesConfig.forEach(cfg => {
+        if (!rows[cfg.headerRow]) return;
+
+        const titleCells = rows[cfg.titleRow] || [];
+        const titleText = (titleCells[0] || "").trim();
+
+        if (titleText) {
+          html += `<h4 class="side-table-title">${titleText}</h4>`;
+        }
+
+        html += '<div class="side-table-wrapper"><table class="side-table">';
+
+        const headerCells = rows[cfg.headerRow] || [];
+        html += "<tr>" + headerCells.map(c => `<th>${c}</th>`).join("") + "</tr>";
+
+        for (let r = cfg.startData; r < cfg.endBefore && r < rows.length; r++) {
+          const row = rows[r];
+          if (!row || row.every(cell => (cell || "").trim() === "")) continue;
+          html += "<tr>" + row.map(c => `<td>${c}</td>`).join("") + "</tr>";
+        }
+
+        html += "</table></div>";
+      });
+
+      container.innerHTML = html;
+    }
+
+    // Kick off both loads
     loadCSV();
+    loadSideCSV();
   </script>
 </body>
 </html>
