@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC PREDICT - FAQs</title>
+  <title>MC PREDICT - MATCH WINNER BEST VALUE (Historical)</title>
 
-  <!-- Fonts + Global styles -->
+  <!-- Fonts + global stylesheet -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
   <link rel="stylesheet" href="style.css">
@@ -137,7 +137,7 @@
        Desktop nav (top pills)
     -------------------------------------------------- */
     .primary-nav {
-      display: none; /* hidden on mobile, shown on desktop */
+      display: none; /* shown on desktop */
       gap: 10px;
       margin-top: 20px;
       flex-wrap: wrap;
@@ -177,74 +177,142 @@
     }
 
     /* --------------------------------------------------
-       FAQ layout
+       Page header / intro
     -------------------------------------------------- */
-    .faq-header {
+    .results-header {
+      margin-top: 4px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-top: 4px;
+      gap: 8px;
     }
 
-    .faq-eyebrow {
+    .results-eyebrow {
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       color: #f7b057;
     }
 
-    .faq-title {
-      font-size: 24px;
-      color: #ffffff;
+    .results-title {
       margin: 0;
+      font-size: 22px;
+      color: #ffffff;
     }
 
-    .faq-subtitle {
+    .results-subtitle {
+      margin: 0;
       font-size: 13px;
       color: #bdbdbd;
-      margin: 0;
-      max-width: 640px;
+      max-width: 700px;
     }
 
-    .faq-grid {
-      margin-top: 14px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 12px;
+    .results-note {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: #c9c9c9;
+      max-width: 760px;
     }
 
-    .faq-card {
-      background: rgba(24, 24, 26, 0.96);
-      border-radius: 16px;
-      padding: 14px 14px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: 0 14px 26px rgba(0, 0, 0, 0.55);
-    }
-
-    .faq-card h3 {
-      margin: 0 0 6px;
-      font-size: 16px;
-      color: #ffffff;
-    }
-
-    .faq-card p {
-      margin: 0 0 8px;
-      font-size: 14px;
-      line-height: 1.55;
-      color: #d0d0d2;
-    }
-
-    .faq-card a {
+    .results-note a {
       color: #f7b057;
       text-decoration: none;
     }
 
-    .faq-card a:hover {
+    .results-note a:hover {
       text-decoration: underline;
     }
 
+    /* --------------------------------------------------
+       Tables + helper text
+       (keeps your “fit on mobile, no horizontal scroll”
+       behaviour by using small fonts + wrapping.)
+    -------------------------------------------------- */
+    .mobile-info {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border-left: 4px solid #f09300;
+      background: rgba(24, 24, 26, 0.96);
+      font-size: 12px;
+      color: #e0e0e0;
+    }
+
+    .loading-message {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(60, 60, 62, 0.96);
+      border-left: 4px solid #f09300;
+      font-size: 13px;
+      font-weight: 600;
+      color: #f5f5f7;
+      text-align: left;
+    }
+
+    .tables-wrap {
+      margin-top: 14px;
+      padding-bottom: 8px;
+    }
+
+    .section-title {
+      margin: 18px 0 6px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #f09300, transparent 75%);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .value-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;           /* enables wrapping */
+      background: rgba(24, 24, 26, 0.96);
+      border-radius: 12px;
+      overflow: hidden;              /* keep rounded corners */
+      margin-bottom: 22px;
+    }
+
+    .value-table thead th {
+      background: #2f2f31;
+      color: #e5e5e7;
+      font-weight: 700;
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid #4a4a4a;
+      white-space: normal;
+      word-wrap: break-word;
+      word-break: break-word;
+      font-size: 12px;
+    }
+
+    .value-table tbody td {
+      color: #dcdcdc;
+      padding: 8px 10px;
+      border-bottom: 1px solid #3e3e40;
+      vertical-align: top;
+      white-space: normal;
+      word-wrap: break-word;
+      word-break: break-word;
+      font-size: 12px;
+    }
+
+    .value-table tbody tr:nth-child(even) td {
+      background: #29292b;
+    }
+
+    .value-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* --------------------------------------------------
+       Footer
+    -------------------------------------------------- */
     .home-footer {
-      margin-top: 22px;
+      margin-top: 14px;
       font-size: 11px;
       color: #7a7a7a;
       text-align: center;
@@ -315,19 +383,14 @@
     }
 
     /* --------------------------------------------------
-       Responsive
+       Responsive tweaks
     -------------------------------------------------- */
     @media (min-width: 640px) {
       .home-page {
         padding: 18px 20px 80px;
       }
-
-      .faq-title {
-        font-size: 26px;
-      }
-
-      .faq-grid {
-        gap: 14px;
+      .results-title {
+        font-size: 24px;
       }
     }
 
@@ -335,17 +398,11 @@
       .primary-nav {
         display: flex;
       }
-
       .bottom-nav {
-        display: none; /* desktop only uses top nav */
+        display: none;
       }
-
       .home-page {
         padding-bottom: 40px;
-      }
-
-      .faq-grid {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       }
     }
 
@@ -353,9 +410,29 @@
       .primary-nav {
         display: none;
       }
-
       .bottom-nav {
         display: flex;
+      }
+    }
+
+    /* Make text and padding extra-tight on smaller screens
+       so tables fit width without horizontal scroll */
+    @media (max-width: 768px) {
+      .section-title {
+        font-size: 11px;
+        padding: 6px 8px;
+      }
+      .value-table thead th,
+      .value-table tbody td {
+        padding: 6px 6px;
+        font-size: 9px;
+      }
+      .mobile-info {
+        font-size: 11px;
+      }
+      .results-subtitle,
+      .results-note {
+        font-size: 12px;
       }
     }
   </style>
@@ -378,7 +455,7 @@
         </div>
         <div class="topbar-tag">
           <span class="topbar-tag-dot"></span>
-          <span>FAQs</span>
+          <span>Historical · Match Result</span>
         </div>
       </div>
 
@@ -388,80 +465,37 @@
         <a href="/hda-value">Match Result</a>
         <a href="/uo-value">Under/Over 2.5</a>
         <a href="/lucky-dip">Lucky Dip</a>
-        <a href="/historical">Historical Data</a>
-        <a href="/faqs" class="active">FAQs</a>
+        <a href="/historical" class="active">Historical Data</a>
+        <a href="/faqs">FAQs</a>
       </nav>
     </header>
 
-    <!-- FAQ content -->
-    <section aria-labelledby="faq-heading">
-      <div class="faq-header">
-        <div class="faq-eyebrow">Support &amp; Info</div>
-        <h2 id="faq-heading" class="faq-title">Frequently Asked Questions</h2>
-        <p class="faq-subtitle">
-          A bit more detail on how the model works, what “value” means, and how to interpret the
-          figures you see across the site.
+    <!-- Content -->
+    <section aria-labelledby="results-heading">
+      <div class="results-header">
+        <div class="results-eyebrow">Historical Performance</div>
+        <h2 id="results-heading" class="results-title">Match Result – Best Value (Summary)</h2>
+        <p class="results-subtitle">
+          These tables summarise how the Match Result “Best Value” model has performed across
+          different categories over time.
+        </p>
+        <p class="results-note">
+          NOTE: The returns are calculated on decimal odds and may not perfectly align to the
+          fractional odds represented below. You can view the actual decimal odds for individual
+          fixtures on the full history pages.
         </p>
       </div>
 
-      <div class="faq-grid">
-        <article class="faq-card">
-          <h3>How does the model work?</h3>
-          <p>
-            The model has been in development since 2015 and is now in its fourth version. It analyses a team’s form to
-            predict how they will perform against an opponent, using multiple layered methods. These include Poisson
-            distribution theory, deviation analysis, performance against historical odds, opponent strength, and home/away
-            advantages.
-          </p>
-          <p>
-            All calculations are based on key performance data such as goals, shots, and shots on target for and against.
-          </p>
-        </article>
-
-        <article class="faq-card">
-          <h3>What is “value”?</h3>
-          <p>
-            A value selection is when the model identifies an outcome as having a greater chance of occurring than implied
-            by the bookmaker’s odds. While no model is perfect, the idea is that—over time—these opportunities may prove
-            profitable when consistently backed at the odds provided.
-          </p>
-        </article>
-
-        <article class="faq-card">
-          <h3>What does “higher chance” mean?</h3>
-          <p>
-            Higher chance selections are simply the model’s ranking of outcomes by probability, from most to least likely.
-            These rankings are based purely on the model’s calculations, without considering bookmaker odds or price.
-          </p>
-        </article>
-
-        <article class="faq-card">
-          <h3>Profit &amp; Loss</h3>
-          <p>
-            The profit and loss records shown on the website are based only on fixtures played between Friday and Monday.
-            While the model does generate predictions for midweek fixtures, these results are not included in the official
-            profit/loss records.
-          </p>
-        </article>
-
-        <article class="faq-card">
-          <h3>How are odds calculated?</h3>
-          <p>
-            The model works in probability percentages, which are first converted into decimal odds. For clarity and to
-            align with UK preferences, these decimal odds are then converted into fractional odds. This conversion may cause
-            small discrepancies when reviewing historical results, but both decimal and fractional odds are provided to help
-            keep things transparent.
-          </p>
-          <p>
-            The odds displayed are based on the bookmakers’ average prices on Friday afternoons, sourced from Joseph
-            Buchdahl (@12Xpert) via
-            <a href="https://www.football-data.co.uk" target="_blank" rel="noopener noreferrer">
-              football-data.co.uk
-            </a>.
-            Better odds may be available elsewhere, so keep this in mind when reviewing results or placing bets.
-          </p>
-        </article>
+      <div class="mobile-info">
+        If you are viewing on mobile, the tables are compressed and text is reduced so everything fits
+        on screen without horizontal scrolling.
       </div>
+
+      <div class="loading-message" id="loadingMessage">
+        Loading latest historical data…
+      </div>
+
+      <div class="tables-wrap" id="tablesWrap"></div>
     </section>
 
     <footer class="home-footer">
@@ -487,14 +521,167 @@
       <span class="icon">🎲</span>
       <span class="label">Lucky</span>
     </a>
-    <a href="/historical" data-key="historical">
+    <a href="/historical" class="active" data-key="historical">
       <span class="icon">📊</span>
       <span class="label">History</span>
     </a>
-    <a href="/faqs" class="active" data-key="faqs">
+    <a href="/faqs" data-key="faqs">
       <span class="icon">❓</span>
       <span class="label">FAQs</span>
     </a>
   </nav>
+
+  <script>
+    // Same CSV parsing + 3-table logic as your original page,
+    // just plugged into the new layout.
+
+    // Small CSV parser that supports quoted fields and embedded commas.
+    // Returns array of rows; each row is an array of strings.
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cur = '';
+      let i = 0;
+      const len = text.length;
+      let inQuotes = false;
+
+      while (i < len) {
+        const ch = text[i];
+
+        if (inQuotes) {
+          if (ch === '"') {
+            if (i + 1 < len && text[i + 1] === '"') {
+              // Escaped quote ("")
+              cur += '"';
+              i += 2;
+              continue;
+            } else {
+              inQuotes = false;
+              i++;
+              continue;
+            }
+          } else {
+            cur += ch;
+            i++;
+            continue;
+          }
+        } else {
+          if (ch === '"') {
+            inQuotes = true;
+            i++;
+            continue;
+          }
+          if (ch === ',') {
+            row.push(cur);
+            cur = '';
+            i++;
+            continue;
+          }
+          if (ch === '\r') {
+            i++;
+            continue;
+          }
+          if (ch === '\n') {
+            row.push(cur);
+            rows.push(row);
+            row = [];
+            cur = '';
+            i++;
+            continue;
+          }
+          cur += ch;
+          i++;
+        }
+      }
+      row.push(cur);
+      rows.push(row);
+      return rows;
+    }
+
+    (async function () {
+      const csvUrl =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1680844079&single=true&output=csv";
+
+      // Sheet structure (1-based):
+      //  - Title row above each section header
+      //  - Section header rows at 3, 15, 26
+      const headerRows1Based = [3, 15, 26];
+
+      function buildTitleFromRow(rowArr) {
+        const bits = rowArr
+          .map(x => (x || '').trim())
+          .filter(Boolean);
+        return bits.length ? bits.join(" • ") : "";
+      }
+
+      function buildTableHTML(headers, rows) {
+        let html = '<table class="value-table"><thead><tr>';
+        headers.forEach(h => {
+          html += `<th>${h}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        rows.forEach(r => {
+          const cells = r.slice(0, headers.length);
+          while (cells.length < headers.length) cells.push("");
+          html += "<tr>";
+          cells.forEach(c => {
+            html += `<td>${c}</td>`;
+          });
+          html += "</tr>";
+        });
+
+        html += "</tbody></table>";
+        return html;
+      }
+
+      try {
+        const res = await fetch(csvUrl, { cache: "no-store" });
+        if (!res.ok) {
+          throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
+        }
+        const text = await res.text();
+        const rows = parseCSV(text);
+
+        // Convert 1-based to 0-based
+        const headerIdx = headerRows1Based.map(n => n - 1);
+        const titleIdx = headerIdx.map(i => Math.max(0, i - 1));
+
+        const sections = [];
+        for (let s = 0; s < headerIdx.length; s++) {
+          const hIdx = headerIdx[s];
+          const tIdx = titleIdx[s];
+          const nextT = s < headerIdx.length - 1 ? titleIdx[s + 1] : rows.length;
+
+          const headers = (rows[hIdx] || []).map(x => String(x ?? ""));
+          const titleRow = rows[tIdx] || [];
+          const title = buildTitleFromRow(titleRow);
+
+          const dataStart = hIdx + 1;
+          const dataEnd = Math.max(dataStart, nextT); // exclusive
+          const body = rows.slice(dataStart, dataEnd);
+
+          sections.push({ title, headers, body });
+        }
+
+        const wrap = document.getElementById("tablesWrap");
+        wrap.innerHTML = sections
+          .map(sec => {
+            const titleBar = sec.title
+              ? `<div class="section-title">${sec.title}</div>`
+              : "";
+            return `${titleBar}${buildTableHTML(sec.headers, sec.body)}`;
+          })
+          .join("");
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("tablesWrap").innerHTML =
+          '<div class="loading-message">Sorry, something went wrong loading the data.</div>';
+      } finally {
+        document.getElementById("loadingMessage").style.display = "none";
+      }
+    })();
+  </script>
 </body>
 </html>
