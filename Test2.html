@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC PREDICT - MATCH WINNER HISTORICAL PREDICTIONS (DECIMAL)</title>
+  <title>MC PREDICT - UNDER/OVER 2.5 HISTORICAL PREDICTIONS (FRACTIONAL)</title>
 
   <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -190,7 +190,7 @@
     }
 
     /* --------------------------------------------------
-       Sub-nav: fractional / decimal
+       Sub-nav: U/O fractional / decimal
     -------------------------------------------------- */
     .sub-nav-pills {
       display: flex;
@@ -270,8 +270,7 @@
       margin: 4px 0 12px;
     }
 
-    /* Use existing .filter-title and .filters from style.css,
-       just tighten spacing a bit inside this card */
+    /* Tighten filter spacing inside this card */
     .data-main-card .filter-title {
       margin-top: 8px;
       margin-bottom: 6px;
@@ -515,9 +514,9 @@
   <div class="loading-overlay" id="loadingOverlay" aria-live="polite">
     <div class="loading-ball">⚽</div>
     <div class="loading-pitch-line"></div>
-    <div class="loading-title">Loading Historical Matches</div>
+    <div class="loading-title">Loading U/O History</div>
     <p class="loading-subtitle">
-      We&#39;re pulling in every historical prediction, decimal price and result from the database.
+      We&#39;re pulling in every historical Under/Over 2.5 prediction, price and result.
     </p>
     <div class="loading-ticker">Fetching data...</div>
   </div>
@@ -554,30 +553,31 @@
 
       <!-- Sub-nav for fractional / decimal -->
       <div class="sub-nav-pills" aria-label="Odds format views">
-        <a href="/hda-histf">Fractional Odds</a>
-        <a href="/hda-histd" class="active">Decimal Odds</a>
+        <a href="/uo-histf" class="active">Fractional Odds</a>
+        <a href="/uo-histd">Decimal Odds</a>
       </div>
     </header>
 
     <!-- Main content layout -->
     <section class="data-layout">
       <div class="data-main-card">
-        <div class="data-eyebrow">Match Result</div>
-        <h2 class="data-title">Historical predictions – decimal odds</h2>
+        <div class="data-eyebrow">Under/Over 2.5</div>
+        <h2 class="data-title">Historical predictions – fractional odds</h2>
         <p class="data-subtitle">
-          Explore every historical match result prediction using decimal prices, including value rating and outcome.
+          Explore every Under/Over 2.5 prediction the model has made, including value rating, result and P/L.
         </p>
 
         <p class="note-text">
-          NOTE: The returns are calculated on decimal odds and may not perfectly align to the fractional
-          odds represented on the other view.
+          NOTE: The returns are calculated on decimal odds and may not perfectly align to the fractional odds 
+          represented below. You can view the exact decimal odds using the options above.
         </p>
 
         <!-- Filter controls -->
         <div class="filter-title">Filter options</div>
         <div class="filters" id="prediction-filters">
-          <button data-pred="HOME WIN">Home Win</button>
-          <button data-pred="AWAY WIN">Away Win</button>
+          <!-- Use the exact strings present in column P of the sheet -->
+          <button data-pred="UNDER 2.5">Under 2.5</button>
+          <button data-pred="OVER 2.5">Over 2.5</button>
         </div>
         <div class="filters" id="value-filters">
           <button data-val="❌">❌</button>
@@ -647,17 +647,17 @@
   </nav>
 
   <script>
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=0&single=true&output=csv";
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1055864228&single=true&output=csv";
 
-    // Column indices into the CSV for this DECIMAL-odds page
-    const IDX = { H:7, L:11, M:12, N:13, O:14, P:15, S:17, V:20, X:23, AA:26, AC:28, AD:29 };
+    // Column indices for this UO (fractional) sheet
+    const IDX = { H:7, L:11, M:12, N:13, O:14, P:15, S:18, V:21, X:23, AA:27, AC:28, AD:29 };
 
     // DataTables visible column positions:
     // 0: Date, 1: League, 2: Home, 3: V, 4: Away, 5: Prediction, 6: Bookmaker, 7: Model, 8: Value, 9: Result, 10: P/L, 11: Correct?
-    const DT_COL_PREDICTION = 5; // CSV P
-    const DT_COL_VALUE = 8;      // CSV X
+    const DT_COL_PREDICTION = 5; // maps to CSV column P
+    const DT_COL_VALUE = 8;      // maps to CSV column X
 
-    // Filter state (multi-select). Empty set => no restriction.
+    // Filter state (multi-select). Empty = no restriction.
     const selectedPredictions = new Set();
     const selectedValues = new Set();
 
@@ -714,10 +714,10 @@
               r[IDX.M] || "",                         // 2 Home
               r[IDX.N] || "",                         // 3 V
               r[IDX.O] || "",                         // 4 Away
-              r[IDX.P] || "",                         // 5 Prediction
-              r[IDX.S] || "",                         // 6 Bookmaker Price (DECIMAL page uses S=17)
-              r[IDX.V] || "",                         // 7 Model Price (DECIMAL page uses V=20)
-              r[IDX.X] || "",                         // 8 Value (❌ / 💰 sequence)
+              r[IDX.P] || "",                         // 5 Prediction (UNDER/OVER 2.5)
+              r[IDX.S] || "",                         // 6 Bookmaker Price
+              r[IDX.V] || "",                         // 7 Model Price
+              r[IDX.X] || "",                         // 8 Value (❌/💰 sequence)
               r[IDX.AA] || "",                        // 9 Result
               { display: plDisp, sort: plSort },      // 10 P/L
               correct                                 // 11 Correct?
@@ -747,12 +747,12 @@
             ]
           });
 
-          // Custom filter: OR within group, AND across groups
+          // Custom filtering: OR within group, AND across groups
           $.fn.dataTable.ext.search.push(function(settings, data){
             if (settings.nTable !== document.getElementById('predictionsTable')) return true;
 
-            const predVal = (data[DT_COL_PREDICTION] || "").toUpperCase().trim(); // HOME WIN / AWAY WIN
-            const valueVal = (data[DT_COL_VALUE] || "").trim();                   // ❌ / 💰💰 etc.
+            const predVal = (data[DT_COL_PREDICTION] || "").trim(); // e.g., "UNDER 2.5" / "OVER 2.5"
+            const valueVal = (data[DT_COL_VALUE] || "").trim();     // e.g., "💰💰", "❌", etc.
 
             const predPass = (selectedPredictions.size === 0) || selectedPredictions.has(predVal);
             const valuePass = (selectedValues.size === 0) || selectedValues.has(valueVal);
@@ -760,9 +760,9 @@
             return predPass && valuePass;
           });
 
-          // Wire filter buttons
+          // Wire up filter buttons (toggle .active and update sets)
           $('#prediction-filters button').on('click', function(){
-            const v = String($(this).data('pred') || "").toUpperCase().trim();
+            const v = String($(this).data('pred') || "").trim();
             if (selectedPredictions.has(v)) {
               selectedPredictions.delete(v);
               $(this).removeClass('active');
