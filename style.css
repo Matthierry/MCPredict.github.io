@@ -300,7 +300,7 @@ button:disabled {
   margin: 0 auto;
   padding: 0 10px;
   box-sizing: border-box;
-  overflow-x: auto;           /* generic pages can still scroll horizontally */
+  overflow-x: auto;
 }
 
 .table-container--narrow {
@@ -339,20 +339,18 @@ tr:nth-child(even) {
 
 /* ------------------------------------
    Compact table for new "home" layout
-   (used on /index, /hda-value, /uo-*, etc.)
-   NO HORIZONTAL SCROLL – columns wrap
 ------------------------------------ */
 body.home .table-container {
   width: 100%;
   margin: 10px 0 0;
   padding: 0;
-  overflow-x: visible;        /* override generic scroll */
+  overflow-x: visible;
 }
 
 body.home .table-container table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;        /* squeeze columns evenly */
+  table-layout: fixed;
   font-size: 10px;
 }
 
@@ -360,14 +358,30 @@ body.home .table-container th,
 body.home .table-container td {
   padding: 6px 3px;
   border: none;
-  white-space: normal;        /* allow wrapping */
-  word-break: break-word;     /* break long words if needed */
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* ------------------------------------
+   Value table column overrides
+   (Day & 'v' columns minimal width)
+------------------------------------ */
+body.home .table-container table.value-table {
+  table-layout: auto !important;
+}
+
+body.home .table-container table.value-table th:nth-child(1),
+body.home .table-container table.value-table td:nth-child(1),
+body.home .table-container table.value-table th:nth-child(4),
+body.home .table-container table.value-table td:nth-child(4) {
+  white-space: nowrap;
+  width: 1%;
 }
 
 /* Extra tightening on small screens */
 @media (max-width: 600px) {
   body.home .table-container table {
-    font-size: 7px;           /* smaller text on mobile */
+    font-size: 7px;
   }
 
   body.home .table-container th,
