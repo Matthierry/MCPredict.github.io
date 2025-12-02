@@ -914,6 +914,12 @@
             return predPass && valuePass && datePass;
           });
 
+          // Pre-select value filters 💰, 💰💰, 💰💰💰 on load
+          ['💰', '💰💰', '💰💰💰'].forEach(val => {
+            selectedValues.add(val);
+            $('#value-filters button[data-val="' + val + '"]').addClass('active');
+          });
+
           // Wire prediction filter buttons
           $('#prediction-filters button').on('click', function(){
             const v = String($(this).data('pred') || "").toUpperCase().trim();
@@ -1006,11 +1012,11 @@
             }
           }
 
-          // Initial summary + hook to table draw
-          updateSummary();
+          // Bind summary to draw and trigger one draw so defaults apply
           table.on('draw', function() {
             updateSummary();
           });
+          table.draw(); // apply default filters + update summary
 
           hideLoadingOverlay();
         },
