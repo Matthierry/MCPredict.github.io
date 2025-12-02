@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC PREDICT - MATCH WINNER HISTORICAL PREDICTIONS</title>
+  <title>MC PREDICT - MATCH WINNER HISTORICAL PREDICTIONS (DECIMAL)</title>
 
   <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -314,13 +314,13 @@
     }
 
     .summary-card--pl .summary-value {
-      color: #40c456; /* green for profit, may be overridden dynamically if negative */
+      color: #40c456; /* default green; overwritten to red if negative */
     }
 
     /* --------------------------------------------------
        Date range filters
     -------------------------------------------------- */
-    .filter-title {
+    .data-main-card .filter-title {
       margin-top: 8px;
       margin-bottom: 6px;
       font-size: 14px;
@@ -375,7 +375,6 @@
       transform: translateY(-1px);
     }
 
-    /* Use existing .filters from style.css, just tighten spacing a bit */
     .data-main-card .filters {
       justify-content: flex-start;
       margin-bottom: 6px;
@@ -614,7 +613,7 @@
     <div class="loading-pitch-line"></div>
     <div class="loading-title">Loading Historical Matches</div>
     <p class="loading-subtitle">
-      We&#39;re pulling in every historical prediction, price and result from the database.
+      We&#39;re pulling in every historical prediction, decimal price and result from the database.
     </p>
     <div class="loading-ticker">Fetching data...</div>
   </div>
@@ -651,8 +650,8 @@
 
       <!-- Sub-nav for fractional / decimal -->
       <div class="sub-nav-pills" aria-label="Odds format views">
-        <a href="/hda-histf" class="active">Fractional Odds</a>
-        <a href="/hda-histd">Decimal Odds</a>
+        <a href="/hda-histf">Fractional Odds</a>
+        <a href="/hda-histd" class="active">Decimal Odds</a>
       </div>
     </header>
 
@@ -660,9 +659,9 @@
     <section class="data-layout">
       <div class="data-main-card">
         <div class="data-eyebrow">Match Result</div>
-        <h2 class="data-title">Historical predictions – fractional odds</h2>
+        <h2 class="data-title">Historical predictions – decimal odds</h2>
         <p class="data-subtitle">
-          Explore every historical match result prediction, including prices, value rating and outcome.
+          Explore every historical match result prediction using decimal prices, including value rating and outcome.
         </p>
 
         <!-- SUMMARY PANEL -->
@@ -686,7 +685,7 @@
 
         <p class="note-text">
           NOTE: The returns are calculated on decimal odds and may not perfectly align to the fractional
-          odds represented below. You can view the actual decimal odds using the options above.
+          odds represented on the other view.
         </p>
 
         <!-- Date range filters -->
@@ -779,16 +778,16 @@
   <script>
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=0&single=true&output=csv";
 
-    // Column index mapping into the CSV
-    const IDX = { H:7, L:11, M:12, N:13, O:14, P:15, S:18, V:21, X:23, AA:26, AC:28, AD:29 };
+    // Column indices into the CSV for this DECIMAL-odds page
+    const IDX = { H:7, L:11, M:12, N:13, O:14, P:15, S:17, V:20, X:23, AA:26, AC:28, AD:29 };
 
-    // In the DataTable, the visible columns are in this order:
+    // DataTables visible column positions:
     // 0: Date, 1: League, 2: Home, 3: V, 4: Away, 5: Prediction,
     // 6: Bookmaker, 7: Model, 8: Value, 9: Result, 10: P/L, 11: Correct?
-    const DT_COL_PREDICTION = 5; // maps to CSV column P
-    const DT_COL_VALUE = 8;      // maps to CSV column X (❌/💰 sequences)
+    const DT_COL_PREDICTION = 5; // CSV P
+    const DT_COL_VALUE = 8;      // CSV X
 
-    // Filter state (multi-select). Empty = no restriction for that group.
+    // Filter state (multi-select). Empty set => no restriction.
     const selectedPredictions = new Set();
     const selectedValues = new Set();
 
@@ -854,10 +853,10 @@
               r[IDX.M] || "",                         // 2 Home
               r[IDX.N] || "",                         // 3 V
               r[IDX.O] || "",                         // 4 Away
-              r[IDX.P] || "",                         // 5 Prediction (HOME WIN / AWAY WIN)
-              r[IDX.S] || "",                         // 6 Bookmaker Price
-              r[IDX.V] || "",                         // 7 Model Price
-              r[IDX.X] || "",                         // 8 Value (❌ / 💰)
+              r[IDX.P] || "",                         // 5 Prediction
+              r[IDX.S] || "",                         // 6 Bookmaker Price (DECIMAL page uses S=17)
+              r[IDX.V] || "",                         // 7 Model Price (DECIMAL page uses V=20)
+              r[IDX.X] || "",                         // 8 Value (❌ / 💰 sequence)
               r[IDX.AA] || "",                        // 9 Result
               { display: plDisp, sort: plSort },      // 10 P/L
               correct                                 // 11 Correct?
@@ -887,11 +886,9 @@
             ]
           });
 
-          // --- Custom filtering: OR within group, AND across groups + date range ---
-          $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-            if (settings.nTable !== document.getElementById('predictionsTable')) {
-              return true; // only apply to this table
-            }
+          // Custom filter: date range + OR within group, AND across groups
+          $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+            if (settings.nTable !== document.getElementById('predictionsTable')) return true;
 
             const api = new $.fn.dataTable.Api(settings);
             const rowData = api.row(dataIndex).data() || [];
@@ -907,9 +904,9 @@
               if (maxDate && rowDate > maxDate) datePass = false;
             }
 
-            // Group 1: Prediction (OR). Empty selection => pass.
-            const predVal = (data[DT_COL_PREDICTION] || "").toUpperCase().trim(); // "HOME WIN" / "AWAY WIN" / ""
-            const valueVal = (data[DT_COL_VALUE] || "").trim();                   // "❌", "💰💰", etc.
+            // Prediction + Value filters
+            const predVal = (data[DT_COL_PREDICTION] || "").toUpperCase().trim(); // HOME WIN / AWAY WIN
+            const valueVal = (data[DT_COL_VALUE] || "").trim();                   // ❌ / 💰💰 etc.
 
             const predPass = (selectedPredictions.size === 0) || selectedPredictions.has(predVal);
             const valuePass = (selectedValues.size === 0) || selectedValues.has(valueVal);
@@ -917,38 +914,31 @@
             return predPass && valuePass && datePass;
           });
 
-          // Wire up prediction filter buttons
-          function hookPredictionFilters(){
-            $('#prediction-filters button').on('click', function(){
-              const v = ($(this).data('pred') || "").toString().toUpperCase().trim();
-              if (selectedPredictions.has(v)) {
-                selectedPredictions.delete(v);
-                $(this).removeClass('active');
-              } else {
-                selectedPredictions.add(v);
-                $(this).addClass('active');
-              }
-              table.draw();
-            });
-          }
+          // Wire prediction filter buttons
+          $('#prediction-filters button').on('click', function(){
+            const v = String($(this).data('pred') || "").toUpperCase().trim();
+            if (selectedPredictions.has(v)) {
+              selectedPredictions.delete(v);
+              $(this).removeClass('active');
+            } else {
+              selectedPredictions.add(v);
+              $(this).addClass('active');
+            }
+            table.draw();
+          });
 
-          // Wire up value filter buttons
-          function hookValueFilters(){
-            $('#value-filters button').on('click', function(){
-              const v = ($(this).data('val') || "").toString().trim();
-              if (selectedValues.has(v)) {
-                selectedValues.delete(v);
-                $(this).removeClass('active');
-              } else {
-                selectedValues.add(v);
-                $(this).addClass('active');
-              }
-              table.draw();
-            });
-          }
-
-          hookPredictionFilters();
-          hookValueFilters();
+          // Wire value filter buttons
+          $('#value-filters button').on('click', function(){
+            const v = String($(this).data('val') || "").trim();
+            if (selectedValues.has(v)) {
+              selectedValues.delete(v);
+              $(this).removeClass('active');
+            } else {
+              selectedValues.add(v);
+              $(this).addClass('active');
+            }
+            table.draw();
+          });
 
           // Date range events
           $('#start-date').on('change', function() {
@@ -1022,7 +1012,6 @@
             updateSummary();
           });
 
-          // Hide loading overlay once data/table is ready
           hideLoadingOverlay();
         },
         error: function(err){
