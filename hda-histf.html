@@ -270,15 +270,112 @@
       margin: 4px 0 12px;
     }
 
-    /* Use existing .filter-title and .filters from style.css,
-       just tighten spacing a bit inside this card */
-    .data-main-card .filter-title {
+    /* --------------------------------------------------
+       Summary panel
+    -------------------------------------------------- */
+    .summary-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0 8px;
+    }
+
+    .summary-card {
+      flex: 1 1 90px;
+      min-width: 90px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      background: rgba(15, 15, 17, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #a5a5a7;
+    }
+
+    .summary-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .summary-subtext {
+      font-size: 10px;
+      color: #bdbdbd;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .summary-card--pl .summary-value {
+      color: #40c456; /* green for profit, may be overridden dynamically if negative */
+    }
+
+    /* --------------------------------------------------
+       Date range filters
+    -------------------------------------------------- */
+    .filter-title {
       margin-top: 8px;
       margin-bottom: 6px;
       font-size: 14px;
       text-align: left;
     }
 
+    .date-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+
+    .date-filters label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .date-filters input[type="date"] {
+      background: #18181a;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      padding: 4px 10px;
+      color: #d3d3d3;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .date-filters input[type="date"]:focus {
+      border-color: #f09300;
+    }
+
+    .date-filters button {
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(24, 24, 26, 0.9);
+      color: #dcdcdc;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+    }
+
+    .date-filters button:hover {
+      background: rgba(240, 147, 0, 0.18);
+      border-color: rgba(240, 147, 0, 0.8);
+      transform: translateY(-1px);
+    }
+
+    /* Use existing .filters from style.css, just tighten spacing a bit */
     .data-main-card .filters {
       justify-content: flex-start;
       margin-bottom: 6px;
@@ -568,10 +665,43 @@
           Explore every historical match result prediction, including prices, value rating and outcome.
         </p>
 
+        <!-- SUMMARY PANEL -->
+        <div class="summary-strip" aria-label="Summary of filtered bets">
+          <div class="summary-card">
+            <div class="summary-label">Bets</div>
+            <div class="summary-value" id="summary-bets">0</div>
+            <div class="summary-subtext">Rows shown</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Correct</div>
+            <div class="summary-value" id="summary-correct">0</div>
+            <div class="summary-subtext">Winning bets</div>
+          </div>
+          <div class="summary-card summary-card--pl">
+            <div class="summary-label">Profit / Loss</div>
+            <div class="summary-value" id="summary-pl">£0.00</div>
+            <div class="summary-subtext">On filtered bets</div>
+          </div>
+        </div>
+
         <p class="note-text">
           NOTE: The returns are calculated on decimal odds and may not perfectly align to the fractional
           odds represented below. You can view the actual decimal odds using the options above.
         </p>
+
+        <!-- Date range filters -->
+        <div class="filter-title">Date range</div>
+        <div class="date-filters">
+          <label for="start-date">
+            From
+            <input type="date" id="start-date" />
+          </label>
+          <label for="end-date">
+            To
+            <input type="date" id="end-date" />
+          </label>
+          <button type="button" id="clear-date-filters">Clear dates</button>
+        </div>
 
         <!-- Filter controls -->
         <div class="filter-title">Filter options</div>
@@ -662,6 +792,10 @@
     const selectedPredictions = new Set();
     const selectedValues = new Set();
 
+    // Date range filter state
+    let minDate = null;
+    let maxDate = null;
+
     function ddmmyyyyToISO(str){
       if (!str) return "";
       const parts = str.split("/");
@@ -686,6 +820,11 @@
       setTimeout(() => {
         overlay.style.display = "none";
       }, 450);
+    }
+
+    function formatPL(value){
+      const signChar = value > 0 ? "+" : "";
+      return signChar + "£" + value.toFixed(2);
     }
 
     $(document).ready(function(){
@@ -748,26 +887,37 @@
             ]
           });
 
-          // --- Custom filtering: OR within group, AND across groups ---
-          $.fn.dataTable.ext.search.push(function(settings, data /*, dataIndex */) {
+          // --- Custom filtering: OR within group, AND across groups + date range ---
+          $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
             if (settings.nTable !== document.getElementById('predictionsTable')) {
               return true; // only apply to this table
             }
 
+            const api = new $.fn.dataTable.Api(settings);
+            const rowData = api.row(dataIndex).data() || [];
+
+            // Date filter
+            let datePass = true;
+            const dateObj = rowData[0] || {};
+            const dateSortStr = dateObj.sort || null;
+
+            if (dateSortStr && (minDate || maxDate)) {
+              const rowDate = new Date(dateSortStr);
+              if (minDate && rowDate < minDate) datePass = false;
+              if (maxDate && rowDate > maxDate) datePass = false;
+            }
+
+            // Group 1: Prediction (OR). Empty selection => pass.
             const predVal = (data[DT_COL_PREDICTION] || "").toUpperCase().trim(); // "HOME WIN" / "AWAY WIN" / ""
             const valueVal = (data[DT_COL_VALUE] || "").trim();                   // "❌", "💰💰", etc.
 
-            // Group 1: Prediction (OR). Empty selection => pass.
             const predPass = (selectedPredictions.size === 0) || selectedPredictions.has(predVal);
-
-            // Group 2: Value markers (OR). Empty selection => pass.
             const valuePass = (selectedValues.size === 0) || selectedValues.has(valueVal);
 
-            // AND across groups
-            return predPass && valuePass;
+            return predPass && valuePass && datePass;
           });
 
-          // Wire up filter buttons (toggle .active and update sets)
+          // Wire up prediction filter buttons
           function hookPredictionFilters(){
             $('#prediction-filters button').on('click', function(){
               const v = ($(this).data('pred') || "").toString().toUpperCase().trim();
@@ -782,6 +932,7 @@
             });
           }
 
+          // Wire up value filter buttons
           function hookValueFilters(){
             $('#value-filters button').on('click', function(){
               const v = ($(this).data('val') || "").toString().trim();
@@ -798,6 +949,78 @@
 
           hookPredictionFilters();
           hookValueFilters();
+
+          // Date range events
+          $('#start-date').on('change', function() {
+            minDate = this.value ? new Date(this.value) : null;
+            table.draw();
+          });
+
+          $('#end-date').on('change', function() {
+            maxDate = this.value ? new Date(this.value) : null;
+            table.draw();
+          });
+
+          $('#clear-date-filters').on('click', function() {
+            $('#start-date').val('');
+            $('#end-date').val('');
+            minDate = null;
+            maxDate = null;
+            table.draw();
+          });
+
+          // --- Summary update ---
+          function updateSummary() {
+            const api = table;
+            const rows = api.rows({ filter: 'applied' }).data();
+            const totalBets = rows.length;
+
+            let correctBets = 0;
+            let totalPL = 0;
+
+            for (let i = 0; i < rows.length; i++) {
+              const row = rows[i];
+
+              // Correct? column (HTML with FA icon)
+              const correctHtml = row[11] || "";
+              if (typeof correctHtml === "string" && correctHtml.indexOf("fa-circle-check") !== -1) {
+                correctBets++;
+              }
+
+              // P/L column
+              const plCol = row[10];
+              let plVal = 0;
+              if (plCol && typeof plCol.sort !== "undefined") {
+                plVal = plCol.sort;
+              } else if (plCol != null) {
+                plVal = parseCurrencyToNumber(plCol);
+              }
+              totalPL += plVal;
+            }
+
+            $('#summary-bets').text(totalBets);
+            $('#summary-correct').text(correctBets);
+
+            // Update PL display + colour
+            const plDisplay = formatPL(totalPL);
+            const plEl = $('#summary-pl');
+            plEl.text(plDisplay);
+
+            const plCard = $('.summary-card--pl');
+            if (totalPL < 0) {
+              plCard.css('color', '#ff6b6b');
+              plEl.css('color', '#ff6b6b');
+            } else {
+              plCard.css('color', '');
+              plEl.css('color', '#40c456');
+            }
+          }
+
+          // Initial summary + hook to table draw
+          updateSummary();
+          table.on('draw', function() {
+            updateSummary();
+          });
 
           // Hide loading overlay once data/table is ready
           hideLoadingOverlay();
