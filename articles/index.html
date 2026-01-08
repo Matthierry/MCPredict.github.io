@@ -1,70 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Articles | MC Predict</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Reuse your main CSS -->
-  <link rel="stylesheet" href="../styles.css">
+  <!-- Your global CSS (adjust if your CSS file name/path differs) -->
+  <link rel="stylesheet" href="../styles.css" />
 
   <style>
-    .articles-wrapper {
+    /* Page layout */
+    body {
+      background: #363638;
+      color: #bdbdbd;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .page {
       max-width: 1200px;
-      margin: 40px auto;
-      padding: 0 20px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
     }
 
-    .articles-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 26px;
     }
 
-    .article-tile {
-      background: #222224;
-      border-radius: 12px;
-      padding: 20px;
+    .title-wrap h1 {
+      margin: 0 0 6px;
+      font-size: 2rem;
+      color: #f2980c;
+      letter-spacing: 0.2px;
+    }
+
+    .title-wrap p {
+      margin: 0;
+      opacity: 0.85;
+      line-height: 1.5;
+    }
+
+    .back-home {
       text-decoration: none;
       color: #bdbdbd;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: 1px solid rgba(189,189,189,0.25);
+      padding: 10px 14px;
+      border-radius: 12px;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+    .back-home:hover {
+      transform: translateY(-2px);
+      border-color: rgba(242,152,12,0.55);
+      background: rgba(34,34,36,0.7);
     }
 
-    .article-tile:hover {
+    /* Tiles grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .tile {
+      text-decoration: none;
+      color: #bdbdbd;
+      background: #222224;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 18px 18px 16px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      display: block;
+      min-height: 140px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tile:hover {
       transform: translateY(-4px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      border-color: rgba(242,152,12,0.45);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.45);
     }
 
-    .article-title {
+    .tile .tag {
+      display: inline-block;
+      font-size: 0.78rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(242,152,12,0.35);
       color: #f2980c;
-      font-size: 1.2rem;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
 
-    .article-meta {
-      font-size: 0.85rem;
-      opacity: 0.7;
-      margin-bottom: 12px;
+    .tile h2 {
+      margin: 0 0 10px;
+      font-size: 1.25rem;
+      line-height: 1.25;
+      color: #f2980c;
+    }
+
+    .meta {
+      font-size: 0.9rem;
+      opacity: 0.78;
+      margin-bottom: 10px;
+    }
+
+    .excerpt {
+      margin: 0;
+      line-height: 1.55;
+      opacity: 0.9;
+    }
+
+    /* Optional subtle accent */
+    .tile::after {
+      content: "";
+      position: absolute;
+      inset: -40px -40px auto auto;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(242,152,12,0.18), rgba(242,152,12,0));
+      transform: rotate(12deg);
+      pointer-events: none;
+    }
+
+    /* Empty state */
+    .note {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(34,34,36,0.65);
+      border: 1px dashed rgba(189,189,189,0.25);
+      color: rgba(189,189,189,0.9);
+      line-height: 1.55;
     }
   </style>
 </head>
 
 <body>
-  <div class="articles-wrapper">
-    <h1>Articles</h1>
-    <p>Analysis, model updates, results breakdowns and betting insights.</p>
+  <div class="page">
 
-    <div class="articles-grid">
+    <div class="topbar">
+      <div class="title-wrap">
+        <h1>Articles</h1>
+        <p>Analysis, model updates, results breakdowns and betting insights.</p>
+      </div>
 
-      <a class="article-tile" href="./year-to-date-2025/">
-        <div class="article-title">Year to Date 2025</div>
-        <div class="article-meta">January 2025 · Model Performance</div>
-        <p>A transparent breakdown of results, ROI, and lessons learned so far this year.</p>
+      <a class="back-home" href="/">Back to Home</a>
+    </div>
+
+    <div class="grid">
+
+      <!-- TILE 1 -->
+      <a class="tile" href="./year-to-date-2025/">
+        <div class="tag">Results</div>
+        <h2>Year to Date 2025</h2>
+        <div class="meta">Published: Jan 2025 · 6 min read</div>
+        <p class="excerpt">A transparent breakdown of performance, ROI and what the numbers are really saying so far.</p>
       </a>
 
-      <!-- Future articles go here -->
+      <!-- Add new tiles by copying the block above and changing the href/title/meta/excerpt -->
 
     </div>
+
+    <div class="note">
+      <strong>Tip:</strong> When you add a new article folder (e.g. <code>/articles/my-new-post/index.html</code>),
+      just copy/paste a tile and set <code>href="./my-new-post/"</code>.
+    </div>
+
   </div>
 </body>
 </html>
