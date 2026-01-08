@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Articles | MC Predict</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Reuse your main CSS -->
+  <link rel="stylesheet" href="../styles.css">
+
+  <style>
+    .articles-wrapper {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .articles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .article-tile {
+      background: #222224;
+      border-radius: 12px;
+      padding: 20px;
+      text-decoration: none;
+      color: #bdbdbd;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .article-tile:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+
+    .article-title {
+      color: #f2980c;
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+    }
+
+    .article-meta {
+      font-size: 0.85rem;
+      opacity: 0.7;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="articles-wrapper">
+    <h1>Articles</h1>
+    <p>Analysis, model updates, results breakdowns and betting insights.</p>
+
+    <div class="articles-grid">
+
+      <a class="article-tile" href="./year-to-date-2025/">
+        <div class="article-title">Year to Date 2025</div>
+        <div class="article-meta">January 2025 · Model Performance</div>
+        <p>A transparent breakdown of results, ROI, and lessons learned so far this year.</p>
+      </a>
+
+      <!-- Future articles go here -->
+
+    </div>
+  </div>
+</body>
+</html>
