@@ -551,9 +551,34 @@
     .bottom-nav a[data-key="home"] .label       { content: "Home"; }
     .bottom-nav a[data-key="hda"] .label        { content: "Winner"; }
     .bottom-nav a[data-key="uo"] .label         { content: "U/O 2.5"; }
-    .bottom-nav a[data-key="lucky"] .label      { content: "Lucky"; }
-    .bottom-nav a[data-key="historical"] .label { content: "History"; }
+        .bottom-nav a[data-key="historical"] .label { content: "History"; }
     .bottom-nav a[data-key="faqs"] .label       { content: "FAQs"; }
+
+
+
+    .freshness-strip,
+    .top-picks-hub {
+      background: rgba(24, 24, 26, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .freshness-strip { display:grid; gap:8px; margin-top:8px; }
+    .freshness-title { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#f7b057; margin:0; }
+    .freshness-note { margin:0; font-size:13px; color:#d8d8d8; }
+    .cadence-row { display:flex; flex-wrap:wrap; gap:8px; }
+    .cadence-chip { font-size:11px; border:1px solid rgba(240,147,0,.45); padding:5px 9px; border-radius:999px; color:#e8c08c; }
+    .top-picks-head { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+    .top-picks-title { margin:0; color:#fff; font-size:20px; }
+    .top-picks-subtitle { margin:0; font-size:13px; color:#bdbdbd; }
+    .top-picks-grid { display:grid; grid-template-columns:1fr; gap:10px; }
+    .pick-card { background:rgba(39,39,41,.95); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px; display:grid; gap:8px; }
+    .pick-meta { display:flex; justify-content:space-between; gap:8px; font-size:11px; color:#cfcfcf; text-transform:uppercase; letter-spacing:.06em; }
+    .pick-fixture { color:#fff; font-size:15px; font-weight:700; }
+    .pick-line { font-size:13px; color:#d7d7d7; }
+    .pick-prices { display:flex; gap:8px; flex-wrap:wrap; font-size:12px; }
+    .pick-badge { display:inline-flex; align-items:center; padding:5px 8px; border-radius:999px; font-size:11px; color:#111; background:linear-gradient(135deg,#f09300,#ffae33); font-weight:700; width:fit-content; }
+    .pick-cta { width:fit-content; font-size:12px; color:#f7b057; }
 
     /* --------------------------------------------------
        Responsive
@@ -650,7 +675,6 @@
         <a href="/index" class="active">Home</a>
         <a href="/hda-value">Match Result</a>
         <a href="/uo-value">Under/Over 2.5</a>
-        <a href="/lucky-dip">Lucky Dip</a>
         <a href="/historical">Historical Data</a>
         <a href="/faqs">FAQs</a>
       </nav>
@@ -775,6 +799,27 @@
       </aside>
     </section>
 
+
+
+    <section class="freshness-strip" aria-label="Refresh and update cadence">
+      <p class="freshness-title">Data refresh cadence</p>
+      <p class="freshness-note">Last refreshed: <strong id="home-refresh-time">Loading…</strong> (page data refresh time).</p>
+      <div class="cadence-row">
+        <span class="cadence-chip">Friday: shortlist review</span>
+        <span class="cadence-chip">Weekend: live picks focus</span>
+        <span class="cadence-chip">Monday: results review</span>
+      </div>
+    </section>
+
+    <section class="top-picks-hub" aria-live="polite">
+      <div class="top-picks-head">
+        <h3 class="top-picks-title">Top Picks Today / This Weekend</h3>
+        <p class="top-picks-subtitle">Best-value cards from Match Result and Under/Over 2.5 feeds.</p>
+      </div>
+      <div id="top-picks-status" class="top-picks-subtitle">Loading actionable picks…</div>
+      <div id="top-picks-grid" class="top-picks-grid"></div>
+    </section>
+
     <!-- Quick start / what’s under the hood -->
     <section class="quick-start" aria-label="How to use MC Predict">
       <div class="quick-start-card">
@@ -839,10 +884,6 @@
       <span class="icon">⚽</span>
       <span class="label">U/O 2.5</span>
     </a>
-    <a href="/lucky-dip" data-key="lucky">
-      <span class="icon">🎲</span>
-      <span class="label">Lucky</span>
-    </a>
     <a href="/historical" data-key="historical">
       <span class="icon">📊</span>
       <span class="label">History</span>
@@ -852,5 +893,76 @@
       <span class="label">FAQs</span>
     </a>
   </nav>
+
+  <script>
+    function formatRefreshTime(d){return d.toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"UTC"})+" UTC";}
+    function parseCSVLine(line){const out=[];let cur="",q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(q&&ch==='"'&&line[i+1]==='"'){cur+='"';i++;continue;}if(ch==='"'){q=!q;continue;}if(ch===','&&!q){out.push(cur.trim());cur="";continue;}cur+=ch;}out.push(cur.trim());return out;}
+    function parseCSV(text){return text.trim().split(/\r?\n/).map(parseCSVLine);}
+    function normalizeHeader(v){return (v||"").toLowerCase().replace(/[^a-z0-9]/g,"");}
+    function mapHeaders(headers){const m={};headers.forEach((v,i)=>{const key=normalizeHeader(v);if(key&&!m[key]) m[key]=i;});return m;}
+    function get(row,map,names){for(const n of names){const key=normalizeHeader(n);if(map[key]!==undefined&&row[map[key]]) return row[map[key]].trim();}return "";}
+    function score(v){return (v.match(/💰/g)||[]).length-(v.match(/❌/g)||[]).length;}
+
+    async function loadFeed(feed){
+      const res = await fetch(feed.url,{cache:"no-store"});
+      if(!res.ok) throw new Error(`Feed failed: ${feed.market}`);
+      const rows = parseCSV(await res.text()).filter(r => r.some(c => (c||"").trim()));
+      const map = mapHeaders(rows[1] || []);
+      return rows.slice(2).map((row) => {
+        const value = get(row,map,["value","value rating","valuerating"]);
+        const fixture = get(row,map,["fixture","match","teams","homevaway"]);
+        const pick = get(row,map,["prediction","pick","result","selection"]);
+        return {
+          market: feed.market,
+          page: feed.page,
+          fixture: fixture || "Fixture TBC",
+          pick: pick || "Pick unavailable",
+          day: get(row,map,["day","date","matchday"]),
+          bo: get(row,map,["bookies odds","bookmaker price","bo","bookiesodds"]),
+          mo: get(row,map,["model odds","model price","mo","modelodds"]),
+          value: value || "—",
+          score: score(value || "")
+        };
+      }).filter(p => p.fixture !== "Fixture TBC" || p.pick !== "Pick unavailable");
+    }
+
+    async function loadTopPicks(){
+      const refreshEl = document.getElementById("home-refresh-time");
+      const status = document.getElementById("top-picks-status");
+      const grid = document.getElementById("top-picks-grid");
+      const feeds=[
+        {market:"Match Result",page:"/hda-value",url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv"},
+        {market:"Under/Over 2.5",page:"/uo-value",url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=702828084&single=true&output=csv"}
+      ];
+
+      const results = await Promise.allSettled(feeds.map(loadFeed));
+      const successfulFeeds = results.filter(r => r.status === "fulfilled");
+      const successful = successfulFeeds.map(r => r.value).flat();
+      const failures = results.filter(r => r.status === "rejected").length;
+
+      if (!successfulFeeds.length) {
+        status.textContent = "We couldn't load top picks right now. Please refresh in a moment.";
+        grid.innerHTML = "";
+        refreshEl.textContent = "Unavailable (last fetch failed)";
+        return;
+      }
+
+      refreshEl.textContent = `${formatRefreshTime(new Date())} (page data refresh time)`;
+      const selected = successful.sort((a,b)=>b.score-a.score).slice(0,5);
+      if (!selected.length) {
+        status.textContent = "Data loaded, but there are no qualifying picks available right now.";
+        grid.innerHTML = "";
+        return;
+      }
+      status.textContent = failures ? "Some feeds are temporarily unavailable. Showing available picks." : "";
+      grid.innerHTML = selected.map(p=>`<article class="pick-card"><div class="pick-meta"><span>${p.market}</span><span>${p.day||"Day TBC"}</span></div><div class="pick-fixture">${p.fixture}</div><div class="pick-line">Pick: <strong>${p.pick}</strong></div><div class="pick-prices"><span>Bookmaker: <strong>${p.bo||"—"}</strong></span><span>Model: <strong>${p.mo||"—"}</strong></span></div><div class="pick-badge">${p.value}</div><a class="pick-cta" href="${p.page}">Open full page →</a></article>`).join("");
+    }
+
+    loadTopPicks().catch(() => {
+      document.getElementById("top-picks-status").textContent = "We couldn't load top picks right now. Please refresh in a moment.";
+      document.getElementById("home-refresh-time").textContent = "Unavailable (last fetch failed)";
+    });
+  </script>
+
 </body>
 </html>
