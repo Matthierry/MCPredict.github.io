@@ -328,6 +328,23 @@
       color: #8c8c8e;
     }
 
+
+    .proof-strip {
+      margin: 6px 0 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(24, 24, 26, 0.96);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: grid;
+      gap: 8px;
+    }
+    .proof-title { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #f7b057; }
+    .proof-items { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 12px; color: #d9d9d9; }
+    .proof-items a { color: #f7b057; }
+    .freshness-inline { margin-top: 6px; font-size: 12px; color: #cfcfcf; }
+    .cadence-row { display:flex; flex-wrap:wrap; gap:8px; }
+    .cadence-chip { font-size:11px; border:1px solid rgba(240,147,0,.45); padding:4px 8px; border-radius:999px; color:#e8c08c; }
+
     /* Footer */
     .home-footer {
       margin-top: 18px;
@@ -572,7 +589,7 @@
     <p class="loading-subtitle">
       We&#39;re lining up today&#39;s best value fixtures based on the latest model and market prices.
     </p>
-    <div class="loading-ticker">Loading match data...</div>
+    <div class="loading-ticker">Fetching latest sheet data...</div>
   </div>
 
   <div class="home-page">
@@ -600,7 +617,6 @@
         <a href="/index">Home</a>
         <a href="/hda-value" class="active">Match Result</a>
         <a href="/uo-value">Under/Over 2.5</a>
-        <a href="/lucky-dip">Lucky Dip</a>
         <a href="/historical">Historical Data</a>
         <a href="/faqs">FAQs</a>
       </nav>
@@ -611,6 +627,18 @@
         <a href="/hda-highchance">Highest Chance</a>
       </div>
     </header>
+
+
+    <section class="proof-strip" aria-label="Trust and methodology notes">
+      <p class="proof-title">Before you use these picks</p>
+      <ul class="proof-items">
+        <li>Compare today's picks with <a href="/historical">Historical Data</a> and the <a href="/faqs">FAQ methodology</a>.</li>
+        <li>Data source: live model output and bookmaker prices from linked Google Sheets.</li>
+        <li>Value compares model chance vs market chance — it is not a guarantee on a single fixture.</li>
+      </ul>
+      <p class="freshness-inline">Last refreshed: <strong id="refresh-time">Loading…</strong> (page data refresh time).</p>
+      <div class="cadence-row"><span class="cadence-chip">Friday shortlist</span><span class="cadence-chip">Weekend picks</span><span class="cadence-chip">Monday review</span></div>
+    </section>
 
     <!-- Main data layout -->
     <section class="data-layout">
@@ -685,10 +713,6 @@
       <span class="icon">⚽</span>
       <span class="label">U/O 2.5</span>
     </a>
-    <a href="/lucky-dip" data-key="lucky">
-      <span class="icon">🎲</span>
-      <span class="label">Lucky</span>
-    </a>
     <a href="/historical" data-key="historical">
       <span class="icon">📊</span>
       <span class="label">History</span>
@@ -711,6 +735,12 @@
       // Simple CSV split; assumes your sheet cells don't contain unescaped commas/newlines.
       return text.trim().split("\n").map(r => r.split(","));
     }
+
+    function formatRefreshTime(d){ return d.toLocaleString("en-GB", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit", hour12:false, timeZone:"UTC" }) + " UTC"; }
+
+    function setRefreshNow(){ const el=document.getElementById("refresh-time"); if(el){ el.textContent=formatRefreshTime(new Date()); } }
+
+    function showLoadError(){ const container=document.getElementById("sheet-data"); if(container){ container.innerHTML="<p style='font-size:13px;color:#f7b057;margin:8px 0;'>We couldn\'t load the live data just now. Please refresh in a minute.</p>"; } }
 
     function hideLoadingOverlay() {
       const overlay = document.getElementById("loadingOverlay");
@@ -739,12 +769,10 @@
         buildDayButtons();
         attachResultButtonHandlers();
         renderTable();
+        setRefreshNow();
       } catch (err) {
         console.error("Error loading CSV:", err);
-        const container = document.getElementById("sheet-data");
-        if (container) {
-          container.innerHTML = "<p style='font-size:13px;color:#f7b057;margin:8px 0;'>We couldn&#39;t load today&#39;s data. Please refresh the page in a moment.</p>";
-        }
+        showLoadError();
       } finally {
         hideLoadingOverlay();
       }
