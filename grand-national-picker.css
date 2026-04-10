@@ -15,7 +15,7 @@ html, body {
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 14px 14px 36px;
+  padding: 14px 14px 70px;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -126,8 +126,71 @@ html, body {
 .gn-card-grid span { color: #a8a8aa; }
 .gn-card-grid strong { color: #ececee; font-weight: 600; }
 
+.gn-page .bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  height: 58px;
+  padding: 6px 10px 8px;
+  background: linear-gradient(180deg, rgba(10, 10, 12, 0.1), #101012);
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.gn-page .bottom-nav a {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  border-radius: 999px;
+  padding: 4px 4px;
+  border: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 11px;
+  text-decoration: none;
+  color: #e0e0e0;
+  opacity: 0.8;
+  transition: background 0.2s ease, color 0.2s ease,
+              transform 0.12s ease, border-color 0.2s ease,
+              opacity 0.2s ease;
+}
+
+.gn-page .bottom-nav a .icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.gn-page .bottom-nav a .label {
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.gn-page .bottom-nav a:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.gn-page .bottom-nav a.active {
+  background: radial-gradient(circle at top, #f09300, #a85e00);
+  color: #101010;
+  border-color: rgba(255, 255, 255, 0.15);
+  opacity: 1;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.75);
+}
+
 @media (min-width: 900px) {
   .gn-page .primary-nav { display: flex; }
+  .gn-page .bottom-nav { display: none; }
+  .gn-shell { padding-bottom: 36px; }
   .gn-layout {
     grid-template-columns: minmax(280px, 330px) 1fr;
     align-items: start;
@@ -140,4 +203,5 @@ html, body {
 @media (max-width: 899px) {
   .gn-table-wrap { display: none !important; }
   .gn-cards { display: grid !important; }
+  .gn-page .bottom-nav { display: flex; }
 }
