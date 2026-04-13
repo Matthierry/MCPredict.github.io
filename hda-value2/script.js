@@ -53,8 +53,17 @@ function normalizeDay(value) {
   return String(value || "").trim().slice(0, 3).toUpperCase();
 }
 
-function canonicalKey(key) {
-  return String(key || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+function normaliseKey(key) {
+  return String(key || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/_/g, "");
+}
+
+function getField(row, key, headerMap) {
+  const normalised = normaliseKey(key);
+  const actualKey = headerMap[normalised];
+  return actualKey ? row[actualKey] : undefined;
 }
 
 function dayFromDate(dateStr, fallbackDay) {
@@ -217,13 +226,11 @@ function copyPicks() {
     .catch(() => setStatus("Unable to copy on this browser."));
 }
 
-function normaliseRow(row, indexByKey) {
+function normaliseRow(row, headerMap) {
   const get = (...keys) => {
     for (const key of keys) {
-      const idx = indexByKey[canonicalKey(key)];
-      if (idx !== undefined) {
-        return row[idx];
-      }
+      const value = getField(row, key, headerMap);
+      if (value !== undefined) return value;
     }
     return "";
   };
@@ -261,26 +268,43 @@ function loadCsvData() {
 
   Papa.parse(CSV_URL, {
     download: true,
-    skipEmptyLines: true,
+    header: true,
+    skipEmptyLines: "greedy",
     complete: (results) => {
       try {
         const rows = Array.isArray(results.data) ? results.data : [];
-        if (!rows.length) throw new Error("CSV contained no rows.");
+        if (!rows.length) {
+          console.error("[hda-value2] CSV parse produced no data rows.");
+          allPicks = [];
+          loadState = "ready";
+          render();
+          return;
+        }
 
-        const headerRow = rows[0].map((header) => String(header || "").trim());
-        const indexByKey = {};
-        headerRow.forEach((header, index) => {
-          indexByKey[canonicalKey(header)] = index;
+        const headerMap = {};
+        Object.keys(rows[0] || {}).forEach((originalKey) => {
+          const normalised = normaliseKey(originalKey);
+          if (!normalised) return;
+          headerMap[normalised] = originalKey;
         });
 
+        console.log("[hda-value2] Header map:", headerMap);
+
         allPicks = rows
-          .slice(1)
-          .map((row) => normaliseRow(row, indexByKey))
+          .filter((row) => Object.values(row || {}).some((value) => String(value || "").trim() !== ""))
+          .map((row) => normaliseRow(row, headerMap))
           .filter(Boolean)
           .sort((a, b) => b.value - a.value);
 
-        console.log("[hda-value2] CSV headers:", headerRow);
-        console.log("[hda-value2] Sample normalised rows:", allPicks.slice(0, 5));
+        const rowsWithPositiveValue = allPicks.filter((pick) => safeNumber(pick.value, 0) > 0).length;
+        if (!allPicks.length) {
+          console.error("[hda-value2] No valid rows were parsed from CSV.");
+        }
+        if (!rowsWithPositiveValue) {
+          console.error("[hda-value2] Parsed rows exist, but none have value > 0.");
+        }
+
+        console.log("[hda-value2] Parsed data sample:", allPicks.slice(0, 5));
 
         loadState = "ready";
         render();
