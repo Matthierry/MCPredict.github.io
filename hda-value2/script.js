@@ -1,16 +1,13 @@
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1994550040&single=true&output=csv";
-const REQUIRED_FIELDS = [
-  "home_team", "away_team", "result", "league", "date",
-  "my_probability", "bookies_price", "my_price", "value"
-];
 const DAY_OPTIONS = ["Sat", "Sun", "Fri", "Mon"];
 const RESULT_OPTIONS = ["HOME WIN", "AWAY WIN"];
 const SHORTLIST_KEY = "mcp_hda_value2_shortlist";
 
 let allPicks = [];
-let activeDays = new Set();
-let activeResults = new Set();
+let activeDays = new Set(DAY_OPTIONS.map((day) => normalizeDay(day)));
+let activeResults = new Set(RESULT_OPTIONS.map((result) => normalizeResult(result)));
 let shortlist = [];
+let loadState = "loading"; // loading | ready | error
 
 const dom = {
   featuredSection: document.getElementById("featuredSection"),
@@ -36,21 +33,43 @@ const dom = {
 };
 
 function parseNumber(value) {
-  const n = parseFloat(String(value || "").replace(/[^0-9.-]/g, ""));
-  return Number.isFinite(n) ? n : 0;
+  if (value === null || value === undefined) return NaN;
+  const raw = String(value).trim();
+  if (!raw) return NaN;
+  const normalized = raw.replace(/,/g, "").replace(/%/g, "").replace(/[^0-9.+-]/g, "");
+  const n = parseFloat(normalized);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+function safeNumber(value, fallback = 0) {
+  return Number.isFinite(value) ? value : fallback;
 }
 
 function normalizeResult(value) {
-  return String(value || "").trim().toUpperCase();
+  return String(value || "").trim().replace(/\s+/g, " ").toUpperCase();
 }
 
-function dayFromDate(dateStr) {
-  if (!dateStr) return "";
-  const parsed = new Date(dateStr);
-  if (Number.isNaN(parsed.getTime())) {
-    return String(dateStr).trim().slice(0, 3);
+function normalizeDay(value) {
+  return String(value || "").trim().slice(0, 3).toUpperCase();
+}
+
+function canonicalKey(key) {
+  return String(key || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function dayFromDate(dateStr, fallbackDay) {
+  if (fallbackDay) {
+    const normalizedFallback = normalizeDay(fallbackDay);
+    if (normalizedFallback) return normalizedFallback;
   }
-  return parsed.toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" });
+
+  const raw = String(dateStr || "").trim();
+  if (!raw) return "";
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return normalizeDay(raw);
+
+  return parsed.toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" }).toUpperCase();
 }
 
 function moneyTier(value) {
@@ -60,34 +79,50 @@ function moneyTier(value) {
 }
 
 function impliedProbability(bookiesPrice) {
-  if (bookiesPrice <= 0) return 0;
+  if (!Number.isFinite(bookiesPrice) || bookiesPrice <= 0) return NaN;
   return (1 / bookiesPrice) * 100;
 }
 
-function buildFilters() {
-  dom.dayFilters.innerHTML = DAY_OPTIONS.map((day) => `
-    <button class="pill" data-day="${day}" type="button">${day}</button>
-  `).join("");
+function setLoadingState() {
+  dom.featuredSection.innerHTML = '<article class="featured-card"><p class="subtitle">Loading picks...</p></article>';
+}
 
-  dom.resultFilters.innerHTML = RESULT_OPTIONS.map((result) => `
-    <button class="pill" data-result="${result}" type="button">${result === "HOME WIN" ? "Home Win" : "Away Win"}</button>
-  `).join("");
+function setErrorState() {
+  dom.featuredSection.innerHTML = '<article class="featured-card"><p class="subtitle">Unable to load picks right now.</p></article>';
+  fillList(dom.tier1List, []);
+  fillList(dom.tier2List, []);
+  fillList(dom.tier3List, []);
+  fillList(dom.overflowList, []);
+  dom.tier3Toggle.textContent = "▼ More Picks (0)";
+  dom.overflowToggle.textContent = "▼ Remaining Picks (0)";
+}
+
+function buildFilters() {
+  dom.dayFilters.innerHTML = DAY_OPTIONS.map((day) => {
+    const normalized = normalizeDay(day);
+    return `<button class="pill active" data-day="${normalized}" type="button">${day}</button>`;
+  }).join("");
+
+  dom.resultFilters.innerHTML = RESULT_OPTIONS.map((result) => {
+    const label = result === "HOME WIN" ? "Home Win" : "Away Win";
+    return `<button class="pill active" data-result="${normalizeResult(result)}" type="button">${label}</button>`;
+  }).join("");
 
   dom.dayFilters.addEventListener("click", (event) => {
     const btn = event.target.closest("button[data-day]");
     if (!btn) return;
-    const day = btn.dataset.day;
+    const day = normalizeDay(btn.dataset.day);
     activeDays.has(day) ? activeDays.delete(day) : activeDays.add(day);
-    btn.classList.toggle("active");
+    btn.classList.toggle("active", activeDays.has(day));
     render();
   });
 
   dom.resultFilters.addEventListener("click", (event) => {
     const btn = event.target.closest("button[data-result]");
     if (!btn) return;
-    const result = btn.dataset.result;
+    const result = normalizeResult(btn.dataset.result);
     activeResults.has(result) ? activeResults.delete(result) : activeResults.add(result);
-    btn.classList.toggle("active");
+    btn.classList.toggle("active", activeResults.has(result));
     render();
   });
 }
@@ -102,12 +137,14 @@ function addToShortlist(pick) {
     setStatus("Pick already added.");
     return;
   }
+
   shortlist.push({
     id,
     fixture: `${pick.home_team} vs ${pick.away_team}`,
     result: pick.result,
     bookies_price: pick.bookies_price
   });
+
   persistShortlist();
   updateShortlistUI();
   setStatus("Added to shortlist.");
@@ -135,23 +172,22 @@ function loadShortlist() {
 }
 
 function shortlistCombinedOdds() {
-  return shortlist.reduce((acc, item) => acc * parseNumber(item.bookies_price), 1);
+  return shortlist.reduce((acc, item) => {
+    const price = parseNumber(item.bookies_price);
+    return Number.isFinite(price) && price > 0 ? acc * price : acc;
+  }, 1);
 }
 
 function updateShortlistUI() {
   const count = shortlist.length;
-  if (count === 0) {
-    dom.shortlistBar.classList.add("hidden");
-  } else {
-    dom.shortlistBar.classList.remove("hidden");
-  }
+  dom.shortlistBar.classList.toggle("hidden", count === 0);
 
   const odds = shortlistCombinedOdds();
   dom.shortlistCount.textContent = `${count} pick${count === 1 ? "" : "s"}`;
   dom.shortlistOdds.textContent = `Est. Odds: ${odds.toFixed(2)}`;
   dom.modalOdds.textContent = `Combined Odds: ${odds.toFixed(2)}`;
 
-  if (count === 0) {
+  if (!count) {
     dom.shortlistItems.innerHTML = '<p class="subtitle">No picks selected yet.</p>';
     return;
   }
@@ -162,7 +198,7 @@ function updateShortlistUI() {
         <p>${item.fixture}</p>
         <p class="subtitle">${item.result}</p>
       </div>
-      <p>@${parseNumber(item.bookies_price).toFixed(2)}</p>
+      <p>@${safeNumber(parseNumber(item.bookies_price), 0).toFixed(2)}</p>
     </article>
   `).join("");
 }
@@ -173,45 +209,137 @@ function copyPicks() {
     return;
   }
 
-  const lines = shortlist.map((item) => `${item.fixture} - ${item.result === "HOME WIN" ? "Home Win" : "Away Win"} @${parseNumber(item.bookies_price).toFixed(2)}`);
+  const lines = shortlist.map((item) => `${item.fixture} - ${item.result === "HOME WIN" ? "Home Win" : "Away Win"} @${safeNumber(parseNumber(item.bookies_price), 0).toFixed(2)}`);
   lines.push(`Total Odds: ${shortlistCombinedOdds().toFixed(2)}`);
-  const payload = lines.join("\n");
 
-  navigator.clipboard.writeText(payload)
+  navigator.clipboard.writeText(lines.join("\n"))
     .then(() => setStatus("Picks copied."))
     .catch(() => setStatus("Unable to copy on this browser."));
 }
 
-function filteredSortedPicks() {
-  return allPicks
-    .filter((pick) => (activeDays.size === 0 || activeDays.has(pick.day)))
-    .filter((pick) => (activeResults.size === 0 || activeResults.has(pick.result)))
-    .sort((a, b) => b.value - a.value);
+function normaliseRow(row, indexByKey) {
+  const get = (...keys) => {
+    for (const key of keys) {
+      const idx = indexByKey[canonicalKey(key)];
+      if (idx !== undefined) {
+        return row[idx];
+      }
+    }
+    return "";
+  };
+
+  const homeTeam = String(get("home team", "home_team", "home") || "").trim();
+  const awayTeam = String(get("away team", "away_team", "away") || "").trim();
+  const result = normalizeResult(get("result", "pick", "selection"));
+  const date = String(get("date") || "").trim();
+  const day = dayFromDate(date, get("day"));
+
+  const pick = {
+    date,
+    day,
+    league: String(get("league", "competition") || "").trim(),
+    home_team: homeTeam,
+    away_team: awayTeam,
+    result,
+    my_probability: parseNumber(get("my probability", "my_probability", "probability")),
+    bookies_price: parseNumber(get("bookies price", "bookies_price", "bookie price", "odds")),
+    my_price: parseNumber(get("my price", "my_price")),
+    value: parseNumber(get("value", "edge", "value %", "value%"))
+  };
+
+  const isEmpty = Object.values(pick).every((field) => String(field || "").trim() === "" || Number.isNaN(field));
+  if (isEmpty) return null;
+
+  if (!pick.home_team || !pick.away_team || !pick.result || !Number.isFinite(pick.value)) return null;
+
+  return pick;
+}
+
+function loadCsvData() {
+  setLoadingState();
+  loadState = "loading";
+
+  Papa.parse(CSV_URL, {
+    download: true,
+    skipEmptyLines: true,
+    complete: (results) => {
+      try {
+        const rows = Array.isArray(results.data) ? results.data : [];
+        if (!rows.length) throw new Error("CSV contained no rows.");
+
+        const headerRow = rows[0].map((header) => String(header || "").trim());
+        const indexByKey = {};
+        headerRow.forEach((header, index) => {
+          indexByKey[canonicalKey(header)] = index;
+        });
+
+        allPicks = rows
+          .slice(1)
+          .map((row) => normaliseRow(row, indexByKey))
+          .filter(Boolean)
+          .sort((a, b) => b.value - a.value);
+
+        console.log("[hda-value2] CSV headers:", headerRow);
+        console.log("[hda-value2] Sample normalised rows:", allPicks.slice(0, 5));
+
+        loadState = "ready";
+        render();
+      } catch (error) {
+        console.error("[hda-value2] CSV parse error:", error);
+        loadState = "error";
+        setErrorState();
+      }
+    },
+    error: (error) => {
+      console.error("[hda-value2] CSV load error:", error);
+      loadState = "error";
+      setErrorState();
+    }
+  });
+}
+
+function applyFilters(picks) {
+  return picks
+    .filter((pick) => activeDays.size === 0 || activeDays.has(normalizeDay(pick.day)))
+    .filter((pick) => activeResults.size === 0 || activeResults.has(normalizeResult(pick.result)));
+}
+
+function splitIntoTiers(picks) {
+  return {
+    tier1: picks.filter((pick) => pick.value >= 10),
+    tier2: picks.filter((pick) => pick.value >= 7 && pick.value < 10),
+    tier3: picks.filter((pick) => pick.value < 7)
+  };
 }
 
 function createPickCard(pick) {
   const card = document.createElement("article");
   card.className = "pick-card";
+
   card.innerHTML = `
     <div class="pick-card-main">
       <p class="pick-fixture">${pick.home_team} vs ${pick.away_team}</p>
       <p class="pick-sub">${pick.result} • ${pick.league || "League n/a"}</p>
     </div>
     <div class="pick-meta">
-      <p class="pick-value">${pick.value.toFixed(2)}%</p>
-      <p class="pick-money">${moneyTier(pick.value)}</p>
+      <p class="pick-value">${safeNumber(pick.value, 0).toFixed(2)}%</p>
+      <p class="pick-money">${moneyTier(safeNumber(pick.value, 0))}</p>
       <button class="add-btn" type="button" aria-label="Add ${pick.home_team} vs ${pick.away_team}">+</button>
     </div>
   `;
+
   card.querySelector(".add-btn").addEventListener("click", () => addToShortlist(pick));
   return card;
 }
 
-function renderFeatured(pick) {
+function renderFeaturedPick(pick) {
   if (!pick) {
-    dom.featuredSection.innerHTML = '<article class="featured-card"><p class="subtitle">No picks match your filters.</p></article>';
+    dom.featuredSection.innerHTML = '<article class="featured-card"><p class="subtitle">No picks match your filters. Try clearing a filter.</p></article>';
     return;
   }
+
+  const implied = impliedProbability(pick.bookies_price);
+  const impliedText = Number.isFinite(implied) ? `${implied.toFixed(2)}%` : "—";
 
   dom.featuredSection.innerHTML = `
     <article class="featured-card">
@@ -221,15 +349,15 @@ function renderFeatured(pick) {
           <p class="result-tag">${pick.result}</p>
         </div>
         <div>
-          <p class="value-big">${pick.value.toFixed(2)}%</p>
-          <p class="money">${moneyTier(pick.value)}</p>
+          <p class="value-big">${safeNumber(pick.value, 0).toFixed(2)}%</p>
+          <p class="money">${moneyTier(safeNumber(pick.value, 0))}</p>
         </div>
       </div>
       <div class="featured-grid">
-        <div class="stat"><span>Model Price</span><strong>${pick.my_price.toFixed(2)}</strong></div>
-        <div class="stat"><span>Bookie Price</span><strong>${pick.bookies_price.toFixed(2)}</strong></div>
-        <div class="stat"><span>Model Probability</span><strong>${pick.my_probability.toFixed(2)}%</strong></div>
-        <div class="stat"><span>Implied Probability</span><strong>${impliedProbability(pick.bookies_price).toFixed(2)}%</strong></div>
+        <div class="stat"><span>Model Price</span><strong>${safeNumber(pick.my_price, 0).toFixed(2)}</strong></div>
+        <div class="stat"><span>Bookie Price</span><strong>${safeNumber(pick.bookies_price, 0).toFixed(2)}</strong></div>
+        <div class="stat"><span>Model Probability</span><strong>${safeNumber(pick.my_probability, 0).toFixed(2)}%</strong></div>
+        <div class="stat"><span>Implied Probability</span><strong>${impliedText}</strong></div>
       </div>
       <div style="margin-top: 10px;">
         <button id="featuredAddBtn" type="button" class="btn-primary">+ Shortlist</button>
@@ -249,16 +377,11 @@ function fillList(node, picks) {
   picks.forEach((pick) => node.appendChild(createPickCard(pick)));
 }
 
-function render() {
-  const picks = filteredSortedPicks();
-  renderFeatured(picks[0]);
-
-  const visibleRemainder = picks.slice(1, 10);
-  const overflow = picks.slice(10);
-
-  const tier1 = visibleRemainder.filter((pick) => pick.value >= 10);
-  const tier2 = visibleRemainder.filter((pick) => pick.value >= 7 && pick.value < 10);
-  const tier3 = visibleRemainder.filter((pick) => pick.value < 7);
+function renderTiers(picks) {
+  const featuredExcluded = picks.slice(1);
+  const topVisible = featuredExcluded.slice(0, 10);
+  const overflow = featuredExcluded.slice(10);
+  const { tier1, tier2, tier3 } = splitIntoTiers(topVisible);
 
   fillList(dom.tier1List, tier1);
   fillList(dom.tier2List, tier2);
@@ -269,74 +392,58 @@ function render() {
   dom.overflowToggle.textContent = `▼ Remaining Picks (${overflow.length})`;
 }
 
-function mapRows(rows) {
-  const headerIndex = rows.findIndex((row) => REQUIRED_FIELDS.every((field) => row.includes(field)));
-  if (headerIndex === -1) throw new Error("Header row with required fields was not found.");
+function render() {
+  if (loadState === "loading") {
+    setLoadingState();
+    return;
+  }
 
-  const headers = rows[headerIndex];
-  const dataRows = rows.slice(headerIndex + 1);
+  if (loadState === "error") {
+    setErrorState();
+    return;
+  }
 
-  return dataRows
-    .filter((row) => row.length)
-    .map((row) => {
-      const record = {};
-      headers.forEach((header, idx) => {
-        record[header] = row[idx];
-      });
-      return {
-        home_team: String(record.home_team || "").trim(),
-        away_team: String(record.away_team || "").trim(),
-        result: normalizeResult(record.result),
-        league: String(record.league || "").trim(),
-        date: String(record.date || "").trim(),
-        day: dayFromDate(record.date),
-        my_probability: parseNumber(record.my_probability),
-        bookies_price: parseNumber(record.bookies_price),
-        my_price: parseNumber(record.my_price),
-        value: parseNumber(record.value)
-      };
-    })
-    .filter((pick) => pick.home_team && pick.away_team && pick.result && pick.bookies_price > 0);
+  const visiblePicks = applyFilters(allPicks);
+  console.log("[hda-value2] Filtered rows:", visiblePicks.length);
+
+  if (!allPicks.length) {
+    dom.featuredSection.innerHTML = '<article class="featured-card"><p class="subtitle">Unable to load picks right now.</p></article>';
+    renderTiers([]);
+    return;
+  }
+
+  if (!visiblePicks.length) {
+    renderFeaturedPick(null);
+    renderTiers([]);
+    return;
+  }
+
+  renderFeaturedPick(visiblePicks[0]);
+  renderTiers(visiblePicks);
 }
 
 function attachStaticHandlers() {
   dom.tier3Toggle.addEventListener("click", () => {
-    const open = dom.tier3List.classList.toggle("hidden");
-    dom.tier3Toggle.setAttribute("aria-expanded", String(!open));
+    const isHidden = dom.tier3List.classList.toggle("hidden");
+    dom.tier3Toggle.setAttribute("aria-expanded", String(!isHidden));
   });
 
   dom.overflowToggle.addEventListener("click", () => {
-    const open = dom.overflowList.classList.toggle("hidden");
-    dom.overflowToggle.setAttribute("aria-expanded", String(!open));
+    const isHidden = dom.overflowList.classList.toggle("hidden");
+    dom.overflowToggle.setAttribute("aria-expanded", String(!isHidden));
   });
 
   dom.viewShortlistBtn.addEventListener("click", () => dom.shortlistModal.showModal());
   dom.closeModalBtn.addEventListener("click", () => dom.shortlistModal.close());
+
   dom.clearPicksBtn.addEventListener("click", () => {
     shortlist = [];
     persistShortlist();
     updateShortlistUI();
     setStatus("Shortlist cleared.");
   });
-  dom.copyPicksBtn.addEventListener("click", copyPicks);
-}
 
-function loadData() {
-  Papa.parse(CSV_URL, {
-    download: true,
-    skipEmptyLines: true,
-    complete: (results) => {
-      try {
-        allPicks = mapRows(results.data);
-        render();
-      } catch (error) {
-        dom.featuredSection.innerHTML = `<article class="featured-card"><p class="subtitle">Failed to process feed: ${error.message}</p></article>`;
-      }
-    },
-    error: () => {
-      dom.featuredSection.innerHTML = '<article class="featured-card"><p class="subtitle">Failed to load live feed.</p></article>';
-    }
-  });
+  dom.copyPicksBtn.addEventListener("click", copyPicks);
 }
 
 function init() {
@@ -344,7 +451,7 @@ function init() {
   attachStaticHandlers();
   loadShortlist();
   updateShortlistUI();
-  loadData();
+  loadCsvData();
 }
 
 init();
