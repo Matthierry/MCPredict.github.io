@@ -4,18 +4,6 @@ const SHORTLIST_KEY = "mcp_hda_value2_shortlist";
 const DAY_OPTIONS = ["Sat", "Sun", "Fri", "Mon"];
 const RESULT_OPTIONS = ["Home Win", "Away Win"];
 
-const FIELD_ALIASES = {
-  date: ["date"],
-  day: ["day"],
-  league: ["league"],
-  home_team: ["home team", "hometeam", "home_team"],
-  away_team: ["away team", "awayteam", "away_team"],
-  result: ["result"],
-  my_probability: ["my probability", "myprobability", "probability", "my_prob"],
-  bookies_price: ["bookies price", "bookie price", "bookiesprice", "bookieprice", "odds"],
-  my_price: ["my price", "myprice", "model price", "modelprice"],
-  value: ["value", "edge", "value %", "value%"]
-};
 
 const state = {
   allRows: [],
@@ -48,32 +36,6 @@ const dom = {
   clearPicksBtn: document.getElementById("clearPicksBtn")
 };
 
-function normaliseKey(key) {
-  return String(key || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[%()]/g, "")
-    .replace(/[_\s]+/g, "")
-    .replace(/[^a-z0-9]/g, "");
-}
-
-function buildKeyMap(row) {
-  const map = {};
-  Object.keys(row || {}).forEach((originalKey) => {
-    map[normaliseKey(originalKey)] = originalKey;
-  });
-  return map;
-}
-
-function getField(row, keyMap, aliases) {
-  for (const alias of aliases) {
-    const actualKey = keyMap[normaliseKey(alias)];
-    if (actualKey && row[actualKey] != null && String(row[actualKey]).trim() !== "") {
-      return row[actualKey];
-    }
-  }
-  return "";
-}
 
 function parseNumber(value) {
   const cleaned = String(value || "")
@@ -147,39 +109,99 @@ function setFeedFailureState() {
   if (dom.overflowToggle) dom.overflowToggle.textContent = "▼ Remaining Picks (0)";
 }
 
-function normaliseRow(row, index) {
-  const keyMap = buildKeyMap(row);
 
-  const date = String(getField(row, keyMap, FIELD_ALIASES.date)).trim();
-  const dayRaw = String(getField(row, keyMap, FIELD_ALIASES.day)).trim();
-  const day = dayRaw ? dayRaw : date;
 
-  const cleanRow = {
-    id: `${index}-${pickId({
-      date,
-      home_team: String(getField(row, keyMap, FIELD_ALIASES.home_team)).trim(),
-      away_team: String(getField(row, keyMap, FIELD_ALIASES.away_team)).trim(),
-      result: String(getField(row, keyMap, FIELD_ALIASES.result)).trim()
-    })}`,
-    date,
-    day: String(day).trim(),
-    league: String(getField(row, keyMap, FIELD_ALIASES.league)).trim(),
-    home_team: String(getField(row, keyMap, FIELD_ALIASES.home_team)).trim(),
-    away_team: String(getField(row, keyMap, FIELD_ALIASES.away_team)).trim(),
-    result: String(getField(row, keyMap, FIELD_ALIASES.result)).trim(),
-    my_probability: parseNumber(getField(row, keyMap, FIELD_ALIASES.my_probability)),
-    bookies_price: parseNumber(getField(row, keyMap, FIELD_ALIASES.bookies_price)),
-    my_price: parseNumber(getField(row, keyMap, FIELD_ALIASES.my_price)),
-    value: parseNumber(getField(row, keyMap, FIELD_ALIASES.value))
+function showError(message) {
+  console.error("[hda-value2]", message);
+  state.loadState = "error";
+  setFeedFailureState();
+}
+
+function processCsv(rows) {
+  if (!rows || rows.length < 2) {
+    showError("Unable to load picks right now.");
+    return;
+  }
+
+  const headers = rows[0].map((h) => String(h).trim());
+  const dataRows = rows.slice(1);
+
+  console.log("Headers:", headers);
+  console.log("First raw row:", dataRows[0]);
+
+  const normalisedHeaders = headers.map((h) =>
+    h.toLowerCase().replace(/[\s_]+/g, "").replace(/[^a-z0-9]/g, "")
+  );
+
+  function getIndex(possibleNames) {
+    for (const name of possibleNames) {
+      const normalised = name.toLowerCase().replace(/[\s_]+/g, "").replace(/[^a-z0-9]/g, "");
+      const index = normalisedHeaders.indexOf(normalised);
+      if (index !== -1) return index;
+    }
+    return -1;
+  }
+
+  const idx = {
+    home: getIndex(["home team"]),
+    away: getIndex(["away team"]),
+    result: getIndex(["result"]),
+    league: getIndex(["league"]),
+    date: getIndex(["date"]),
+    day: getIndex(["day"]),
+    prob: getIndex(["my probability"]),
+    bookie: getIndex(["bookies price"]),
+    model: getIndex(["my price"]),
+    value: getIndex(["value"])
   };
 
-  const missingRequired = !cleanRow.home_team
-    || !cleanRow.away_team
-    || !cleanRow.result
-    || cleanRow.bookies_price <= 0
-    || String(getField(row, keyMap, FIELD_ALIASES.value)).trim() === "";
+  console.log("Index map:", idx);
 
-  return missingRequired ? null : cleanRow;
+  const parsed = dataRows
+    .map((row, index) => {
+      const valueRaw = row[idx.value] || "";
+
+      return {
+        id: `${index}-${pickId({
+          date: row[idx.date]?.trim(),
+          home_team: row[idx.home]?.trim(),
+          away_team: row[idx.away]?.trim(),
+          result: row[idx.result]?.trim()
+        })}`,
+        home_team: row[idx.home]?.trim(),
+        away_team: row[idx.away]?.trim(),
+        result: row[idx.result]?.trim(),
+        league: row[idx.league]?.trim(),
+        date: row[idx.date]?.trim(),
+        day: row[idx.day]?.trim(),
+
+        my_probability: parseFloat(row[idx.prob]) || 0,
+        bookies_price: parseFloat(row[idx.bookie]) || 0,
+        my_price: parseFloat(row[idx.model]) || 0,
+
+        value: parseFloat(String(valueRaw).replace('%', '')) || 0
+      };
+    })
+    .filter((r) =>
+      r.home_team &&
+      r.away_team &&
+      r.result &&
+      r.bookies_price > 0 &&
+      r.value > 0
+    )
+    .sort((a, b) => b.value - a.value);
+
+  console.log("Parsed rows:", parsed.slice(0, 5));
+  console.log("Valid row count:", parsed.length);
+
+  if (!parsed.length) {
+    showError("Unable to load valid picks right now.");
+    return;
+  }
+
+  state.allRows = parsed;
+  state.loadState = "ready";
+  render();
 }
 
 function loadCsvData() {
@@ -188,30 +210,10 @@ function loadCsvData() {
 
   Papa.parse(CSV_URL, {
     download: true,
-    header: true,
+    header: false,
     skipEmptyLines: true,
-    complete: (results) => {
-      try {
-        const parsedRows = Array.isArray(results?.data) ? results.data : [];
-        console.log("[hda-value2] Raw first row:", parsedRows[0] || null);
-        console.log("[hda-value2] Raw keys:", Object.keys(parsedRows[0] || {}));
-
-        const normalisedRows = parsedRows
-          .map((row, index) => normaliseRow(row, index))
-          .filter(Boolean)
-          .sort((a, b) => b.value - a.value);
-
-        console.log("[hda-value2] First 5 normalised rows:", normalisedRows.slice(0, 5));
-        console.log("[hda-value2] Valid row count:", normalisedRows.length);
-
-        state.allRows = normalisedRows;
-        state.loadState = "ready";
-        render();
-      } catch (error) {
-        console.error("[hda-value2] Failed to process feed:", error);
-        state.loadState = "error";
-        setFeedFailureState();
-      }
+    complete: function(results) {
+      processCsv(results.data);
     },
     error: (error) => {
       console.error("[hda-value2] Feed request failed:", error);
