@@ -33,12 +33,12 @@ const dom = {
 };
 
 function parseNumber(value) {
-  if (value === null || value === undefined) return NaN;
-  const raw = String(value).trim();
-  if (!raw) return NaN;
-  const normalized = raw.replace(/,/g, "").replace(/%/g, "").replace(/[^0-9.+-]/g, "");
+  const normalized = String(value || "")
+    .replace(/%/g, "")
+    .replace(/,/g, "")
+    .trim();
   const n = parseFloat(normalized);
-  return Number.isFinite(n) ? n : NaN;
+  return Number.isFinite(n) ? n : 0;
 }
 
 function safeNumber(value, fallback = 0) {
@@ -55,15 +55,29 @@ function normalizeDay(value) {
 
 function normaliseKey(key) {
   return String(key || "")
+    .trim()
     .toLowerCase()
-    .replace(/\s+/g, "")
-    .replace(/_/g, "");
+    .replace(/[%()]/g, "")
+    .replace(/[_\s]+/g, "")
+    .replace(/[^a-z0-9]/g, "");
 }
 
-function getField(row, key, headerMap) {
-  const normalised = normaliseKey(key);
-  const actualKey = headerMap[normalised];
-  return actualKey ? row[actualKey] : undefined;
+function buildKeyMap(row) {
+  const map = {};
+  Object.keys(row || {}).forEach((originalKey) => {
+    map[normaliseKey(originalKey)] = originalKey;
+  });
+  return map;
+}
+
+function getField(row, keyMap, aliases) {
+  for (const alias of aliases) {
+    const actualKey = keyMap[normaliseKey(alias)];
+    if (actualKey && row[actualKey] != null && String(row[actualKey]).trim() !== "") {
+      return row[actualKey];
+    }
+  }
+  return "";
 }
 
 function dayFromDate(dateStr, fallbackDay) {
@@ -226,40 +240,60 @@ function copyPicks() {
     .catch(() => setStatus("Unable to copy on this browser."));
 }
 
-function normaliseRow(row, headerMap) {
-  const get = (...keys) => {
-    for (const key of keys) {
-      const value = getField(row, key, headerMap);
-      if (value !== undefined) return value;
-    }
-    return "";
-  };
+const FIELD_ALIASES = {
+  date: ["date"],
+  day: ["day"],
+  league: ["league"],
+  home_team: ["home team", "hometeam", "home_team", "home"],
+  away_team: ["away team", "awayteam", "away_team", "away"],
+  result: ["result", "pick", "selection"],
+  my_probability: ["my probability", "myprobability", "probability", "my_prob", "my_probability"],
+  bookies_price: ["bookies price", "bookie price", "bookiesprice", "bookieprice", "odds", "bookies_price"],
+  my_price: ["my price", "myprice", "model price", "modelprice", "my_price"],
+  value: ["value", "edge", "value %", "value%"]
+};
 
-  const homeTeam = String(get("home team", "home_team", "home") || "").trim();
-  const awayTeam = String(get("away team", "away_team", "away") || "").trim();
-  const result = normalizeResult(get("result", "pick", "selection"));
-  const date = String(get("date") || "").trim();
-  const day = dayFromDate(date, get("day"));
+function normaliseRow(row, keyMap) {
+  const date = String(getField(row, keyMap, FIELD_ALIASES.date) || "").trim();
+  const day = dayFromDate(date, getField(row, keyMap, FIELD_ALIASES.day));
+  const homeTeam = String(getField(row, keyMap, FIELD_ALIASES.home_team) || "").trim();
+  const awayTeam = String(getField(row, keyMap, FIELD_ALIASES.away_team) || "").trim();
+  const result = normalizeResult(getField(row, keyMap, FIELD_ALIASES.result));
 
   const pick = {
     date,
     day,
-    league: String(get("league", "competition") || "").trim(),
+    league: String(getField(row, keyMap, FIELD_ALIASES.league) || "").trim(),
     home_team: homeTeam,
     away_team: awayTeam,
     result,
-    my_probability: parseNumber(get("my probability", "my_probability", "probability")),
-    bookies_price: parseNumber(get("bookies price", "bookies_price", "bookie price", "odds")),
-    my_price: parseNumber(get("my price", "my_price")),
-    value: parseNumber(get("value", "edge", "value %", "value%"))
+    my_probability: parseNumber(getField(row, keyMap, FIELD_ALIASES.my_probability)),
+    bookies_price: parseNumber(getField(row, keyMap, FIELD_ALIASES.bookies_price)),
+    my_price: parseNumber(getField(row, keyMap, FIELD_ALIASES.my_price)),
+    value: parseNumber(getField(row, keyMap, FIELD_ALIASES.value))
   };
 
-  const isEmpty = Object.values(pick).every((field) => String(field || "").trim() === "" || Number.isNaN(field));
+  const isEmpty = Object.values(row || {}).every((field) => String(field || "").trim() === "");
   if (isEmpty) return null;
 
-  if (!pick.home_team || !pick.away_team || !pick.result || !Number.isFinite(pick.value)) return null;
+  if (!pick.home_team || !pick.away_team || !pick.result || String(getField(row, keyMap, FIELD_ALIASES.value) || "").trim() === "") return null;
 
   return pick;
+}
+
+function rowsToObjects(rawRows) {
+  if (!Array.isArray(rawRows) || !rawRows.length) return [];
+  if (!Array.isArray(rawRows[0])) return rawRows;
+
+  const [headerRow, ...dataRows] = rawRows;
+  const headers = (headerRow || []).map((header, index) => String(header || `column_${index}`).trim());
+  return dataRows.map((row) => {
+    const mapped = {};
+    headers.forEach((header, index) => {
+      mapped[header] = row?.[index] ?? "";
+    });
+    return mapped;
+  });
 }
 
 function loadCsvData() {
@@ -272,39 +306,37 @@ function loadCsvData() {
     skipEmptyLines: "greedy",
     complete: (results) => {
       try {
-        const rows = Array.isArray(results.data) ? results.data : [];
+        const rawRows = Array.isArray(results.data) ? results.data : [];
+        const rows = rowsToObjects(rawRows).filter((row) => Object.values(row || {}).some((value) => String(value || "").trim() !== ""));
+
+        console.log("Raw first row:", rows[0]);
+        console.log("Raw keys:", Object.keys(rows[0] || {}));
+        console.log("Raw first 3 rows:", rows.slice(0, 3));
+
         if (!rows.length) {
           console.error("[hda-value2] CSV parse produced no data rows.");
-          allPicks = [];
-          loadState = "ready";
-          render();
+          loadState = "error";
+          setErrorState();
           return;
         }
 
-        const headerMap = {};
-        Object.keys(rows[0] || {}).forEach((originalKey) => {
-          const normalised = normaliseKey(originalKey);
-          if (!normalised) return;
-          headerMap[normalised] = originalKey;
-        });
-
-        console.log("[hda-value2] Header map:", headerMap);
+        const keyMap = buildKeyMap(rows[0]);
+        console.log("Key map:", keyMap);
 
         allPicks = rows
-          .filter((row) => Object.values(row || {}).some((value) => String(value || "").trim() !== ""))
-          .map((row) => normaliseRow(row, headerMap))
+          .map((row) => normaliseRow(row, keyMap))
           .filter(Boolean)
           .sort((a, b) => b.value - a.value);
 
-        const rowsWithPositiveValue = allPicks.filter((pick) => safeNumber(pick.value, 0) > 0).length;
-        if (!allPicks.length) {
-          console.error("[hda-value2] No valid rows were parsed from CSV.");
-        }
-        if (!rowsWithPositiveValue) {
-          console.error("[hda-value2] Parsed rows exist, but none have value > 0.");
-        }
+        console.log("First 5 normalised rows:", allPicks.slice(0, 5));
+        console.log("Valid row count:", allPicks.length);
 
-        console.log("[hda-value2] Parsed data sample:", allPicks.slice(0, 5));
+        if (!allPicks.length) {
+          loadState = "error";
+          setErrorState();
+          dom.featuredSection.innerHTML = '<article class="featured-card"><p class="subtitle">Unable to load valid picks right now.</p></article>';
+          return;
+        }
 
         loadState = "ready";
         render();
@@ -428,7 +460,7 @@ function render() {
   }
 
   const visiblePicks = applyFilters(allPicks);
-  console.log("[hda-value2] Filtered rows:", visiblePicks.length);
+  console.log("Filtered row count before render:", visiblePicks.length);
 
   if (!allPicks.length) {
     dom.featuredSection.innerHTML = '<article class="featured-card"><p class="subtitle">Unable to load picks right now.</p></article>';
