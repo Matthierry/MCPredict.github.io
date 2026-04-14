@@ -118,25 +118,64 @@ function showError(message) {
 }
 
 function processCsv(rows) {
-  if (!rows || rows.length < 2) {
+  if (!rows || rows.length === 0) {
     showError("Unable to load picks right now.");
     return;
   }
 
-  const headers = rows[0].map((h) => String(h).trim());
-  const dataRows = rows.slice(1);
+  const scanLimit = Math.min(30, rows.length);
+  const expectedHeaderLabels = [
+    "HOME TEAM",
+    "AWAY TEAM",
+    "RESULT",
+    "LEAGUE",
+    "DAY",
+    "Bookies Price",
+    "My Price",
+    "VALUE"
+  ];
 
+  const normaliseHeader = (value) =>
+    String(value || "")
+      .toLowerCase()
+      .replace(/[\s_]+/g, "")
+      .replace(/[^a-z0-9]/g, "");
+
+  const expectedHeaderSet = new Set(expectedHeaderLabels.map(normaliseHeader));
+
+  let headerRowIndex = -1;
+
+  for (let i = 0; i < scanLimit; i += 1) {
+    const row = rows[i] || [];
+    const rowNormalisedCells = new Set(row.map(normaliseHeader).filter(Boolean));
+    let matches = 0;
+    expectedHeaderSet.forEach((label) => {
+      if (rowNormalisedCells.has(label)) matches += 1;
+    });
+
+    if (matches >= 5) {
+      headerRowIndex = i;
+      break;
+    }
+  }
+
+  if (headerRowIndex === -1) {
+    showError("Unable to load picks right now.");
+    return;
+  }
+
+  const headers = (rows[headerRowIndex] || []).map((h) => String(h).trim());
+  const dataRows = rows.slice(headerRowIndex + 1);
+
+  console.log("Detected header row:", headerRowIndex);
   console.log("Headers:", headers);
   console.log("First raw row:", dataRows[0]);
 
-  const normalisedHeaders = headers.map((h) =>
-    h.toLowerCase().replace(/[\s_]+/g, "").replace(/[^a-z0-9]/g, "")
-  );
+  const normalisedHeaders = headers.map(normaliseHeader);
 
   function getIndex(possibleNames) {
     for (const name of possibleNames) {
-      const normalised = name.toLowerCase().replace(/[\s_]+/g, "").replace(/[^a-z0-9]/g, "");
-      const index = normalisedHeaders.indexOf(normalised);
+      const index = normalisedHeaders.indexOf(normaliseHeader(name));
       if (index !== -1) return index;
     }
     return -1;
@@ -147,7 +186,7 @@ function processCsv(rows) {
     away: getIndex(["away team"]),
     result: getIndex(["result"]),
     league: getIndex(["league"]),
-    date: getIndex(["date"]),
+    date: getIndex(["date", "day"]),
     day: getIndex(["day"]),
     prob: getIndex(["my probability"]),
     bookie: getIndex(["bookies price"]),
