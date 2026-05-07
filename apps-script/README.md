@@ -41,11 +41,18 @@
 6. Copy deployed Web App URL and paste into `SUBMISSION_ENDPOINT` in `wc26.html`.
 
 ## Testing submissions
-1. Open `/wc26` and ensure 72 fixtures load.
-2. Fill name, email, consent, and all scores.
-3. Submit and verify success message + submission ID.
-4. Confirm 72 rows appended in `Predictions`.
-5. Confirm entrant email contains grouped predictions.
+1. Open the deployed Web App URL directly and confirm the `doGet` health-check JSON appears.
+2. Open `/wc26` and ensure 72 fixtures load.
+3. Fill name, email, consent, and all scores.
+4. Submit and verify submitted message + submission ID.
+5. Confirm 72 rows appended in `Predictions`.
+6. Confirm entrant email contains grouped predictions.
+
+## Implementation notes
+- Opening the Web App URL directly should show the `doGet` health check response.
+- Real submissions use `POST` from `/wc26`.
+- The browser cannot read the Apps Script JSON response when using `no-cors`.
+- The confirmation email and `Predictions` tab are the source of truth for successful submissions.
 
 ## Resubmissions
 - Multiple submissions are allowed.

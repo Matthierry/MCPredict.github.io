@@ -313,13 +313,17 @@
       };
 
       try {
-        const resp = await fetch(SUBMISSION_ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-        const data = await resp.json();
-        if (!resp.ok || !data.ok) throw new Error(data.error || 'Submission failed');
-        renderMessage('success', `Predictions submitted successfully. Your submission ID is ${data.submission_id}. We’ve emailed you a copy of your predictions. If you submit again before the deadline, your latest valid submission will be used. Your saved predictions remain on this device in case you want to amend and submit again before the deadline.`);
+        // Google Apps Script Web Apps do not return browser-readable CORS responses for this static-site flow,
+        // so we submit with no-cors and treat a completed fetch as a successful handoff.
+        await fetch(SUBMISSION_ENDPOINT, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(body)
+        });
+        renderMessage('success', `Predictions submitted. Your submission ID is ${submissionId}. Please check your email for confirmation. If you do not receive an email, contact MC Predict.`);
       } catch (error) {
-        console.error(error);
-        renderMessage('error', `Unable to submit predictions right now. ${error.message}`);
+        console.error('WC26 submission failed:', error);
+        renderMessage('error', 'Unable to submit predictions right now. Please check your connection and try again.');
       } finally {
         submitting = false;
         validate();
