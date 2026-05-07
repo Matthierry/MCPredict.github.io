@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MCPredict - Homepage Mock-up</title>
-  <link rel="stylesheet" href="/style.css">
   <style>
     :root {
       --bg: #111214;
@@ -17,30 +16,14 @@
       --green: #33c46e;
       --shadow: 0 10px 30px rgba(0,0,0,.35);
     }
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background: radial-gradient(circle at top left, #23262b, var(--bg) 45%);
       color: var(--text);
     }
-    .container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 12px 14px 34px; }
-    .site-header { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:16px; background:rgba(20,22,26,.95); box-shadow: var(--shadow); backdrop-filter: blur(8px);}
-    .desktop-nav { display:none; }
-    .desktop-nav__list { list-style:none; margin:0; padding:0; display:flex; align-items:center; gap:8px; }
-    .desktop-nav__link, .desktop-nav__toggle { border:1px solid transparent; background:transparent; color:#d6dbe4; text-decoration:none; padding:8px 12px; border-radius:10px; font-size:.86rem; font-weight:650; line-height:1.1; display:inline-flex; align-items:center; gap:6px; }
-    .desktop-nav__toggle { cursor:pointer; font: inherit; }
-    .desktop-nav__link:hover, .desktop-nav__link:focus-visible, .desktop-nav__toggle:hover, .desktop-nav__toggle:focus-visible { color:var(--text); border-color:rgba(247,147,26,.5); outline:none; }
-    .desktop-nav__link[aria-current="page"], .desktop-nav__toggle[aria-current="page"] { color:var(--accent); background:rgba(247,147,26,.1); border-color:rgba(247,147,26,.42);}
-    .desktop-nav__item { position:relative; }
-    .desktop-nav__item--dropdown .desktop-nav__menu { position:absolute; top:calc(100% + 8px); left:0; min-width:210px; border:1px solid var(--border); border-radius:12px; background:rgba(23,25,29,.98); box-shadow:var(--shadow); padding:8px; display:grid; gap:6px; }
-    .desktop-nav__menu[hidden] { display:none; }
-    .desktop-nav__menu a { text-decoration:none; color:var(--text); border:1px solid transparent; border-radius:9px; padding:8px 10px; font-size:.84rem; }
-    .desktop-nav__menu a:hover, .desktop-nav__menu a:focus-visible { border-color:rgba(247,147,26,.5); outline:none; color:var(--accent);}
-    .desktop-nav__link--disabled { opacity:.55; cursor:not-allowed; pointer-events:none; }
-    .desktop-nav__meta { font-size:.65rem; margin-left:6px; color:#95a0ae; font-weight:600; }
-
+    .container { max-width: 1120px; margin: 0 auto; padding: 12px 14px 34px; }
 
     .header {
       position: sticky; top: 10px; z-index: 20;
@@ -97,21 +80,21 @@
     @keyframes shimmer { 0% { background-position:100% 0;} 100%{ background-position:0 0;} }
 
     .angles-list { display:grid; gap:10px; }
-    .angle-card { width:100%; max-width:100%; border:1px solid var(--border); border-radius:14px; padding:12px; background:var(--card-2); display:grid; grid-template-columns:minmax(0,1fr) minmax(0,auto); gap:12px; align-items:start; overflow:hidden; }
+    .angle-card { border:1px solid var(--border); border-radius:14px; padding:12px; background:var(--card-2); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:start; }
     .angle-card.best { border-color: rgba(247,147,26,.6); box-shadow: inset 0 0 0 1px rgba(247,147,26,.25), 0 0 20px rgba(247,147,26,.12); }
     .angle-card__left { min-width:0; }
-    .angle-card__right { display:grid; justify-items:end; gap:18px; min-width:0; max-width:100%; }
-    .angle-card__top-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; min-width:0; flex-wrap:wrap; }
+    .angle-card__right { display:grid; justify-items:end; gap:18px; min-width:120px; }
+    .angle-card__top-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
     .rank-badge { min-width:34px; height:34px; border-radius:11px; display:grid; place-items:center; background:#2a2d33; color:#d7dbe2; font-weight:700; }
     .angle-card.best .rank-badge { min-width:40px; height:40px; color:var(--accent); background:rgba(247,147,26,.2); border:1px solid rgba(247,147,26,.45); }
     .best-performer { font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); font-weight:800; }
     .angle-title { font-size:1rem; font-weight:700; margin-top:2px; }
     .angle-metrics { text-align:right; display:grid; gap:5px; }
-    .roi-hero { font-size:1rem; font-weight:800; color:#9adfb5; white-space:normal; overflow-wrap:anywhere; }
-    .profit-support { font-size:.83rem; font-weight:700; color:var(--muted); white-space:normal; overflow-wrap:anywhere; }
+    .roi-hero { font-size:1rem; font-weight:800; color:#9adfb5; white-space:nowrap; }
+    .profit-support { font-size:.83rem; font-weight:700; color:var(--muted); white-space:nowrap; }
     .profit-support.pos { color:#b9d9c6; }
-    .badge { display:inline-flex; align-items:center; gap:6px; width:max-content; max-width:100%; font-size:.72rem; padding:4px 9px; border-radius:999px; font-weight:700; border:1px solid var(--border); background:#282c32; color:#d7dde7; white-space:normal; overflow-wrap:anywhere; }
-    .value-badge { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 9px; font-size:11px; font-weight:800; line-height:1.15; white-space:normal; max-width:100%; overflow-wrap:anywhere; }
+    .badge { display:inline-flex; align-items:center; gap:6px; width:max-content; font-size:.72rem; padding:4px 9px; border-radius:999px; font-weight:700; border:1px solid var(--border); background:#282c32; color:#d7dde7; white-space:nowrap; }
+    .value-badge { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 9px; font-size:11px; font-weight:800; line-height:1; white-space:nowrap; max-width:150px; overflow:hidden; text-overflow:ellipsis; }
     .angle-stats--stacked { display:grid; gap:4px; margin-top:14px; font-size:13px; line-height:1.25; }
     .angle-stats--stacked strong { color:var(--text); font-weight:800; }
     .angle-stats--stacked span { color:var(--muted); }
@@ -132,13 +115,11 @@
     @media (min-width: 800px) {
       .angles-list { grid-template-columns: 1fr 1fr; }
       .angle-card.best { grid-column: 1 / -1; }
-      .angle-card:not(.best) { min-height: 100%; }
     }
-    @media (max-width: 390px) {
-      .angle-card { padding:10px; gap:8px; grid-template-columns:minmax(0,1fr) minmax(92px, 34%); }
-      .value-badge { font-size:10px; padding:4px 7px; }
-      .angle-title { font-size:.93rem; }
-      .roi-hero { font-size:.92rem; }
+    @media (max-width: 370px) {
+      .angle-card { grid-template-columns:minmax(0,1fr) 118px; gap:8px; }
+      .value-badge { font-size:10px; padding:5px 7px; max-width:112px; }
+      .angle-title, .roi-hero { font-size:15px; }
       .profit-support, .angle-stats--stacked { font-size:12px; }
     }
 
@@ -169,22 +150,11 @@
     .social-footer small { color:var(--muted); }
 
     .mobile-bottom-nav { display:none; }
-    @media (min-width: 768px) {
-      .container { padding: 20px 24px 44px; }
-      .site-header { padding: 12px 16px; }
-      .desktop-nav { display:block; }
-      .icon-grid { grid-template-columns: repeat(4, minmax(0,1fr)); gap:12px; }
-      .hero { padding:26px; }
-      .hero h2 { font-size:2rem; }
-      .section, .stat-card, .home-screen-module { padding:18px; }
-      .split { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:18px; }
-    }
-    @media (min-width: 1024px) {
-      .container { padding-inline: 30px; }
-      .hero { text-align:center; }
-      .hero p { max-width: 760px; margin:0 auto; }
-      .angles-list { grid-template-columns: 1.25fr 1fr; }
-      .icon-card { padding:14px; }
+    @media (min-width: 800px) {
+      .container { padding: 16px 18px 40px; }
+      .icon-grid { grid-template-columns: repeat(4,1fr); }
+      .split { grid-template-columns: 1fr 1fr; }
+      .hero h2 { font-size:1.9rem; }
     }
     @media (max-width: 767px) {
       body {
@@ -242,77 +212,6 @@
         background: rgba(240, 147, 0, 0.08);
         box-shadow: 0 0 14px rgba(240, 147, 0, 0.16);
       }
-
-      .mobile-bottom-nav__menu-trigger {
-        appearance: none;
-        -webkit-appearance: none;
-        border: 0;
-        background: transparent;
-        font: inherit;
-        color: inherit;
-        cursor: pointer;
-        padding: 0;
-      }
-      .mobile-bottom-menu {
-        position: fixed;
-        left: 12px;
-        right: 12px;
-        bottom: calc(86px + env(safe-area-inset-bottom));
-        z-index: 990;
-        border-radius: 18px;
-        border: 1px solid rgba(247, 147, 26, 0.25);
-        background: rgba(24, 26, 30, 0.98);
-        box-shadow: 0 14px 28px rgba(0,0,0,.42);
-        padding: 10px;
-        display: grid;
-        gap: 6px;
-        max-height: min(66vh, 520px);
-        overflow-y: auto;
-      }
-      .mobile-bottom-menu[hidden] { display: none; }
-      .mobile-bottom-menu__item {
-        text-decoration: none;
-        color: var(--text);
-        border: 1px solid var(--border);
-        background: var(--card);
-        border-radius: 12px;
-        padding: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        font-size: .9rem;
-        font-weight: 650;
-      }
-      .mobile-bottom-menu__item:hover,
-      .mobile-bottom-menu__item:focus-visible {
-        border-color: rgba(247, 147, 26, 0.58);
-        outline: none;
-      }
-      .mobile-bottom-menu__item--active {
-        color: var(--accent);
-        background: rgba(240, 147, 0, 0.08);
-      }
-      .mobile-bottom-menu__item--disabled {
-        color: #7d8592;
-        border-color: #3a3f47;
-        background: #1d2024;
-        cursor: not-allowed;
-      }
-      .mobile-bottom-menu__meta {
-        display: block;
-        font-size: .72rem;
-        color: #8f97a3;
-        margin-top: 4px;
-        font-weight: 550;
-      }
-      .mobile-bottom-menu-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(8, 9, 11, .45);
-        z-index: 980;
-      }
-      .mobile-bottom-menu-backdrop[hidden] { display: none; }
     }
     @media (min-width: 768px) {
       .mobile-bottom-nav {
@@ -322,36 +221,34 @@
   </style>
 </head>
 <body>
+  <div class="container">
+    <header class="header">
+      <a class="brand" href="/">
+        <img src="/images/mcpredcirclebg.png" alt="MCPredict logo">
+        <div>
+          <h1>MCPredict</h1>
+          <p>Data-driven Football predictions</p>
+        </div>
+      </a>
+      <button class="menu-btn" id="openMenu" aria-label="Open menu">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </header>
 
-  <main class="container">
-  <header class="site-header">
-    <a class="brand" href="/">
-      <img src="/images/mcpredcirclebg.png" alt="MCPredict logo">
-      <div><h1>MCPredict</h1><p>Data-driven Football predictions</p></div>
-    </a>
-    <nav class="desktop-nav" aria-label="Desktop primary navigation">
-      <ul class="desktop-nav__list">
-        <li><a class="desktop-nav__link" data-nav-path="/" href="/">Home</a></li>
-        <li class="desktop-nav__item desktop-nav__item--dropdown">
-          <button class="desktop-nav__toggle" type="button" aria-expanded="false" aria-haspopup="true">Winner</button>
-          <div class="desktop-nav__menu" hidden>
-            <a data-nav-path="/hda-value" href="/hda-value">Best Value</a>
-            <a data-nav-path="/hda-highchance" href="/hda-highchance">Highest Chance</a>
-          </div>
-        </li>
-        <li class="desktop-nav__item desktop-nav__item--dropdown">
-          <button class="desktop-nav__toggle" type="button" aria-expanded="false" aria-haspopup="true">U/O 2.5</button>
-          <div class="desktop-nav__menu" hidden>
-            <a data-nav-path="/uo-value" href="/uo-value">Best Value</a>
-            <a data-nav-path="/uo-highchance" href="/uo-highchance">Highest Chance</a>
-          </div>
-        </li>
-        <li><a class="desktop-nav__link" data-nav-path="/historical" href="/historical">Data</a></li>
-        <li><a class="desktop-nav__link" data-nav-path="/faqs" href="/faqs">FAQs</a></li>
-        <li><span class="desktop-nav__link desktop-nav__link--disabled" aria-disabled="true">World Cup 2026 <span class="desktop-nav__meta">Coming soon</span></span></li>
-      </ul>
-    </nav>
-  </header>
+    <div class="menu-overlay" id="menuOverlay" aria-hidden="true">
+      <div class="menu-top">
+        <h3 style="margin:0;">Menu</h3>
+        <button class="close-btn" id="closeMenu" aria-label="Close menu"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      </div>
+      <nav class="menu-links">
+        <a href="/hda-value">Match Result - Value</a>
+        <a href="/hda-highchance">Match Result - High Chance</a>
+        <a href="/uo-value">U/O 2.5 - Value</a>
+        <a href="/uo-highchance">U/O 2.5 - High Chance</a>
+        <a href="/historical">Historical Data</a>
+        <a href="/faqs">FAQs</a>
+      </nav>
+    </div>
 
     <section class="hero">
       <h2>Data-driven Football predictions</h2>
@@ -408,8 +305,7 @@
       </a>
       <small>Follow MC Predict</small>
     </div>
-
-  </main>
+  </div>
 
   <div class="home-screen-modal" id="homeScreenModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="homeScreenModalTitle">
     <div class="home-screen-modal__card">
@@ -420,7 +316,6 @@
       <ol id="homeScreenSteps"></ol>
     </div>
   </div>
-
 
   <nav class="mobile-bottom-nav" aria-label="Mobile primary navigation">
     <a class="mobile-bottom-nav__item" data-nav-path="/hda-value" href="/hda-value" aria-label="Match Result value predictions">
@@ -435,26 +330,18 @@
       <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>
       <span class="mobile-bottom-nav__label">Data</span>
     </a>
-    <button class="mobile-bottom-nav__item mobile-bottom-nav__menu-trigger" id="bottomMenuTrigger" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="bottomMenuPanel">
-      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-      <span class="mobile-bottom-nav__label">Menu</span>
-    </button>
+    <a class="mobile-bottom-nav__item" data-nav-path="/faqs" href="/faqs" aria-label="FAQs">
+      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/><circle cx="12" cy="17" r=".8"/></svg>
+      <span class="mobile-bottom-nav__label">FAQs</span>
+    </a>
   </nav>
 
-  <div class="mobile-bottom-menu-backdrop" id="bottomMenuBackdrop" hidden></div>
-  <section class="mobile-bottom-menu" id="bottomMenuPanel" aria-label="Mobile menu" aria-hidden="true" hidden>
-    <a class="mobile-bottom-menu__item" data-nav-path="/" href="/">Home</a>
-    <a class="mobile-bottom-menu__item" data-nav-path="/hda-value" href="/hda-value">Winner - Best Value</a>
-    <a class="mobile-bottom-menu__item" data-nav-path="/hda-highchance" href="/hda-highchance">Winner - Highest Chance</a>
-    <a class="mobile-bottom-menu__item" data-nav-path="/uo-value" href="/uo-value">U/O 2.5 - Best Value</a>
-    <a class="mobile-bottom-menu__item" data-nav-path="/uo-highchance" href="/uo-highchance">U/O 2.5 - Highest Chance</a>
-    <a class="mobile-bottom-menu__item" data-nav-path="/historical" href="/historical">Historical Data</a>
-    <a class="mobile-bottom-menu__item" data-nav-path="/faqs" href="/faqs">FAQs</a>
-    <div class="mobile-bottom-menu__item mobile-bottom-menu__item--disabled" aria-disabled="true">World Cup 2026 <span class="mobile-bottom-menu__meta">Coming soon</span></div>
-  </section>
-
-
   <script>
+    const menuOverlay = document.getElementById('menuOverlay');
+    document.getElementById('openMenu').addEventListener('click', () => menuOverlay.classList.add('open'));
+    document.getElementById('closeMenu').addEventListener('click', () => menuOverlay.classList.remove('open'));
+    menuOverlay.addEventListener('click', (e) => { if (e.target === menuOverlay) menuOverlay.classList.remove('open'); });
+
     const HOMEPAGE_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=799163917&single=true&output=csv';
     const WHATS_HOT_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=56710734&single=true&output=csv';
     let deferredInstallPrompt = null;
@@ -505,99 +392,17 @@
       showHomeScreenInstructions('apple');
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const currentPath = window.location.pathname.replace(/\\/$/, '') || '/';
-      const navTargets = document.querySelectorAll('[data-nav-path]');
-      navTargets.forEach((item) => {
-        const itemPath = (item.getAttribute('data-nav-path') || '').replace(/\\/$/, '') || '/';
-        if (itemPath === currentPath) {
-          item.setAttribute('aria-current', 'page');
-          item.classList.add('mobile-bottom-nav__item--active', 'mobile-bottom-menu__item--active');
-        }
+    function setMobileFooterActiveState() {
+      const normalizedPath = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
+      document.querySelectorAll('.mobile-bottom-nav__item').forEach((item) => {
+        const targetPath = (item.dataset.navPath || '').replace(/\/+$/, '') || '/';
+        item.classList.toggle('mobile-bottom-nav__item--active', normalizedPath === targetPath);
       });
+    }
+    setMobileFooterActiveState();
 
-      const dropdownItems = document.querySelectorAll('.desktop-nav__item--dropdown');
-      const closeDropdown = (item) => {
-        const btn = item.querySelector('.desktop-nav__toggle');
-        const menu = item.querySelector('.desktop-nav__menu');
-        if (!btn || !menu) return;
-        btn.setAttribute('aria-expanded', 'false');
-        menu.hidden = true;
-      };
-      const openDropdown = (item) => {
-        dropdownItems.forEach((other) => { if (other !== item) closeDropdown(other); });
-        const btn = item.querySelector('.desktop-nav__toggle');
-        const menu = item.querySelector('.desktop-nav__menu');
-        if (!btn || !menu) return;
-        btn.setAttribute('aria-expanded', 'true');
-        menu.hidden = false;
-      };
-      dropdownItems.forEach((item) => {
-        const btn = item.querySelector('.desktop-nav__toggle');
-        const menu = item.querySelector('.desktop-nav__menu');
-        if (!btn || !menu) return;
-        if (menu.querySelector('[aria-current="page"]')) btn.setAttribute('aria-current', 'page');
-        btn.addEventListener('click', () => (menu.hidden ? openDropdown(item) : closeDropdown(item)));
-        item.addEventListener('focusout', (event) => { if (!item.contains(event.relatedTarget)) closeDropdown(item); });
-      });
-      document.addEventListener('click', (event) => {
-        dropdownItems.forEach((item) => { if (!item.contains(event.target)) closeDropdown(item); });
-      });
-
-      const bottomMenuTrigger = document.getElementById('bottomMenuTrigger');
-      const bottomMenuPanel = document.getElementById('bottomMenuPanel');
-      const bottomMenuBackdrop = document.getElementById('bottomMenuBackdrop');
-      const menuLinks = bottomMenuPanel ? bottomMenuPanel.querySelectorAll('a.mobile-bottom-menu__item') : [];
-
-      if (!bottomMenuTrigger || !bottomMenuPanel || !bottomMenuBackdrop) return;
-
-      const openBottomMenu = () => {
-        bottomMenuPanel.hidden = false;
-        bottomMenuBackdrop.hidden = false;
-        bottomMenuTrigger.classList.add('mobile-bottom-nav__item--active');
-        bottomMenuTrigger.setAttribute('aria-expanded', 'true');
-        bottomMenuPanel.setAttribute('aria-hidden', 'false');
-      };
-
-      const closeBottomMenu = () => {
-        bottomMenuPanel.hidden = true;
-        bottomMenuBackdrop.hidden = true;
-        bottomMenuTrigger.classList.remove('mobile-bottom-nav__item--active');
-        bottomMenuTrigger.setAttribute('aria-expanded', 'false');
-        bottomMenuPanel.setAttribute('aria-hidden', 'true');
-      };
-
-      const toggleBottomMenu = () => {
-        if (bottomMenuPanel.hidden) {
-          openBottomMenu();
-          return;
-        }
-        closeBottomMenu();
-      };
-
-      bottomMenuTrigger.addEventListener('click', (event) => {
-        event.preventDefault();
-        toggleBottomMenu();
-      });
-
-      bottomMenuBackdrop.addEventListener('click', closeBottomMenu);
-
-      menuLinks.forEach((link) => {
-        link.addEventListener('click', () => {
-          closeBottomMenu();
-        });
-      });
-
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && !bottomMenuPanel.hidden) {
-          closeBottomMenu();
-        }
-      });
-    });
-
-    
-    function skeleton(el, count = 3) { if (!el) return; el.innerHTML = Array.from({ length: count }, () => '<div class="skeleton"></div>').join(''); }
-    function emptyState(el) { if (!el) return; el.innerHTML = '<div class="empty">No fixtures available today</div>'; }
+    function skeleton(el, count = 3) { el.innerHTML = Array.from({ length: count }, () => '<div class="skeleton"></div>').join(''); }
+    function emptyState(el) { el.innerHTML = '<div class="empty">No fixtures available today</div>'; }
 
     function parseCSV(text) {
       const rows = [];
@@ -618,24 +423,10 @@
     const csvCache = new Map();
     async function fetchCsv(url) {
       if (csvCache.has(url)) return csvCache.get(url);
-      const candidateUrls = [url, `${url}&cachebust=${Date.now()}`];
-      const promise = (async () => {
-        let lastError = null;
-        for (const candidate of candidateUrls) {
-          try {
-            console.info('[MCPredict] CSV fetch started', candidate);
-            const response = await fetch(candidate, { cache: 'no-store' });
-            if (!response.ok) throw new Error(`Failed to fetch CSV: ${response.status}`);
-            const text = await response.text();
-            console.info('[MCPredict] CSV fetch succeeded', candidate, 'bytes:', text.length);
-            return text;
-          } catch (error) {
-            console.warn('[MCPredict] CSV fetch failed', candidate, error);
-            lastError = error;
-          }
-        }
-        throw lastError || new Error('Failed to fetch CSV');
-      })();
+      const promise = fetch(url, { cache: 'force-cache' }).then((response) => {
+        if (!response.ok) throw new Error(`Failed to fetch CSV: ${response.status}`);
+        return response.text();
+      });
       csvCache.set(url, promise);
       return promise;
     }
@@ -746,7 +537,6 @@
           modelPrice: 3,
           value: 4
         });
-        console.info('[MCPredict] Homepage rows parsed', { bestValue: bestValueRows.length, highChance: highChanceRows.length, bestValueTarget: !!bestValueEl, highChanceTarget: !!highChanceEl });
         renderPickCards(bestValueEl, bestValueRows, 'value');
         renderPickCards(highChanceEl, highChanceRows, 'confidence');
       } catch (e) { emptyState(bestValueEl); emptyState(highChanceEl); }
@@ -780,7 +570,6 @@
         const remainingDuration = Math.max(0, 3000 - elapsed);
         animateNumberRoll(totalGamesEl, totalGamesAnalysed, remainingDuration);
         const categories = extractBestPerformingCategories(rows);
-        console.info('[MCPredict] WhatsHot parsed', { rows: rows.length, categories: categories.length, containerFound: !!el, totalGamesFound: !!totalGamesEl });
         if (!categories.length) {
           return emptyState(el);
         }
@@ -827,6 +616,5 @@
       }
     })();
   </script>
-  <script src="/site.js"></script>
 </body>
 </html>
