@@ -430,11 +430,11 @@
           fixturesContainer.insertAdjacentHTML('beforeend', `
             <article class="fixture">
               <div class="group-label">${fx.group} • ${fx.kickoff_time}</div>
-              <div class="team-home"><span>${fx.home_team}</span> <span class="team-code">${fx.home_team_code || ''}</span> <span class="team-flag" aria-hidden="true">${fx.home_flag || ''}</span></div>
+              <div class="team-home"><span>${fx.home_team}</span></div>
               <input class="score-input" data-key="${fx.fixture_id}:home" inputmode="numeric" maxlength="1" aria-label="${fx.home_team} score against ${fx.away_team}" ${isClosed() ? 'disabled' : ''}>
               <span class="score-sep">-</span>
               <input class="score-input" data-key="${fx.fixture_id}:away" inputmode="numeric" maxlength="1" aria-label="${fx.away_team} score against ${fx.home_team}" ${isClosed() ? 'disabled' : ''}>
-              <div class="team-away"><span class="team-flag" aria-hidden="true">${fx.away_flag || ''}</span> <span class="team-code">${fx.away_team_code || ''}</span> <span>${fx.away_team}</span></div>
+              <div class="team-away"><span>${fx.away_team}</span></div>
             </article>
           `);
         });
