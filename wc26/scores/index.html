@@ -92,6 +92,39 @@
       z-index: 1000;
     }
     .modal-overlay.open { display: flex; }
+    .wc26-loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 9, 12, 0.82);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1200;
+    }
+    .wc26-loading-overlay.open { display: flex; }
+    .wc26-loading-card {
+      width: min(420px, 100%);
+      text-align: center;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(145deg, rgba(48,49,56,.98), rgba(22,23,28,.98));
+      box-shadow: 0 16px 40px rgba(0,0,0,.45);
+      padding: 22px 16px;
+    }
+    .wc26-loading-trophy {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      display: inline-block;
+      animation: trophy-spin 1.8s linear infinite;
+      transform-origin: center;
+    }
+    @keyframes trophy-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      .wc26-loading-trophy { animation: none; }
+    }
+    .details-heading { margin: 0 0 8px; font-size: 1.06rem; color: #f3f6ff; }
+    .details-help { margin: 0 0 14px; color: var(--muted); }
     .success-modal {
       width: 100%;
       max-width: 460px;
@@ -159,6 +192,20 @@
     <form id="wc26Form" novalidate>
       <section class="card">
         <div id="globalMessages" aria-live="polite"></div>
+        <div class="hidden-hp" aria-hidden="true">
+          <label for="websiteInput">Website</label>
+          <input id="websiteInput" name="website" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="status" id="progressText">0 / 72 predictions completed</div>
+        <div id="fixtureWarnings"></div>
+        <div id="fixturesContainer"></div>
+      </section>
+      <section class="card">
+        <h2 class="details-heading">Your details</h2>
+        <p class="details-help">Add your details once you’ve completed your score predictions.</p>
         <div class="row">
           <label for="nameInput">Name</label>
           <input id="nameInput" name="name" type="text" required autocomplete="name" />
@@ -171,16 +218,6 @@
           <input id="consentInput" name="consent" type="checkbox" required />
           <label for="consentInput">I agree for MC Predict to store my name, email and predictions for the purpose of running this game.</label>
         </div>
-        <div class="hidden-hp" aria-hidden="true">
-          <label for="websiteInput">Website</label>
-          <input id="websiteInput" name="website" type="text" tabindex="-1" autocomplete="off" />
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="status" id="progressText">0 / 72 predictions completed</div>
-        <div id="fixtureWarnings"></div>
-        <div id="fixturesContainer"></div>
       </section>
 
       <section class="actions">
@@ -198,9 +235,15 @@
       <p>Please pay the entry fee to validate your entry.</p>
       <p><a href="/wc26/payment/" style="color:#9ec3ff;">Prefer card/bank options? View payment info.</a></p>
       <div class="modal-cta">
-        <a id="payNowBtn" class="pay-btn" href="https://paypal.me/statmatt14" target="_blank" rel="noopener noreferrer">Pay Now</a>
+        <a id="payNowBtn" class="pay-btn" href="https://revolut.me/matthe8f40?currency=GBP&amount=1000" target="_blank" rel="noopener noreferrer">Pay Now</a>
         <button type="button" class="secondary-btn" id="continueBtn">Continue</button>
       </div>
+    </div>
+  </div>
+  <div class="wc26-loading-overlay" id="loadingOverlay" role="status" aria-live="polite" aria-label="Submitting your scores to the Football gods...">
+    <div class="wc26-loading-card">
+      <div class="wc26-loading-trophy" aria-hidden="true">🏆</div>
+      <p>Submitting your scores to the Football gods...</p>
     </div>
   </div>
 
@@ -223,6 +266,7 @@
     const submitBtn = document.getElementById('submitBtn');
     const submitErrorArea = document.getElementById('submitErrorArea');
     const successModalOverlay = document.getElementById('successModalOverlay');
+    const loadingOverlay = document.getElementById('loadingOverlay');
     const modalSubmissionId = document.getElementById('modalSubmissionId');
     const continueBtn = document.getElementById('continueBtn');
 
@@ -252,6 +296,7 @@
     function showSubmitError(text) { renderMessage('error', text, submitErrorArea); }
     function clearSubmitError() { clearMessage(submitErrorArea); }
     function openSuccessModal(submissionId) {
+      loadingOverlay.classList.remove('open');
       modalSubmissionId.textContent = submissionId;
       successModalOverlay.classList.add('open');
       continueBtn.focus();
@@ -374,6 +419,7 @@
         return;
       }
       submitting = true;
+      loadingOverlay.classList.add('open');
       validate();
 
       const submissionId = generateSubmissionId();
@@ -407,6 +453,7 @@
         openSuccessModal(submissionId);
       } catch (error) {
         console.error('WC26 submission failed:', error);
+        loadingOverlay.classList.remove('open');
         showSubmitError('Unable to submit predictions right now. Please check your connection and try again.');
       } finally {
         submitting = false;
