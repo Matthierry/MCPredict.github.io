@@ -116,16 +116,20 @@
       box-shadow: 0 16px 40px rgba(0,0,0,.45);
       padding: 22px 16px;
     }
-    .wc26-loading-trophy {
-      font-size: 3rem;
-      margin-bottom: 10px;
+    .wc26-loading-logo {
+      width: min(180px, 62vw);
+      height: auto;
+      margin-bottom: 12px;
       display: inline-block;
-      animation: trophy-spin 1.8s linear infinite;
+      animation: wc26Pulse 1.4s ease-in-out infinite;
       transform-origin: center;
     }
-    @keyframes trophy-spin { to { transform: rotate(360deg); } }
+    @keyframes wc26Pulse {
+      0%, 100% { transform: scale(1); opacity: 0.92; }
+      50% { transform: scale(1.06); opacity: 1; }
+    }
     @media (prefers-reduced-motion: reduce) {
-      .wc26-loading-trophy { animation: none; }
+      .wc26-loading-logo { animation: none; }
     }
     .details-heading { margin: 0 0 8px; font-size: 1.06rem; color: #f3f6ff; }
     .details-help { margin: 0 0 14px; color: var(--muted); }
@@ -268,8 +272,7 @@
       <p>Your submission ID is <span class="submission-id" id="modalSubmissionId"></span>.</p>
       <p>Please check your email for confirmation. If you do not receive an email, contact MC Predict.</p>
       <p>Please pay the entry fee to validate your entry.</p>
-      <p><a href="/wc26/payment/" style="color:#9ec3ff;">Prefer card/bank options? View payment info.</a></p>
-      <div class="modal-cta">
+            <div class="modal-cta">
         <a id="payNowBtn" class="pay-btn" href="https://revolut.me/matthe8f40?currency=GBP&amount=1000" target="_blank" rel="noopener noreferrer">Pay Now</a>
         <button type="button" class="secondary-btn" id="continueBtn">Continue</button>
       </div>
@@ -277,7 +280,7 @@
   </div>
   <div class="wc26-loading-overlay" id="loadingOverlay" role="status" aria-live="polite" aria-label="Submitting your scores to the Football gods...">
     <div class="wc26-loading-card">
-      <div class="wc26-loading-trophy" aria-hidden="true">🏆</div>
+      <img src="/assets/wc26/fifa-world-cup-26-logo.svg" alt="" class="wc26-loading-logo" aria-hidden="true" />
       <p>Submitting your scores to the Football gods...</p>
     </div>
   </div>
