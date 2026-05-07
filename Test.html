@@ -163,7 +163,7 @@
     menuOverlay.addEventListener('click', (e) => { if (e.target === menuOverlay) menuOverlay.classList.remove('open'); });
 
     const HOMEPAGE_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=799163917&single=true&output=csv';
-    const WHATS_HOT_HTML = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pubhtml?gid=56710734&single=true';
+    const WHATS_HOT_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=56710734&single=true&output=csv';
 
     function skeleton(el, count = 3) { el.innerHTML = Array.from({ length: count }, () => '<div class="skeleton"></div>').join(''); }
     function emptyState(el) { el.innerHTML = '<div class="empty">No fixtures available today</div>'; }
@@ -221,35 +221,91 @@
       } catch (e) { emptyState(bestValueEl); emptyState(highChanceEl); }
     }
 
-    // Parse published Google Sheets HTML and map the known static row structure beneath the target heading.
-    function parseWhatsHotFromHtml(htmlText) {
-      const doc = new DOMParser().parseFromString(htmlText, 'text/html');
-      const rows = [...doc.querySelectorAll('tr')].map(tr => [...tr.querySelectorAll('td,th')].map(td => td.textContent.trim()));
-      const heading = 'BEST RETURN ON INVESTMENT (BEST FOR SINGLE BETS)';
-      const idx = rows.findIndex(r => r.join(' ').toUpperCase().includes(heading));
-      if (idx === -1) return [];
-      const result = [];
-      for (let i = idx + 1; i < rows.length && result.length < 3; i++) {
-        const r = rows[i].filter(Boolean);
-        if (!r.length) continue;
-        if (/BET\s*TYPE/i.test(r.join(' '))) continue;
-        // Static mapping fallback: last columns hold P/L and ROI in published grid.
-        const betType = r[0] || r[1] || '';
-        const value = r.find(v => /value/i.test(v)) || r[2] || '';
-        const pl = r.find(v => /[+-]?\d/.test(v) && (v.includes('£') || v.includes('$') || v.includes('%') === false)) || r[r.length - 2] || '';
-        const roi = r.find(v => /%/.test(v)) || r[r.length - 1] || '';
-        if (betType && !/^[0-9]+$/.test(betType)) result.push({ betType, value, pl, roi });
+    function normalizeRow(row) {
+      return row.map(cell => (cell || '').trim());
+    }
+
+    function findHeaderIndex(row, matcher) {
+      for (let i = 0; i < row.length; i++) {
+        if (matcher((row[i] || '').trim().toUpperCase())) return i;
       }
-      return result.slice(0, 3);
+      return -1;
+    }
+
+    function parseWhatsHotFromCsv(csvText) {
+      const rows = parseCSV(csvText).map(normalizeRow);
+      const nonEmptyRows = rows
+        .map((row, index) => ({ row, index }))
+        .filter(({ row }) => row.some(cell => cell));
+
+      const titleMatch = 'BEST RETURN ON INVESTMENT';
+      const titleRowMeta = nonEmptyRows.find(({ row }) =>
+        row.some(cell => cell.toUpperCase().includes(titleMatch))
+      );
+      if (!titleRowMeta) return { categories: [], diagnostics: { titleRow: -1, headerRow: -1 } };
+
+      let headerMeta = null;
+      for (let i = titleRowMeta.index + 1; i < rows.length; i++) {
+        const row = normalizeRow(rows[i]);
+        if (!row.some(cell => cell)) continue;
+        const upperRow = row.map(cell => cell.toUpperCase());
+        const hasRequired =
+          upperRow.some(cell => cell === 'BET TYPE') &&
+          upperRow.some(cell => cell === 'VALUE') &&
+          upperRow.some(cell => cell === 'BETS') &&
+          upperRow.some(cell => cell === 'AVG ODDS') &&
+          upperRow.some(cell => cell === 'WINS') &&
+          upperRow.some(cell => cell === 'HIT RATE') &&
+          upperRow.some(cell => cell.includes('P/L')) &&
+          upperRow.some(cell => cell.includes('ROI'));
+        if (hasRequired) {
+          headerMeta = { row, index: i };
+          break;
+        }
+      }
+
+      if (!headerMeta) return { categories: [], diagnostics: { titleRow: titleRowMeta.index, headerRow: -1 } };
+
+      const header = headerMeta.row.map(cell => cell.toUpperCase());
+      const betTypeIdx = findHeaderIndex(header, cell => cell === 'BET TYPE');
+      const valueIdx = findHeaderIndex(header, cell => cell === 'VALUE');
+      const plIdx = findHeaderIndex(header, cell => cell.includes('P/L'));
+      const roiIdx = findHeaderIndex(header, cell => cell === 'ROI' || cell.includes('ROI'));
+
+      if ([betTypeIdx, valueIdx, plIdx, roiIdx].some(i => i === -1)) {
+        return { categories: [], diagnostics: { titleRow: titleRowMeta.index, headerRow: headerMeta.index } };
+      }
+
+      const categories = [];
+      const extractedRows = [];
+      for (let i = headerMeta.index + 1; i < rows.length && categories.length < 3; i++) {
+        const row = normalizeRow(rows[i]);
+        if (!row.some(cell => cell)) continue;
+        const betType = row[betTypeIdx] || '';
+        const value = row[valueIdx] || '';
+        const pl = row[plIdx] || '';
+        const roi = row[roiIdx] || '';
+        if (!betType) continue;
+        if (/^BET\s*TYPE$/i.test(betType)) continue;
+        categories.push({ betType, value, pl, roi });
+        extractedRows.push(i);
+      }
+
+      return { categories, diagnostics: { titleRow: titleRowMeta.index, headerRow: headerMeta.index, extractedRows } };
     }
 
     async function loadWhatsHot() {
       const el = document.getElementById('whatsHotContent');
       skeleton(el, 3);
       try {
-        const html = await fetch(WHATS_HOT_HTML).then(r => r.text());
-        const categories = parseWhatsHotFromHtml(html);
-        if (!categories.length) return emptyState(el);
+        const csvText = await fetch(WHATS_HOT_CSV).then(r => r.text());
+        console.log('Whats Hot CSV raw:', csvText);
+        const { categories, diagnostics } = parseWhatsHotFromCsv(csvText);
+        if (!categories.length) {
+          console.warn('Whats Hot CSV parsed but no valid category rows were found.', diagnostics);
+          return emptyState(el);
+        }
+        console.log('Whats Hot CSV parsed successfully.', diagnostics);
         el.innerHTML = categories.map((c, i) => `
           <article class="rank-card">
             <div class="rank ${i === 0 ? 'top' : ''}">${i + 1}</div>
@@ -263,7 +319,10 @@
               </div>
             </div>
           </article>`).join('');
-      } catch (e) { emptyState(el); }
+      } catch (e) {
+        console.warn('Failed to fetch or parse Whats Hot CSV.', e);
+        emptyState(el);
+      }
     }
 
     loadHomepageSections();
