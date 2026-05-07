@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MC Predict | World Cup 2026 Predictions</title>
-  <link rel="stylesheet" href="../../style.css" />
+  <link rel="stylesheet" href="/style.css" />
   <style>
     :root {
       --bg: #161618;
@@ -146,7 +146,7 @@
 <body>
   <main class="wc26-page">
     <nav class="section-nav" aria-label="World Cup section">
-      <a href="/wc26">Menu</a><a href="/wc26/scores" class="active" aria-current="page">Submit Predictions</a><a href="/wc26/payment">Payment</a><a href="/wc26/rules">Rules</a><a href="/wc26/table">League Table</a><a href="/wc26/halloffame">Hall Of Fame</a>
+      <a href="/wc26/">Menu</a><a href="/wc26/scores/" class="active" aria-current="page">Submit Predictions</a><a href="/wc26/payment/">Payment</a><a href="/wc26/rules/">Rules</a><a href="/wc26/table/">League Table</a><a href="/wc26/halloffame/">Hall Of Fame</a>
     </nav>
 
     <section class="hero">
@@ -196,7 +196,7 @@
       <p>Your submission ID is <span class="submission-id" id="modalSubmissionId"></span>.</p>
       <p>Please check your email for confirmation. If you do not receive an email, contact MC Predict.</p>
       <p>Please pay the entry fee to validate your entry.</p>
-      <p><a href="/wc26/payment" style="color:#9ec3ff;">Prefer card/bank options? View payment info.</a></p>
+      <p><a href="/wc26/payment/" style="color:#9ec3ff;">Prefer card/bank options? View payment info.</a></p>
       <div class="modal-cta">
         <a id="payNowBtn" class="pay-btn" href="https://paypal.me/statmatt14" target="_blank" rel="noopener noreferrer">Pay Now</a>
         <button type="button" class="secondary-btn" id="continueBtn">Continue</button>
@@ -390,7 +390,7 @@
         email: emailInput.value.trim(),
         consent_given: consentInput.checked,
         website: websiteInput.value,
-        source_page: '/wc26/scores',
+        source_page: '/wc26/scores/',
         user_agent: navigator.userAgent,
         predictions
       };
