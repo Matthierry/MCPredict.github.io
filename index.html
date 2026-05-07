@@ -219,9 +219,12 @@
       }
 
       .mobile-bottom-nav__menu-trigger {
+        appearance: none;
+        -webkit-appearance: none;
         border: 0;
         background: transparent;
         font: inherit;
+        color: inherit;
         cursor: pointer;
         padding: 0;
       }
@@ -392,7 +395,7 @@
   </nav>
 
   <div class="mobile-bottom-menu-backdrop" id="bottomMenuBackdrop" hidden></div>
-  <section class="mobile-bottom-menu" id="bottomMenuPanel" aria-label="Mobile menu" hidden>
+  <section class="mobile-bottom-menu" id="bottomMenuPanel" aria-label="Mobile menu" aria-hidden="true" hidden>
     <a class="mobile-bottom-menu__item" data-nav-path="/" href="/">Home</a>
     <a class="mobile-bottom-menu__item" data-nav-path="/hda-value" href="/hda-value">Winner - Best Value</a>
     <a class="mobile-bottom-menu__item" data-nav-path="/hda-highchance" href="/hda-highchance">Winner - Highest Chance</a>
@@ -453,6 +456,58 @@
 
     document.getElementById('appleHomeBtn').addEventListener('click', () => {
       showHomeScreenInstructions('apple');
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bottomMenuTrigger = document.getElementById('bottomMenuTrigger');
+      const bottomMenuPanel = document.getElementById('bottomMenuPanel');
+      const bottomMenuBackdrop = document.getElementById('bottomMenuBackdrop');
+      const menuLinks = bottomMenuPanel ? bottomMenuPanel.querySelectorAll('a.mobile-bottom-menu__item') : [];
+
+      if (!bottomMenuTrigger || !bottomMenuPanel || !bottomMenuBackdrop) return;
+
+      const openBottomMenu = () => {
+        bottomMenuPanel.hidden = false;
+        bottomMenuBackdrop.hidden = false;
+        bottomMenuTrigger.classList.add('mobile-bottom-nav__item--active');
+        bottomMenuTrigger.setAttribute('aria-expanded', 'true');
+        bottomMenuPanel.setAttribute('aria-hidden', 'false');
+      };
+
+      const closeBottomMenu = () => {
+        bottomMenuPanel.hidden = true;
+        bottomMenuBackdrop.hidden = true;
+        bottomMenuTrigger.classList.remove('mobile-bottom-nav__item--active');
+        bottomMenuTrigger.setAttribute('aria-expanded', 'false');
+        bottomMenuPanel.setAttribute('aria-hidden', 'true');
+      };
+
+      const toggleBottomMenu = () => {
+        if (bottomMenuPanel.hidden) {
+          openBottomMenu();
+          return;
+        }
+        closeBottomMenu();
+      };
+
+      bottomMenuTrigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        toggleBottomMenu();
+      });
+
+      bottomMenuBackdrop.addEventListener('click', closeBottomMenu);
+
+      menuLinks.forEach((link) => {
+        link.addEventListener('click', () => {
+          closeBottomMenu();
+        });
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !bottomMenuPanel.hidden) {
+          closeBottomMenu();
+        }
+      });
     });
 
     
