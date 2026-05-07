@@ -25,8 +25,21 @@
       background: radial-gradient(circle at top left, #23262b, var(--bg) 45%);
       color: var(--text);
     }
-    .container { width: 100%; max-width: 430px; margin: 0 auto; padding: 12px 14px 34px; }
-    .site-header { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
+    .container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 12px 14px 34px; }
+    .site-header { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:16px; background:rgba(20,22,26,.95); box-shadow: var(--shadow); backdrop-filter: blur(8px);}
+    .desktop-nav { display:none; }
+    .desktop-nav__list { list-style:none; margin:0; padding:0; display:flex; align-items:center; gap:8px; }
+    .desktop-nav__link, .desktop-nav__toggle { border:1px solid transparent; background:transparent; color:#d6dbe4; text-decoration:none; padding:8px 12px; border-radius:10px; font-size:.86rem; font-weight:650; line-height:1.1; display:inline-flex; align-items:center; gap:6px; }
+    .desktop-nav__toggle { cursor:pointer; font: inherit; }
+    .desktop-nav__link:hover, .desktop-nav__link:focus-visible, .desktop-nav__toggle:hover, .desktop-nav__toggle:focus-visible { color:var(--text); border-color:rgba(247,147,26,.5); outline:none; }
+    .desktop-nav__link[aria-current="page"], .desktop-nav__toggle[aria-current="page"] { color:var(--accent); background:rgba(247,147,26,.1); border-color:rgba(247,147,26,.42);}
+    .desktop-nav__item { position:relative; }
+    .desktop-nav__item--dropdown .desktop-nav__menu { position:absolute; top:calc(100% + 8px); left:0; min-width:210px; border:1px solid var(--border); border-radius:12px; background:rgba(23,25,29,.98); box-shadow:var(--shadow); padding:8px; display:grid; gap:6px; }
+    .desktop-nav__menu[hidden] { display:none; }
+    .desktop-nav__menu a { text-decoration:none; color:var(--text); border:1px solid transparent; border-radius:9px; padding:8px 10px; font-size:.84rem; }
+    .desktop-nav__menu a:hover, .desktop-nav__menu a:focus-visible { border-color:rgba(247,147,26,.5); outline:none; color:var(--accent);}
+    .desktop-nav__link--disabled { opacity:.55; cursor:not-allowed; pointer-events:none; }
+    .desktop-nav__meta { font-size:.65rem; margin-left:6px; color:#95a0ae; font-weight:600; }
 
 
     .header {
@@ -119,6 +132,7 @@
     @media (min-width: 800px) {
       .angles-list { grid-template-columns: 1fr 1fr; }
       .angle-card.best { grid-column: 1 / -1; }
+      .angle-card:not(.best) { min-height: 100%; }
     }
     @media (max-width: 390px) {
       .angle-card { padding:10px; gap:8px; grid-template-columns:minmax(0,1fr) minmax(92px, 34%); }
@@ -155,11 +169,22 @@
     .social-footer small { color:var(--muted); }
 
     .mobile-bottom-nav { display:none; }
-    @media (min-width: 800px) {
-      .container { padding: 16px 18px 40px; }
-      .icon-grid { grid-template-columns: repeat(4,1fr); }
-      .split { grid-template-columns: 1fr 1fr; }
-      .hero h2 { font-size:1.9rem; }
+    @media (min-width: 768px) {
+      .container { padding: 20px 24px 44px; }
+      .site-header { padding: 12px 16px; }
+      .desktop-nav { display:block; }
+      .icon-grid { grid-template-columns: repeat(4, minmax(0,1fr)); gap:12px; }
+      .hero { padding:26px; }
+      .hero h2 { font-size:2rem; }
+      .section, .stat-card, .home-screen-module { padding:18px; }
+      .split { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:18px; }
+    }
+    @media (min-width: 1024px) {
+      .container { padding-inline: 30px; }
+      .hero { text-align:center; }
+      .hero p { max-width: 760px; margin:0 auto; }
+      .angles-list { grid-template-columns: 1.25fr 1fr; }
+      .icon-card { padding:14px; }
     }
     @media (max-width: 767px) {
       body {
@@ -304,6 +329,28 @@
       <img src="/images/mcpredcirclebg.png" alt="MCPredict logo">
       <div><h1>MCPredict</h1><p>Data-driven Football predictions</p></div>
     </a>
+    <nav class="desktop-nav" aria-label="Desktop primary navigation">
+      <ul class="desktop-nav__list">
+        <li><a class="desktop-nav__link" data-nav-path="/" href="/">Home</a></li>
+        <li class="desktop-nav__item desktop-nav__item--dropdown">
+          <button class="desktop-nav__toggle" type="button" aria-expanded="false" aria-haspopup="true">Winner</button>
+          <div class="desktop-nav__menu" hidden>
+            <a data-nav-path="/hda-value" href="/hda-value">Best Value</a>
+            <a data-nav-path="/hda-highchance" href="/hda-highchance">Highest Chance</a>
+          </div>
+        </li>
+        <li class="desktop-nav__item desktop-nav__item--dropdown">
+          <button class="desktop-nav__toggle" type="button" aria-expanded="false" aria-haspopup="true">U/O 2.5</button>
+          <div class="desktop-nav__menu" hidden>
+            <a data-nav-path="/uo-value" href="/uo-value">Best Value</a>
+            <a data-nav-path="/uo-highchance" href="/uo-highchance">Highest Chance</a>
+          </div>
+        </li>
+        <li><a class="desktop-nav__link" data-nav-path="/historical" href="/historical">Data</a></li>
+        <li><a class="desktop-nav__link" data-nav-path="/faqs" href="/faqs">FAQs</a></li>
+        <li><span class="desktop-nav__link desktop-nav__link--disabled" aria-disabled="true">World Cup 2026 <span class="desktop-nav__meta">Coming soon</span></span></li>
+      </ul>
+    </nav>
   </header>
 
     <section class="hero">
@@ -459,6 +506,44 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
+      const currentPath = window.location.pathname.replace(/\\/$/, '') || '/';
+      const navTargets = document.querySelectorAll('[data-nav-path]');
+      navTargets.forEach((item) => {
+        const itemPath = (item.getAttribute('data-nav-path') || '').replace(/\\/$/, '') || '/';
+        if (itemPath === currentPath) {
+          item.setAttribute('aria-current', 'page');
+          item.classList.add('mobile-bottom-nav__item--active', 'mobile-bottom-menu__item--active');
+        }
+      });
+
+      const dropdownItems = document.querySelectorAll('.desktop-nav__item--dropdown');
+      const closeDropdown = (item) => {
+        const btn = item.querySelector('.desktop-nav__toggle');
+        const menu = item.querySelector('.desktop-nav__menu');
+        if (!btn || !menu) return;
+        btn.setAttribute('aria-expanded', 'false');
+        menu.hidden = true;
+      };
+      const openDropdown = (item) => {
+        dropdownItems.forEach((other) => { if (other !== item) closeDropdown(other); });
+        const btn = item.querySelector('.desktop-nav__toggle');
+        const menu = item.querySelector('.desktop-nav__menu');
+        if (!btn || !menu) return;
+        btn.setAttribute('aria-expanded', 'true');
+        menu.hidden = false;
+      };
+      dropdownItems.forEach((item) => {
+        const btn = item.querySelector('.desktop-nav__toggle');
+        const menu = item.querySelector('.desktop-nav__menu');
+        if (!btn || !menu) return;
+        if (menu.querySelector('[aria-current="page"]')) btn.setAttribute('aria-current', 'page');
+        btn.addEventListener('click', () => (menu.hidden ? openDropdown(item) : closeDropdown(item)));
+        item.addEventListener('focusout', (event) => { if (!item.contains(event.relatedTarget)) closeDropdown(item); });
+      });
+      document.addEventListener('click', (event) => {
+        dropdownItems.forEach((item) => { if (!item.contains(event.target)) closeDropdown(item); });
+      });
+
       const bottomMenuTrigger = document.getElementById('bottomMenuTrigger');
       const bottomMenuPanel = document.getElementById('bottomMenuPanel');
       const bottomMenuBackdrop = document.getElementById('bottomMenuBackdrop');
