@@ -69,10 +69,8 @@
 
     .section { margin-top:16px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; }
     .stat-card { margin-top:16px; background:linear-gradient(145deg, rgba(247,147,26,.12), rgba(26,28,31,.96)); border:1px solid rgba(247,147,26,.35); border-radius:16px; padding:14px; box-shadow: var(--shadow); }
-    .stat-card__accent { width:34px; height:34px; border-radius:10px; border:1px solid rgba(247,147,26,.45); background:rgba(247,147,26,.14); display:grid; place-items:center; color:var(--accent); font-size:1rem; margin-bottom:12px; }
     .stat-card__label { margin:0; color:var(--muted); font-size:.83rem; letter-spacing:.02em; }
     .stat-card__value { margin:8px 0 0; font-size:2rem; line-height:1.1; font-weight:800; color:var(--text); word-break:break-word; }
-    .stat-card__support { margin:8px 0 0; color:#8f98a5; font-size:.78rem; }
     .section-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px; }
     .section-head h3 { margin:0; font-size:1.02rem; }
     .section-sub { margin:6px 0 0; color:var(--muted); font-size:.8rem; line-height:1.45; }
@@ -131,6 +129,25 @@
     .empty { border:1px dashed var(--border); border-radius:12px; color:var(--muted); padding:14px; text-align:center; }
 
     .split { display:grid; gap:16px; }
+    .home-screen-module { margin-top:16px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; }
+    .home-screen-module h3 { margin:0; font-size:1.02rem; }
+    .home-screen-module p { margin:6px 0 0; color:var(--muted); font-size:.84rem; }
+    .home-screen-actions { margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .home-screen-button { width:100%; border:1px solid var(--border); background:var(--card-2); color:var(--text); border-radius:12px; padding:10px; display:flex; align-items:center; gap:10px; font-weight:700; cursor:pointer; text-align:left; }
+    .home-screen-button:hover, .home-screen-button:focus-visible { border-color:rgba(247,147,26,.6); outline:none; box-shadow:0 0 0 2px rgba(247,147,26,.18); }
+    .home-screen-icon { width:22px; height:22px; color:var(--accent); flex:0 0 auto; }
+    .home-screen-modal { position:fixed; inset:0; background:rgba(9,10,12,.72); display:none; align-items:flex-end; justify-content:center; z-index:110; padding:14px; }
+    .home-screen-modal.open { display:flex; }
+    .home-screen-modal__card { width:100%; max-width:460px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; box-shadow:var(--shadow); }
+    .home-screen-modal__top { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+    .home-screen-modal__title { margin:0; font-size:1rem; }
+    .home-screen-modal__close { border:1px solid var(--border); background:transparent; color:var(--text); width:36px; height:36px; border-radius:10px; cursor:pointer; }
+    .home-screen-modal ol { margin:10px 0 0 18px; color:var(--muted); padding:0; display:grid; gap:7px; font-size:.88rem; }
+    .social-footer { margin-top:14px; display:flex; align-items:center; justify-content:center; gap:10px; }
+    .social-link { display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:999px; border:1px solid var(--border); color:#d0d4db; background:var(--card); transition:border-color .2s ease,color .2s ease; }
+    .social-link:hover, .social-link:focus-visible { color:var(--accent); border-color:rgba(247,147,26,.6); outline:none; }
+    .social-link svg { width:18px; height:18px; fill:currentColor; }
+    .social-footer small { color:var(--muted); }
     @media (min-width: 800px) {
       .container { padding: 16px 18px 40px; }
       .icon-grid { grid-template-columns: repeat(4,1fr); }
@@ -182,14 +199,12 @@
     </section>
 
     <section class="stat-card" aria-live="polite" aria-atomic="true">
-      <div class="stat-card__accent" aria-hidden="true">📊</div>
       <p class="stat-card__label">Total games analysed by the model</p>
       <p class="stat-card__value" id="totalGamesAnalysedValue">—</p>
-      <p class="stat-card__support">Across historical model results</p>
     </section>
 
     <section class="section" id="whatsHotSection">
-      <div class="section-head"><div><h3>Best Performing Angles</h3><p class="section-sub">Historical returns based on £10 single stakes</p></div><a class="pill-cta" href="/historical">See all</a></div>
+      <div class="section-head"><div><h3>Best Performing Strategies</h3><p class="section-sub">Historical returns based on £10 single stakes</p></div><a class="pill-cta" href="/historical">See all</a></div>
       <div id="whatsHotContent"></div>
     </section>
 
@@ -204,6 +219,38 @@
         <div id="highChanceContent"></div>
       </section>
     </div>
+
+    <section class="home-screen-module" aria-label="Add to home screen">
+      <h3>Add to home screen</h3>
+      <p>Save MCPredict for quick access on your phone.</p>
+      <div class="home-screen-actions">
+        <button class="home-screen-button" id="androidHomeBtn" type="button">
+          <svg class="home-screen-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.2 7.2h9.6a1 1 0 0 1 1 1V16a2 2 0 0 1-2 2h-.8v2.2a.8.8 0 1 1-1.6 0V18h-2.8v2.2a.8.8 0 1 1-1.6 0V18h-.8a2 2 0 0 1-2-2V8.2a1 1 0 0 1 1-1Zm-.7-2.5.9.5 1-1.8a.5.5 0 0 1 .9.4L8.2 5.7h7.6L14.7 3.8a.5.5 0 1 1 .9-.4l1 1.8.9-.5a.5.5 0 1 1 .5.9l-1 .6a2.8 2.8 0 0 1 1.8 2.6v.3a.7.7 0 0 1-1.4 0v-.3A1.4 1.4 0 0 0 16 7.4H8A1.4 1.4 0 0 0 6.6 8.8v.3a.7.7 0 0 1-1.4 0v-.3A2.8 2.8 0 0 1 7 6.2l-1-.6a.5.5 0 1 1 .5-.9Z"/></svg>
+          <span>Android</span>
+        </button>
+        <button class="home-screen-button" id="appleHomeBtn" type="button">
+          <svg class="home-screen-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.2 12.8c0-2 1.6-3 1.7-3.1-1-1.4-2.5-1.6-3-1.6-1.3-.1-2.4.8-3.1.8-.7 0-1.7-.8-2.8-.8-1.5 0-2.9.9-3.7 2.3-1.6 2.7-.4 6.7 1.2 8.9.8 1.1 1.7 2.4 2.9 2.3 1.1 0 1.6-.7 3-.7 1.4 0 1.8.7 3 .7 1.3 0 2.1-1.1 2.9-2.2.9-1.3 1.3-2.6 1.3-2.6 0 0-2.4-.9-2.4-4Zm-2.2-6c.6-.8 1-2 .9-3.1-1 .1-2.2.7-2.9 1.5-.6.7-1.1 1.9-.9 3 1.1.1 2.2-.6 2.9-1.4Z"/></svg>
+          <span>iPhone</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="social-footer">
+      <a class="social-link" href="https://x.com/mc_predict" target="_blank" rel="noopener noreferrer" aria-label="Follow MC Predict on X">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2H22l-6.8 7.8L23 22h-6.1l-4.8-6.3L6.6 22H3.5l7.2-8.2L1 2h6.2l4.3 5.7L18.9 2Zm-1.1 18h1.7L6.3 3.9H4.5L17.8 20Z"/></svg>
+      </a>
+      <small>Follow MC Predict</small>
+    </div>
+  </div>
+
+  <div class="home-screen-modal" id="homeScreenModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="homeScreenModalTitle">
+    <div class="home-screen-modal__card">
+      <div class="home-screen-modal__top">
+        <h4 class="home-screen-modal__title" id="homeScreenModalTitle">Add to home screen</h4>
+        <button class="home-screen-modal__close" id="closeHomeScreenModal" type="button" aria-label="Close instructions">✕</button>
+      </div>
+      <ol id="homeScreenSteps"></ol>
+    </div>
   </div>
 
   <script>
@@ -214,6 +261,53 @@
 
     const HOMEPAGE_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=799163917&single=true&output=csv';
     const WHATS_HOT_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=56710734&single=true&output=csv';
+    let deferredInstallPrompt = null;
+    const homeScreenModal = document.getElementById('homeScreenModal');
+    const homeScreenSteps = document.getElementById('homeScreenSteps');
+    const homeScreenModalTitle = document.getElementById('homeScreenModalTitle');
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+    });
+
+    function showHomeScreenInstructions(platform) {
+      const isApple = platform === 'apple';
+      homeScreenModalTitle.textContent = isApple ? 'Add MCPredict to your iPhone' : 'Add MCPredict to your Android home screen';
+      const steps = isApple
+        ? ['Open MCPredict in Safari', 'Tap the Share icon', 'Tap Add to Home Screen', 'Tap Add']
+        : ['Open MCPredict in Chrome', 'Tap the menu icon', 'Tap Add to Home screen or Install app', 'Confirm'];
+      homeScreenSteps.innerHTML = steps.map((step) => `<li>${step}</li>`).join('');
+      homeScreenModal.classList.add('open');
+      homeScreenModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeHomeScreenModal() {
+      homeScreenModal.classList.remove('open');
+      homeScreenModal.setAttribute('aria-hidden', 'true');
+    }
+
+    document.getElementById('closeHomeScreenModal').addEventListener('click', closeHomeScreenModal);
+    homeScreenModal.addEventListener('click', (event) => {
+      if (event.target === homeScreenModal) closeHomeScreenModal();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && homeScreenModal.classList.contains('open')) closeHomeScreenModal();
+    });
+
+    document.getElementById('androidHomeBtn').addEventListener('click', async () => {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        return;
+      }
+      showHomeScreenInstructions('android');
+    });
+
+    document.getElementById('appleHomeBtn').addEventListener('click', () => {
+      showHomeScreenInstructions('apple');
+    });
 
     function skeleton(el, count = 3) { el.innerHTML = Array.from({ length: count }, () => '<div class="skeleton"></div>').join(''); }
     function emptyState(el) { el.innerHTML = '<div class="empty">No fixtures available today</div>'; }
