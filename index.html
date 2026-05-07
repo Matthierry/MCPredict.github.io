@@ -596,8 +596,8 @@
     });
 
     
-    function skeleton(el, count = 3) { el.innerHTML = Array.from({ length: count }, () => '<div class="skeleton"></div>').join(''); }
-    function emptyState(el) { el.innerHTML = '<div class="empty">No fixtures available today</div>'; }
+    function skeleton(el, count = 3) { if (!el) return; el.innerHTML = Array.from({ length: count }, () => '<div class="skeleton"></div>').join(''); }
+    function emptyState(el) { if (!el) return; el.innerHTML = '<div class="empty">No fixtures available today</div>'; }
 
     function parseCSV(text) {
       const rows = [];
@@ -618,10 +618,24 @@
     const csvCache = new Map();
     async function fetchCsv(url) {
       if (csvCache.has(url)) return csvCache.get(url);
-      const promise = fetch(url, { cache: 'force-cache' }).then((response) => {
-        if (!response.ok) throw new Error(`Failed to fetch CSV: ${response.status}`);
-        return response.text();
-      });
+      const candidateUrls = [url, `${url}&cachebust=${Date.now()}`];
+      const promise = (async () => {
+        let lastError = null;
+        for (const candidate of candidateUrls) {
+          try {
+            console.info('[MCPredict] CSV fetch started', candidate);
+            const response = await fetch(candidate, { cache: 'no-store' });
+            if (!response.ok) throw new Error(`Failed to fetch CSV: ${response.status}`);
+            const text = await response.text();
+            console.info('[MCPredict] CSV fetch succeeded', candidate, 'bytes:', text.length);
+            return text;
+          } catch (error) {
+            console.warn('[MCPredict] CSV fetch failed', candidate, error);
+            lastError = error;
+          }
+        }
+        throw lastError || new Error('Failed to fetch CSV');
+      })();
       csvCache.set(url, promise);
       return promise;
     }
@@ -732,6 +746,7 @@
           modelPrice: 3,
           value: 4
         });
+        console.info('[MCPredict] Homepage rows parsed', { bestValue: bestValueRows.length, highChance: highChanceRows.length, bestValueTarget: !!bestValueEl, highChanceTarget: !!highChanceEl });
         renderPickCards(bestValueEl, bestValueRows, 'value');
         renderPickCards(highChanceEl, highChanceRows, 'confidence');
       } catch (e) { emptyState(bestValueEl); emptyState(highChanceEl); }
@@ -765,6 +780,7 @@
         const remainingDuration = Math.max(0, 3000 - elapsed);
         animateNumberRoll(totalGamesEl, totalGamesAnalysed, remainingDuration);
         const categories = extractBestPerformingCategories(rows);
+        console.info('[MCPredict] WhatsHot parsed', { rows: rows.length, categories: categories.length, containerFound: !!el, totalGamesFound: !!totalGamesEl });
         if (!categories.length) {
           return emptyState(el);
         }
