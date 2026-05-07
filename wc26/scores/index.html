@@ -43,7 +43,7 @@
     .note { margin-top: 10px; font-size: .95rem; color: #d8e2ff; }
     .card { padding: 16px; margin-bottom: 12px; }
     label { display:block; font-weight:600; margin-bottom:6px; }
-    input[type="text"], input[type="email"] {
+    input[type="text"], input[type="email"], input[type="number"] {
       width: 100%; padding: 11px 12px; border-radius: 10px;
       border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
     }
@@ -70,8 +70,12 @@
       margin-bottom: 8px;
     }
     .group-label { grid-column: 1 / -1; font-size: .74rem; text-transform: uppercase; color: #9ec3ff; letter-spacing: .08em; }
-    .team-home, .team-away { font-size: .92rem; }
+    .team-home, .team-away { font-size: .92rem; display:flex; align-items:center; gap:6px; }
     .team-away { text-align: right; }
+    .team-home { justify-content: flex-start; }
+    .team-away { justify-content: flex-end; }
+    .team-flag { line-height: 1; font-family: "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif; font-size: 1.05em; }
+    .team-code { color: var(--muted); font-size: .78rem; letter-spacing: .03em; }
     .score-input {
       width: 42px; height: 42px; text-align:center; font-size: 1.1rem;
       border-radius: 10px; border: 1px solid rgba(255,255,255,.25);
@@ -241,6 +245,10 @@
           <label for="emailInput">Email address</label>
           <input id="emailInput" name="email" type="email" required autocomplete="email" />
         </div>
+        <div class="row">
+          <label for="tieBreakerInput">Tie-breaker - How many goals will be scored in the group stages?</label>
+          <input id="tieBreakerInput" name="group_stage_goals_tiebreaker" type="number" min="1" max="499" step="1" inputmode="numeric" required placeholder="172" />
+        </div>
         <div class="row consent-row">
           <input id="consentInput" name="consent" type="checkbox" required />
           <label for="consentInput">I agree for MC Predict to store my name, email and predictions for the purpose of running this game.</label>
@@ -284,6 +292,7 @@
     const form = document.getElementById('wc26Form');
     const nameInput = document.getElementById('nameInput');
     const emailInput = document.getElementById('emailInput');
+    const tieBreakerInput = document.getElementById('tieBreakerInput');
     const consentInput = document.getElementById('consentInput');
     const websiteInput = document.getElementById('websiteInput');
     const fixturesContainer = document.getElementById('fixturesContainer');
@@ -333,7 +342,7 @@
     function saveLocal() {
       const predictions = {};
       scoreInputs.forEach(input => { predictions[input.dataset.key] = input.value; });
-      const payload = { name: nameInput.value, email: emailInput.value, consent: consentInput.checked, predictions };
+      const payload = { name: nameInput.value, email: emailInput.value, group_stage_goals_tiebreaker: tieBreakerInput.value, consent: consentInput.checked, predictions };
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
     }
 
@@ -344,6 +353,7 @@
         const data = JSON.parse(raw);
         nameInput.value = data.name || '';
         emailInput.value = data.email || '';
+        tieBreakerInput.value = data.group_stage_goals_tiebreaker || '';
         consentInput.checked = Boolean(data.consent);
         scoreInputs.forEach(input => input.value = data.predictions?.[input.dataset.key] || '');
       } catch (e) { console.warn('Restore failed', e); }
@@ -361,10 +371,12 @@
 
     function validate(show = false) {
       const errs = [];
+      const tieBreakerValue = tieBreakerInput.value.trim();
       if (!fixtures.length) errs.push('Fixtures are still loading.');
       if (fixtures.length && fixtures.length !== REQUIRED_FIXTURE_COUNT) errs.push(`Expected 72 fixtures but loaded ${fixtures.length}.`);
       if (!nameInput.value.trim()) errs.push('Please enter your name.');
       if (!validEmail(emailInput.value)) errs.push('Please enter a valid email address.');
+      if (!/^[1-9]\d*$/.test(tieBreakerValue) || Number(tieBreakerValue) > 499) errs.push('Please enter your tie-breaker prediction for total group-stage goals.');
       if (!consentInput.checked) errs.push('Please confirm the consent checkbox before submitting.');
       if (websiteInput.value.trim()) errs.push('Spam check failed. Please refresh and try again.');
       if (completedCount() !== REQUIRED_FIXTURE_COUNT) errs.push('Please complete all 72 predictions before submitting.');
@@ -418,11 +430,11 @@
           fixturesContainer.insertAdjacentHTML('beforeend', `
             <article class="fixture">
               <div class="group-label">${fx.group} • ${fx.kickoff_time}</div>
-              <div class="team-home">${fx.home_team} ${fx.home_flag}</div>
+              <div class="team-home"><span>${fx.home_team}</span> <span class="team-code">${fx.home_team_code || ''}</span> <span class="team-flag" aria-hidden="true">${fx.home_flag || ''}</span></div>
               <input class="score-input" data-key="${fx.fixture_id}:home" inputmode="numeric" maxlength="1" aria-label="${fx.home_team} score against ${fx.away_team}" ${isClosed() ? 'disabled' : ''}>
               <span class="score-sep">-</span>
               <input class="score-input" data-key="${fx.fixture_id}:away" inputmode="numeric" maxlength="1" aria-label="${fx.away_team} score against ${fx.home_team}" ${isClosed() ? 'disabled' : ''}>
-              <div class="team-away">${fx.away_flag} ${fx.away_team}</div>
+              <div class="team-away"><span class="team-flag" aria-hidden="true">${fx.away_flag || ''}</span> <span class="team-code">${fx.away_team_code || ''}</span> <span>${fx.away_team}</span></div>
             </article>
           `);
         });
@@ -461,6 +473,7 @@
         submitted_at_client: new Date().toISOString(),
         name: nameInput.value.trim(),
         email: emailInput.value.trim(),
+        group_stage_goals_tiebreaker: Number(tieBreakerInput.value.trim()),
         consent_given: consentInput.checked,
         website: websiteInput.value,
         source_page: '/wc26/scores/',
