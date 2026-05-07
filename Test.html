@@ -77,25 +77,24 @@
     @keyframes shimmer { 0% { background-position:100% 0;} 100%{ background-position:0 0;} }
 
     .angles-list { display:grid; gap:10px; }
-    .angle-card { border:1px solid var(--border); border-radius:14px; padding:12px; background:var(--card-2); display:grid; gap:10px; }
+    .angle-card { border:1px solid var(--border); border-radius:14px; padding:12px; background:var(--card-2); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:start; }
     .angle-card.best { border-color: rgba(247,147,26,.6); box-shadow: inset 0 0 0 1px rgba(247,147,26,.25), 0 0 20px rgba(247,147,26,.12); }
-    .angle-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-    .angle-head-main { min-width: 0; flex: 1; }
-    .angle-head-right { display:flex; align-items:flex-start; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+    .angle-card__left { min-width:0; }
+    .angle-card__right { display:grid; justify-items:end; gap:18px; min-width:120px; }
+    .angle-card__top-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
     .rank-badge { min-width:34px; height:34px; border-radius:11px; display:grid; place-items:center; background:#2a2d33; color:#d7dbe2; font-weight:700; }
     .angle-card.best .rank-badge { min-width:40px; height:40px; color:var(--accent); background:rgba(247,147,26,.2); border:1px solid rgba(247,147,26,.45); }
     .best-performer { font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); font-weight:800; }
     .angle-title { font-size:1rem; font-weight:700; margin-top:2px; }
-    .metric-line { display:grid; gap:4px; }
+    .angle-metrics { text-align:right; display:grid; gap:5px; }
     .roi-hero { font-size:1rem; font-weight:800; color:#9adfb5; white-space:nowrap; }
-    .profit-support { font-size:.86rem; font-weight:700; color:var(--muted); white-space:nowrap; }
+    .profit-support { font-size:.83rem; font-weight:700; color:var(--muted); white-space:nowrap; }
     .profit-support.pos { color:#b9d9c6; }
     .badge { display:inline-flex; align-items:center; gap:6px; width:max-content; font-size:.72rem; padding:4px 9px; border-radius:999px; font-weight:700; border:1px solid var(--border); background:#282c32; color:#d7dde7; white-space:nowrap; }
-    .value-badge { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 9px; font-size:11px; font-weight:800; line-height:1; white-space:nowrap; max-width:100%; }
-    .angle-stats { display:flex; flex-wrap:wrap; align-items:center; gap:4px; color:var(--muted); font-size:13px; }
-    .angle-stats strong { color:var(--text); font-weight:800; }
-    .angle-stats span span { color:var(--muted); }
-    .angle-stats .dot { color:var(--muted); opacity:.7; }
+    .value-badge { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 9px; font-size:11px; font-weight:800; line-height:1; white-space:nowrap; max-width:150px; overflow:hidden; text-overflow:ellipsis; }
+    .angle-stats--stacked { display:grid; gap:4px; margin-top:14px; font-size:13px; line-height:1.25; }
+    .angle-stats--stacked strong { color:var(--text); font-weight:800; }
+    .angle-stats--stacked span { color:var(--muted); }
     .badge-strong { color:#8df0b3; border-color:rgba(51,196,110,.5); background:rgba(51,196,110,.16); }
     .badge-good { color:#a3e7bf; border-color:rgba(51,196,110,.35); background:rgba(51,196,110,.1); }
     .badge-value { color:#d4e8dc; }
@@ -114,9 +113,11 @@
       .angles-list { grid-template-columns: 1fr 1fr; }
       .angle-card.best { grid-column: 1 / -1; }
     }
-    @media (max-width: 420px) {
-      .angle-head-right { max-width: 48%; }
-      .value-badge { white-space:normal; }
+    @media (max-width: 370px) {
+      .angle-card { grid-template-columns:minmax(0,1fr) 118px; gap:8px; }
+      .value-badge { font-size:10px; padding:5px 7px; max-width:112px; }
+      .angle-title, .roi-hero { font-size:15px; }
+      .profit-support, .angle-stats--stacked { font-size:12px; }
     }
 
     .mini-table { width:100%; border-collapse:collapse; font-size:.84rem; }
@@ -346,27 +347,25 @@
           const badge = getValueBadgeContent(c.value);
           return `
           <article class="angle-card ${i === 0 ? 'best' : ''}">
-            <div class="angle-head">
-              <div class="angle-head-main">
+              <div class="angle-card__left">
                 ${i === 0 ? '<div class="best-performer">Best Performer</div>' : ''}
                 <div class="angle-title">${c.betType || '-'}</div>
+                <div class="angle-stats angle-stats--stacked">
+                  <div><strong>${c.bets || '-'}</strong> <span>bets</span></div>
+                  <div><strong>${c.hitRate || '-'}</strong> <span>hit rate</span></div>
+                  <div><strong>${c.avgOdds || '-'}</strong> <span>avg odds</span></div>
+                </div>
               </div>
-              <div class="angle-head-right">
-                <span class="${getValueBadgeClass(c.value)} value-badge"><span>${badge.indicator}</span><span>${badge.label}</span></span>
-                <div class="rank-badge">${c.rank}</div>
+              <div class="angle-card__right">
+                <div class="angle-card__top-actions">
+                  <span class="${getValueBadgeClass(c.value)} value-badge"><span>${badge.indicator}</span><span>${badge.label}</span></span>
+                  <div class="rank-badge">${c.rank}</div>
+                </div>
+                <div class="angle-metrics">
+                  <span class="roi-hero ${cleanCell(c.roi).includes('-') ? 'neg' : ''}">${c.roi || '-'} ROI</span>
+                  <span class="profit-support ${isNeg ? 'neg' : 'pos'}">${profitText}</span>
+                </div>
               </div>
-            </div>
-            <div class="metric-line">
-              <span class="roi-hero ${cleanCell(c.roi).includes('-') ? 'neg' : ''}">${c.roi || '-'} ROI</span>
-              <span class="profit-support ${isNeg ? 'neg' : 'pos'}">${profitText}</span>
-            </div>
-            <div class="angle-stats">
-              <span><strong>${c.bets || '-'}</strong> <span>bets</span></span>
-              <span class="dot">·</span>
-              <span><strong>${c.hitRate || '-'}</strong> <span>hit rate</span></span>
-              <span class="dot">·</span>
-              <span><strong>${c.avgOdds || '-'}</strong> <span>avg odds</span></span>
-            </div>
           </article>`;
         }).join('')}</div>`;
       } catch (e) {
