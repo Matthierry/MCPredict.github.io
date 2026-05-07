@@ -86,12 +86,10 @@
     .angle-card.best .rank-badge { min-width:40px; height:40px; color:var(--accent); background:rgba(247,147,26,.2); border:1px solid rgba(247,147,26,.45); }
     .best-performer { font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); font-weight:800; }
     .angle-title { font-size:1rem; font-weight:700; margin-top:2px; }
-    .metric-line { display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; }
-    .profit-hero { font-size:1.3rem; font-weight:800; color:var(--text); }
-    .angle-card.best .profit-hero { font-size:1.38rem; }
-    .roi-hero { font-size:.92rem; font-weight:800; color:#9adfb5; white-space:nowrap; }
-    .metric-support { color:var(--muted); font-size:.82rem; }
-    .metric-support span { white-space:nowrap; }
+    .metric-line { display:grid; gap:4px; }
+    .roi-hero { font-size:1rem; font-weight:800; color:#9adfb5; white-space:nowrap; }
+    .profit-support { font-size:.86rem; font-weight:700; color:var(--muted); white-space:nowrap; }
+    .profit-support.pos { color:#b9d9c6; }
     .badge { display:inline-flex; align-items:center; gap:6px; width:max-content; font-size:.72rem; padding:4px 9px; border-radius:999px; font-weight:700; border:1px solid var(--border); background:#282c32; color:#d7dde7; white-space:nowrap; }
     .value-badge { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 9px; font-size:11px; font-weight:800; line-height:1; white-space:nowrap; max-width:100%; }
     .angle-stats { display:flex; flex-wrap:wrap; align-items:center; gap:4px; color:var(--muted); font-size:13px; }
@@ -359,8 +357,8 @@
               </div>
             </div>
             <div class="metric-line">
-              <span class="profit-hero ${isNeg ? 'neg' : 'pos'}">${profitText}</span>
               <span class="roi-hero ${cleanCell(c.roi).includes('-') ? 'neg' : ''}">${c.roi || '-'} ROI</span>
+              <span class="profit-support ${isNeg ? 'neg' : 'pos'}">${profitText}</span>
             </div>
             <div class="angle-stats">
               <span><strong>${c.bets || '-'}</strong> <span>bets</span></span>
