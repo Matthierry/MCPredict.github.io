@@ -185,25 +185,26 @@
       return rows.map(r => r.map(v => v.replace(/^"|"$/g, '').trim()));
     }
 
-    // Extract rows below a known section title until empty row or next all-caps section row.
-    function extractSectionRows(rows, title) {
-      const idx = rows.findIndex(r => (r[0] || '').toUpperCase() === title);
-      if (idx === -1) return [];
-      const out = [];
-      for (let i = idx + 1; i < rows.length; i++) {
-        const r = rows[i];
-        const first = (r[0] || '').trim();
-        if (!first && !(r[1] || '').trim()) break;
-        if (/^[A-Z\s]+$/.test(first) && first.length > 2) break;
-        if (/fixture/i.test(first)) continue;
-        if (r.some(c => c.trim())) out.push(r);
-      }
-      return out;
+    function cleanCell(value) {
+      return (value || '').trim();
     }
 
-    function renderPredictionTable(el, rows, headers) {
+    function extractFixedRangeRows(rows, startRowIndex, endRowIndex, columnMap) {
+      return rows
+        .slice(startRowIndex, endRowIndex + 1)
+        .map(row => ({
+          fixture: cleanCell(row[columnMap.fixture]),
+          bookiePrice: cleanCell(row[columnMap.bookiePrice]),
+          modelPrice: cleanCell(row[columnMap.modelPrice]),
+          confidence: columnMap.confidence !== undefined ? cleanCell(row[columnMap.confidence]) : undefined,
+          value: columnMap.value !== undefined ? cleanCell(row[columnMap.value]) : undefined
+        }))
+        .filter(item => item.fixture);
+    }
+
+    function renderPredictionTable(el, rows, headers, fields) {
       if (!rows.length) return emptyState(el);
-      const body = rows.map(r => `<tr>${headers.map((_, i) => `<td>${r[i] || ''}</td>`).join('')}</tr>`).join('');
+      const body = rows.map(r => `<tr>${fields.map(field => `<td>${r[field] || ''}</td>`).join('')}</tr>`).join('');
       el.innerHTML = `<table class="mini-table"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>`;
     }
 
@@ -214,10 +215,23 @@
       try {
         const csv = await fetch(HOMEPAGE_CSV).then(r => r.text());
         const rows = parseCSV(csv);
-        const bestValue = extractSectionRows(rows, 'BEST VALUE');
-        const highChance = extractSectionRows(rows, 'HIGH CHANCE');
-        renderPredictionTable(bestValueEl, bestValue, ['Fixture', 'Bookie Price', 'Model Price', 'Value']);
-        renderPredictionTable(highChanceEl, highChance, ['Fixture', 'Bookie Price', 'Model Price', 'Confidence']);
+        const highChanceRows = extractFixedRangeRows(rows, 6, 10, {
+          fixture: 1,
+          bookiePrice: 2,
+          modelPrice: 3,
+          confidence: 4
+        });
+        const bestValueRows = extractFixedRangeRows(rows, 16, 20, {
+          fixture: 1,
+          bookiePrice: 2,
+          modelPrice: 3,
+          value: 4
+        });
+        console.log('Homepage Data CSV parsed rows:', rows);
+        console.log('Fixed HIGH CHANCE rows B7:E11:', highChanceRows);
+        console.log('Fixed BEST VALUE rows B17:E21:', bestValueRows);
+        renderPredictionTable(bestValueEl, bestValueRows, ['Fixture', 'Bookie Price', 'Model Price', 'Value'], ['fixture', 'bookiePrice', 'modelPrice', 'value']);
+        renderPredictionTable(highChanceEl, highChanceRows, ['Fixture', 'Bookie Price', 'Model Price', 'Confidence'], ['fixture', 'bookiePrice', 'modelPrice', 'confidence']);
       } catch (e) { emptyState(bestValueEl); emptyState(highChanceEl); }
     }
 
