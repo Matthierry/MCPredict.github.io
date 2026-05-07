@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MC Predict | World Cup 2026 Predictions</title>
+  <link rel="stylesheet" href="../../style.css" />
+  <style>
+    :root {
+      --bg: #161618;
+      --panel: #222326;
+      --panel-2: #2b2c30;
+      --text: #f4f4f4;
+      --muted: #b6b8c0;
+      --accent-green: #3CAC3B;
+      --accent-blue: #2A398D;
+      --accent-red: #E61D25;
+      --border: rgba(255,255,255,.12);
+      --danger: #ff7f7f;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Proxima Nova', Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, #2a2c33 0%, #1b1c20 42%, #111214 100%);
+    }
+    .wc26-page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px 14px 80px;
+    }
+    .hero, .card {
+      background: linear-gradient(145deg, rgba(48,49,56,.95), rgba(28,29,33,.95));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 14px 30px rgba(0,0,0,.35);
+    }
+    .hero { padding: 18px; margin-bottom: 14px; }
+    .title { margin: 0; font-size: 1.35rem; }
+    .subtitle { margin: 8px 0 0; color: var(--muted); line-height: 1.5; }
+    .note { margin-top: 10px; font-size: .95rem; color: #d8e2ff; }
+    .card { padding: 16px; margin-bottom: 12px; }
+    label { display:block; font-weight:600; margin-bottom:6px; }
+    input[type="text"], input[type="email"] {
+      width: 100%; padding: 11px 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+    }
+    .row { margin-bottom: 12px; }
+    .consent-row { display:flex; gap:10px; align-items:flex-start; }
+    .consent-row input { margin-top: 4px; }
+    .hidden-hp { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+    .status, .error, .success, .warning { border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+    .status { background: rgba(42,57,141,.2); border:1px solid rgba(42,57,141,.6); }
+    .warning { background: rgba(230,29,37,.18); border:1px solid rgba(230,29,37,.6); }
+    .error { background: rgba(255,70,70,.14); border:1px solid rgba(255,90,90,.7); }
+    .success { background: rgba(60,172,59,.15); border:1px solid rgba(60,172,59,.7); }
+    .fixtures-day { margin: 16px 0 8px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,.1); }
+    .fixtures-day h3 { margin: 0; font-size: 1rem; color: #e9efff; }
+    .fixture {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto 1fr;
+      gap: 8px;
+      align-items: center;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+    .group-label { grid-column: 1 / -1; font-size: .74rem; text-transform: uppercase; color: #9ec3ff; letter-spacing: .08em; }
+    .team-home, .team-away { font-size: .92rem; }
+    .team-away { text-align: right; }
+    .score-input {
+      width: 42px; height: 42px; text-align:center; font-size: 1.1rem;
+      border-radius: 10px; border: 1px solid rgba(255,255,255,.25);
+      background: #141519; color: #fff;
+    }
+    .score-sep { color: var(--muted); font-weight: 700; }
+    .actions { position: sticky; bottom: 0; background: rgba(17,18,20,.95); backdrop-filter: blur(6px); padding-top: 8px; }
+    #submitErrorArea { margin-bottom: 8px; }
+    #submitErrorArea:empty { display: none; }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 9, 12, 0.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+    }
+    .modal-overlay.open { display: flex; }
+    .success-modal {
+      width: 100%;
+      max-width: 460px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(145deg, rgba(48,49,56,.98), rgba(22,23,28,.98));
+      box-shadow: 0 16px 40px rgba(0,0,0,.45);
+      padding: 18px;
+    }
+    .success-modal h2 { margin: 0 0 10px; font-size: 1.25rem; color: #f3f6ff; }
+    .success-modal p { margin: 0 0 12px; line-height: 1.5; color: #dce2f7; }
+    .submission-id {
+      display: inline-block;
+      font-weight: 800;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(60,172,59,.28), rgba(42,57,141,.28));
+      border: 1px solid rgba(60,172,59,.6);
+    }
+    .modal-cta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .pay-btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 700;
+      padding: 12px 14px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-red));
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    button {
+      width: 100%; border: 0; border-radius: 12px; padding: 12px 14px;
+      font-weight: 700; font-size: 1rem; cursor: pointer;
+    }
+    #submitBtn { background: linear-gradient(135deg, var(--accent-green), #69d768); color: #111; }
+    #submitBtn:disabled { background: #666; color: #ccc; cursor:not-allowed; }
+    .secondary-btn { margin-top: 8px; background: #2f3140; color: #fff; border:1px solid var(--border); }
+    :focus-visible { outline: 2px solid #7bb1ff; outline-offset: 2px; }
+    
+    .section-nav { display:flex; flex-wrap:wrap; gap:8px; margin: 0 0 12px; }
+    .section-nav a { text-decoration:none; color:#dfe6ff; background:#2a2c33; border:1px solid var(--border); border-radius:999px; padding:8px 12px; font-size:.82rem; }
+    .section-nav a.active { background: linear-gradient(135deg, rgba(42,57,141,.45), rgba(230,29,37,.35)); border-color: rgba(230,29,37,.8); color:#fff; }
+    @media (max-width: 560px) {
+      .fixture { grid-template-columns: 1fr 42px auto 42px 1fr; }
+      .team-home, .team-away { font-size: .84rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wc26-page">
+    <nav class="section-nav" aria-label="World Cup section">
+      <a href="/wc26">Menu</a><a href="/wc26/scores" class="active" aria-current="page">Submit Predictions</a><a href="/wc26/payment">Payment</a><a href="/wc26/rules">Rules</a><a href="/wc26/table">League Table</a><a href="/wc26/halloffame">Hall Of Fame</a>
+    </nav>
+
+    <section class="hero">
+      <h1 class="title">World Cup 2026 Group Stage Predictions</h1>
+      <p class="subtitle">Submit your correct score predictions for all 72 group-stage fixtures.</p>
+      <p class="note" id="deadlineNote">Entries close at 11:59pm UK time on Wednesday 10th June 2026.</p>
+      <p class="note">Multiple submissions are allowed, but only your latest valid submission before the deadline will be used.</p>
+    </section>
+
+    <form id="wc26Form" novalidate>
+      <section class="card">
+        <div id="globalMessages" aria-live="polite"></div>
+        <div class="row">
+          <label for="nameInput">Name</label>
+          <input id="nameInput" name="name" type="text" required autocomplete="name" />
+        </div>
+        <div class="row">
+          <label for="emailInput">Email address</label>
+          <input id="emailInput" name="email" type="email" required autocomplete="email" />
+        </div>
+        <div class="row consent-row">
+          <input id="consentInput" name="consent" type="checkbox" required />
+          <label for="consentInput">I agree for MC Predict to store my name, email and predictions for the purpose of running this game.</label>
+        </div>
+        <div class="hidden-hp" aria-hidden="true">
+          <label for="websiteInput">Website</label>
+          <input id="websiteInput" name="website" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="status" id="progressText">0 / 72 predictions completed</div>
+        <div id="fixtureWarnings"></div>
+        <div id="fixturesContainer"></div>
+      </section>
+
+      <section class="actions">
+        <div id="submitErrorArea" aria-live="polite"></div>
+        <button type="submit" id="submitBtn" disabled>Submit predictions</button>
+        <button type="button" class="secondary-btn" id="clearBtn">Clear saved predictions</button>
+      </section>
+    </form>
+  </main>
+  <div class="modal-overlay" id="successModalOverlay">
+    <div class="success-modal" role="dialog" aria-modal="true" aria-labelledby="successModalTitle">
+      <h2 id="successModalTitle">Predictions submitted!</h2>
+      <p>Your submission ID is <span class="submission-id" id="modalSubmissionId"></span>.</p>
+      <p>Please check your email for confirmation. If you do not receive an email, contact MC Predict.</p>
+      <p>Please pay the entry fee to validate your entry.</p>
+      <p><a href="/wc26/payment" style="color:#9ec3ff;">Prefer card/bank options? View payment info.</a></p>
+      <div class="modal-cta">
+        <a id="payNowBtn" class="pay-btn" href="https://paypal.me/statmatt14" target="_blank" rel="noopener noreferrer">Pay Now</a>
+        <button type="button" class="secondary-btn" id="continueBtn">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const FIXTURES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQnj0ijqFw0UVhYOounuFrNdreTFovKqTTbYnnVvq_12RRwYxN8atQE3PkQJJSbPaBiM9JQyCSCioiZ/pub?gid=0&single=true&output=csv";
+    const SUBMISSION_ENDPOINT = "https://script.google.com/macros/s/AKfycby-WRyPvCrqVkr8Nf_1ObTXGCTW3q64bTG5DK-M9EQ3DZgB4IWirvVXSZYeT4tAoxKbZQ/exec";
+    const LOCAL_STORAGE_KEY = "mcpredict:wc26:prediction-form";
+    const REQUIRED_FIXTURE_COUNT = 72;
+    const DEADLINE_ISO_LONDON = "2026-06-10T23:59:00+01:00";
+
+    const form = document.getElementById('wc26Form');
+    const nameInput = document.getElementById('nameInput');
+    const emailInput = document.getElementById('emailInput');
+    const consentInput = document.getElementById('consentInput');
+    const websiteInput = document.getElementById('websiteInput');
+    const fixturesContainer = document.getElementById('fixturesContainer');
+    const progressText = document.getElementById('progressText');
+    const globalMessages = document.getElementById('globalMessages');
+    const fixtureWarnings = document.getElementById('fixtureWarnings');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitErrorArea = document.getElementById('submitErrorArea');
+    const successModalOverlay = document.getElementById('successModalOverlay');
+    const modalSubmissionId = document.getElementById('modalSubmissionId');
+    const continueBtn = document.getElementById('continueBtn');
+
+    let fixtures = [];
+    let scoreInputs = [];
+    let submitting = false;
+
+    const parseCsv = (text) => {
+      const lines = text.trim().split(/\r?\n/);
+      const headers = lines.shift().split(',').map(h => h.trim());
+      return lines.map(line => {
+        const cols = line.split(',');
+        const row = {};
+        headers.forEach((h, i) => row[h] = (cols[i] || '').trim());
+        return row;
+      });
+    };
+
+    const isClosed = () => Date.now() > new Date(DEADLINE_ISO_LONDON).getTime();
+    const validEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+    const generateSubmissionId = () => `SUB-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
+
+    function renderMessage(type, text, target = globalMessages) {
+      target.innerHTML = `<div class="${type}">${text}</div>`;
+    }
+    function clearMessage(target = globalMessages) { target.innerHTML = ''; }
+    function showSubmitError(text) { renderMessage('error', text, submitErrorArea); }
+    function clearSubmitError() { clearMessage(submitErrorArea); }
+    function openSuccessModal(submissionId) {
+      modalSubmissionId.textContent = submissionId;
+      successModalOverlay.classList.add('open');
+      continueBtn.focus();
+    }
+    function closeSuccessModal() { successModalOverlay.classList.remove('open'); }
+
+    function saveLocal() {
+      const predictions = {};
+      scoreInputs.forEach(input => { predictions[input.dataset.key] = input.value; });
+      const payload = { name: nameInput.value, email: emailInput.value, consent: consentInput.checked, predictions };
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
+    }
+
+    function restoreLocal() {
+      try {
+        const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        nameInput.value = data.name || '';
+        emailInput.value = data.email || '';
+        consentInput.checked = Boolean(data.consent);
+        scoreInputs.forEach(input => input.value = data.predictions?.[input.dataset.key] || '');
+      } catch (e) { console.warn('Restore failed', e); }
+    }
+
+    function completedCount() {
+      let c = 0;
+      for (let i = 0; i < fixtures.length; i++) {
+        const h = document.querySelector(`[data-key="${fixtures[i].fixture_id}:home"]`)?.value;
+        const a = document.querySelector(`[data-key="${fixtures[i].fixture_id}:away"]`)?.value;
+        if (h !== '' && a !== '') c++;
+      }
+      return c;
+    }
+
+    function validate(show = false) {
+      const errs = [];
+      if (!fixtures.length) errs.push('Fixtures are still loading.');
+      if (fixtures.length && fixtures.length !== REQUIRED_FIXTURE_COUNT) errs.push(`Expected 72 fixtures but loaded ${fixtures.length}.`);
+      if (!nameInput.value.trim()) errs.push('Please enter your name.');
+      if (!validEmail(emailInput.value)) errs.push('Please enter a valid email address.');
+      if (!consentInput.checked) errs.push('Please confirm the consent checkbox before submitting.');
+      if (websiteInput.value.trim()) errs.push('Spam check failed. Please refresh and try again.');
+      if (completedCount() !== REQUIRED_FIXTURE_COUNT) errs.push('Please complete all 72 predictions before submitting.');
+      if (isClosed()) errs.push('Entries are now closed for the MC Predict World Cup 2026 prediction game.');
+
+      if (show && errs.length) showSubmitError(errs[0]);
+      if (!errs.length) clearSubmitError();
+      submitBtn.disabled = errs.length > 0 || submitting;
+      progressText.textContent = `${completedCount()} / ${REQUIRED_FIXTURE_COUNT} predictions completed`;
+      return errs;
+    }
+
+    function attachScoreBehavior() {
+      scoreInputs = Array.from(document.querySelectorAll('.score-input'));
+      scoreInputs.forEach((input, idx) => {
+        input.addEventListener('input', () => {
+          input.value = input.value.replace(/[^0-9]/g, '').slice(0, 1);
+          if (input.value && scoreInputs[idx + 1]) scoreInputs[idx + 1].focus();
+          saveLocal();
+          validate();
+        });
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !input.value && scoreInputs[idx - 1]) {
+            scoreInputs[idx - 1].focus();
+          }
+        });
+      });
+    }
+
+    async function loadFixtures() {
+      try {
+        const resp = await fetch(FIXTURES_CSV_URL);
+        if (!resp.ok) throw new Error(`CSV fetch failed: ${resp.status}`);
+        const data = parseCsv(await resp.text());
+        const required = ['fixture_id','sort_order','match_date','match_day_label','kickoff_time','group','home_team','home_team_code','home_flag','away_team','away_team_code','away_flag'];
+        const missing = required.filter(k => !(k in data[0]));
+        if (missing.length) throw new Error(`Missing columns: ${missing.join(', ')}`);
+        fixtures = data.sort((a,b) => Number(a.sort_order) - Number(b.sort_order));
+
+        if (fixtures.length !== REQUIRED_FIXTURE_COUNT) {
+          renderMessage('warning', `Fixture count warning: ${fixtures.length} loaded (expected 72).`, fixtureWarnings);
+        }
+
+        let currentDay = '';
+        fixturesContainer.innerHTML = '';
+        fixtures.forEach((fx) => {
+          if (fx.match_day_label !== currentDay) {
+            currentDay = fx.match_day_label;
+            fixturesContainer.insertAdjacentHTML('beforeend', `<div class="fixtures-day"><h3>${currentDay}</h3></div>`);
+          }
+          fixturesContainer.insertAdjacentHTML('beforeend', `
+            <article class="fixture">
+              <div class="group-label">${fx.group} • ${fx.kickoff_time}</div>
+              <div class="team-home">${fx.home_team} ${fx.home_flag}</div>
+              <input class="score-input" data-key="${fx.fixture_id}:home" inputmode="numeric" maxlength="1" aria-label="${fx.home_team} score against ${fx.away_team}" ${isClosed() ? 'disabled' : ''}>
+              <span class="score-sep">-</span>
+              <input class="score-input" data-key="${fx.fixture_id}:away" inputmode="numeric" maxlength="1" aria-label="${fx.away_team} score against ${fx.home_team}" ${isClosed() ? 'disabled' : ''}>
+              <div class="team-away">${fx.away_flag} ${fx.away_team}</div>
+            </article>
+          `);
+        });
+        attachScoreBehavior();
+        restoreLocal();
+        validate();
+      } catch (error) {
+        console.error(error);
+        renderMessage('error', 'We could not load fixtures right now. Please try again shortly.');
+        showSubmitError('Fixtures are still loading.');
+      }
+    }
+
+    form.addEventListener('input', () => { saveLocal(); validate(); });
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errs = validate(true);
+      if (errs.length) return;
+      if (SUBMISSION_ENDPOINT.includes('PASTE_APPS_SCRIPT')) {
+        showSubmitError('Submission endpoint is not configured yet. Please try again later.');
+        return;
+      }
+      submitting = true;
+      validate();
+
+      const submissionId = generateSubmissionId();
+      const predictions = fixtures.map(fx => ({
+        ...fx,
+        sort_order: Number(fx.sort_order),
+        home_score: Number(document.querySelector(`[data-key="${fx.fixture_id}:home"]`).value),
+        away_score: Number(document.querySelector(`[data-key="${fx.fixture_id}:away"]`).value)
+      }));
+      const body = {
+        submission_id: submissionId,
+        submitted_at_client: new Date().toISOString(),
+        name: nameInput.value.trim(),
+        email: emailInput.value.trim(),
+        consent_given: consentInput.checked,
+        website: websiteInput.value,
+        source_page: '/wc26/scores',
+        user_agent: navigator.userAgent,
+        predictions
+      };
+
+      try {
+        // Google Apps Script Web Apps do not return browser-readable CORS responses for this static-site flow,
+        // so we submit with no-cors and treat a completed fetch as a successful handoff.
+        await fetch(SUBMISSION_ENDPOINT, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(body)
+        });
+        clearSubmitError();
+        openSuccessModal(submissionId);
+      } catch (error) {
+        console.error('WC26 submission failed:', error);
+        showSubmitError('Unable to submit predictions right now. Please check your connection and try again.');
+      } finally {
+        submitting = false;
+        validate();
+      }
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      if (!confirm('Clear saved predictions from this device?')) return;
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      form.reset();
+      scoreInputs.forEach(i => i.value = '');
+      validate();
+      renderMessage('status', 'Saved predictions cleared from this device.');
+    });
+
+    if (isClosed()) {
+      document.getElementById('deadlineNote').textContent = 'Entries are now closed for the MC Predict World Cup 2026 prediction game.';
+      renderMessage('warning', 'Entries are now closed for the MC Predict World Cup 2026 prediction game.');
+    }
+    continueBtn.addEventListener('click', closeSuccessModal);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && successModalOverlay.classList.contains('open')) closeSuccessModal();
+    });
+
+    loadFixtures();
+  </script>
+</body>
+</html>
