@@ -90,7 +90,7 @@
     .roi-hero { font-size:.96rem; font-weight:700; color:#9adfb5; }
     .metric-support { color:var(--muted); font-size:.82rem; }
     .metric-support span { white-space:nowrap; }
-    .badge { display:inline-flex; width:max-content; font-size:.72rem; padding:4px 9px; border-radius:999px; font-weight:700; border:1px solid var(--border); background:#282c32; color:#d7dde7; }
+    .badge { display:inline-flex; align-items:center; gap:6px; width:max-content; font-size:.72rem; padding:4px 9px; border-radius:999px; font-weight:700; border:1px solid var(--border); background:#282c32; color:#d7dde7; white-space:nowrap; }
     .badge-strong { color:#8df0b3; border-color:rgba(51,196,110,.5); background:rgba(51,196,110,.16); }
     .badge-good { color:#a3e7bf; border-color:rgba(51,196,110,.35); background:rgba(51,196,110,.1); }
     .badge-value { color:#d4e8dc; }
@@ -230,19 +230,21 @@
         .filter(item => item.fixture);
     }
 
-    function getValueLabel(value) {
+    function getValueBadgeContent(value) {
       const text = cleanCell(value);
       const moneyBagCount = (text.match(/💰/g) || []).length;
       const crossCount = (text.match(/❌|✕|x/gi) || []).length;
-      if (moneyBagCount >= 3) return 'Strong Value';
-      if (moneyBagCount === 2) return 'Good Value';
-      if (moneyBagCount === 1) return 'Value';
-      if (crossCount >= 1) return 'Low Value';
-      return text || '-';
+      if (moneyBagCount >= 3) return { indicator: '💰💰💰', label: 'Strong Value', fullText: '💰💰💰 Strong Value' };
+      if (moneyBagCount === 2) return { indicator: '💰💰', label: 'Good Value', fullText: '💰💰 Good Value' };
+      if (moneyBagCount === 1) return { indicator: '💰', label: 'Value', fullText: '💰 Value' };
+      if (crossCount >= 3) return { indicator: '❌❌❌', label: 'Low Value', fullText: '❌❌❌ Low Value' };
+      if (crossCount === 2) return { indicator: '❌❌', label: 'Low Value', fullText: '❌❌ Low Value' };
+      if (crossCount === 1) return { indicator: '❌', label: 'Low Value', fullText: '❌ Low Value' };
+      return { indicator: '', label: text || '-', fullText: text || '-' };
     }
 
     function getValueBadgeClass(value) {
-      const label = getValueLabel(value).toLowerCase();
+      const label = getValueBadgeContent(value).label.toLowerCase();
       if (label.includes('strong')) return 'badge badge-strong';
       if (label.includes('good')) return 'badge badge-good';
       if (label === 'value') return 'badge badge-value';
@@ -265,7 +267,7 @@
           <div class="pick-title">${r.fixture || '-'}</div>
           <div class="pick-sub">Market ${r.bookiePrice || '-'} · Model ${r.modelPrice || '-'}</div>
           ${type === 'value'
-            ? `<span class="${getValueBadgeClass(r.value)}">${getValueLabel(r.value)}</span>`
+            ? `<span class="${getValueBadgeClass(r.value)}">${getValueBadgeContent(r.value).fullText}</span>`
             : `<span class="confidence-chip">${r.confidence || '-'} confidence</span>`}
         </article>`).join('')}</div>`;
     }
@@ -344,7 +346,7 @@
               <span class="roi-hero ${cleanCell(c.roi).includes('-') ? 'neg' : ''}">${c.roi || '-'} ROI</span>
             </div>
             <div class="metric-support"><span>${c.bets || '-'} bets</span> · <span>${c.hitRate || '-'} hit rate</span> · <span>${c.avgOdds || '-'} avg odds</span></div>
-            <span class="${getValueBadgeClass(c.value)}">${getValueLabel(c.value)}</span>
+            <span class="${getValueBadgeClass(c.value)}">${getValueBadgeContent(c.value).fullText}</span>
           </article>`;
         }).join('')}</div>`;
       } catch (e) {
