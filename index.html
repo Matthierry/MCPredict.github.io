@@ -506,10 +506,10 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-      const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+      const currentPath = window.location.pathname.replace(/\\/$/, '') || '/';
       const navTargets = document.querySelectorAll('[data-nav-path]');
       navTargets.forEach((item) => {
-        const itemPath = (item.getAttribute('data-nav-path') || '').replace(/\/$/, '') || '/';
+        const itemPath = (item.getAttribute('data-nav-path') || '').replace(/\\/$/, '') || '/';
         if (itemPath === currentPath) {
           item.setAttribute('aria-current', 'page');
           item.classList.add('mobile-bottom-nav__item--active', 'mobile-bottom-menu__item--active');
