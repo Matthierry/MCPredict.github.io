@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 227" role="img" aria-label="FIFA World Cup 26 logo">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dfe6ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="227" rx="20" fill="none"/>
+  <g fill="url(#g)">
+    <text x="58" y="150" font-size="150" font-family="Arial Black, Arial, sans-serif" font-weight="900">26</text>
+    <text x="70" y="186" font-size="28" font-family="Arial, sans-serif" font-weight="700" letter-spacing="2">FIFA WORLD CUP</text>
+  </g>
+</svg>
