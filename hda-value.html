@@ -67,6 +67,21 @@
       backdrop-filter: blur(12px);
     }
 
+    .brand-header-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      text-decoration: none;
+      color: inherit;
+      border-radius: 12px;
+    }
+
+    .brand-header-link:focus-visible {
+      outline: 2px solid #f7b057;
+      outline-offset: 3px;
+    }
+
     .topbar-left {
       display: flex;
       align-items: center;
@@ -597,15 +612,17 @@
     <!-- Top bar -->
     <header class="home-topbar">
       <div class="topbar-inner">
-        <div class="topbar-left">
-          <div class="topbar-logo">
-            <img src="images/mcpredcirclebg.png" alt="MC Predict Logo">
+        <a class="brand-header-link" href="/" aria-label="MC Predict home">
+          <div class="topbar-left">
+            <div class="topbar-logo">
+              <img src="/images/mcpredcirclebg.png" alt="">
+            </div>
+            <div class="topbar-title">
+              <h1>MC PREDICT</h1>
+              <span>Data-driven Football predictions</span>
+            </div>
           </div>
-          <div class="topbar-title">
-            <h1>MC PREDICT</h1>
-            <span>Data-driven Football predictions</span>
-          </div>
-        </div>
+        </a>
         <div class="topbar-tag">
           <span class="topbar-tag-dot"></span>
           <span>Match Result</span>
