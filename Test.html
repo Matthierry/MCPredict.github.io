@@ -148,11 +148,75 @@
     .social-link:hover, .social-link:focus-visible { color:var(--accent); border-color:rgba(247,147,26,.6); outline:none; }
     .social-link svg { width:18px; height:18px; fill:currentColor; }
     .social-footer small { color:var(--muted); }
+
+    .mobile-bottom-nav { display:none; }
     @media (min-width: 800px) {
       .container { padding: 16px 18px 40px; }
       .icon-grid { grid-template-columns: repeat(4,1fr); }
       .split { grid-template-columns: 1fr 1fr; }
       .hero h2 { font-size:1.9rem; }
+    }
+    @media (max-width: 767px) {
+      body {
+        padding-bottom: calc(92px + env(safe-area-inset-bottom));
+      }
+      .mobile-bottom-nav {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        z-index: 1000;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 4px;
+        padding: 6px;
+        border-radius: 20px;
+        border: 1px solid rgba(247, 147, 26, 0.22);
+        background: rgba(24, 26, 30, 0.95);
+        box-shadow: 0 14px 28px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.03) inset;
+        backdrop-filter: blur(10px);
+      }
+      .mobile-bottom-nav__item {
+        min-height: 58px;
+        text-decoration: none;
+        color: var(--muted);
+        border-radius: 14px;
+        display: inline-grid;
+        justify-items: center;
+        align-content: center;
+        gap: 4px;
+        transition: color .2s ease, background-color .2s ease, box-shadow .2s ease;
+      }
+      .mobile-bottom-nav__icon {
+        width: 20px;
+        height: 20px;
+        stroke: var(--accent);
+        fill: none;
+        stroke-width: 1.8;
+      }
+      .mobile-bottom-nav__label {
+        font-size: .72rem;
+        line-height: 1;
+        font-weight: 600;
+        letter-spacing: .01em;
+      }
+      .mobile-bottom-nav__item:hover,
+      .mobile-bottom-nav__item:focus-visible {
+        color: #e4e7ed;
+        background: rgba(247, 147, 26, 0.07);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(247, 147, 26, 0.3);
+      }
+      .mobile-bottom-nav__item--active {
+        color: var(--accent);
+        background: rgba(240, 147, 0, 0.08);
+        box-shadow: 0 0 14px rgba(240, 147, 0, 0.16);
+      }
+    }
+    @media (min-width: 768px) {
+      .mobile-bottom-nav {
+        display: none !important;
+      }
     }
   </style>
 </head>
@@ -253,6 +317,25 @@
     </div>
   </div>
 
+  <nav class="mobile-bottom-nav" aria-label="Mobile primary navigation">
+    <a class="mobile-bottom-nav__item" data-nav-path="/hda-value" href="/hda-value" aria-label="Match Result value predictions">
+      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h12M8 19V9h8v10M10 9V5h4v4"/></svg>
+      <span class="mobile-bottom-nav__label">Winner</span>
+    </a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/uo-value" href="/uo-value" aria-label="Under Over 2.5 value predictions">
+      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg>
+      <span class="mobile-bottom-nav__label">U/O 2.5</span>
+    </a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/historical" href="/historical" aria-label="Historical data">
+      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>
+      <span class="mobile-bottom-nav__label">Data</span>
+    </a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/faqs" href="/faqs" aria-label="FAQs">
+      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/><circle cx="12" cy="17" r=".8"/></svg>
+      <span class="mobile-bottom-nav__label">FAQs</span>
+    </a>
+  </nav>
+
   <script>
     const menuOverlay = document.getElementById('menuOverlay');
     document.getElementById('openMenu').addEventListener('click', () => menuOverlay.classList.add('open'));
@@ -308,6 +391,15 @@
     document.getElementById('appleHomeBtn').addEventListener('click', () => {
       showHomeScreenInstructions('apple');
     });
+
+    function setMobileFooterActiveState() {
+      const normalizedPath = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
+      document.querySelectorAll('.mobile-bottom-nav__item').forEach((item) => {
+        const targetPath = (item.dataset.navPath || '').replace(/\/+$/, '') || '/';
+        item.classList.toggle('mobile-bottom-nav__item--active', normalizedPath === targetPath);
+      });
+    }
+    setMobileFooterActiveState();
 
     function skeleton(el, count = 3) { el.innerHTML = Array.from({ length: count }, () => '<div class="skeleton"></div>').join(''); }
     function emptyState(el) { el.innerHTML = '<div class="empty">No fixtures available today</div>'; }
