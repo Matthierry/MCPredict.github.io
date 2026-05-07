@@ -3,9 +3,18 @@ const PREDICTIONS_SHEET_NAME = "Predictions";
 const DEADLINE_LONDON_ISO = "2026-06-10T23:59:00+01:00";
 const REQUIRED_FIXTURE_COUNT = 72;
 
+function doGet(e) {
+  return jsonOutput_({
+    ok: true,
+    service: "MC Predict WC26 submission endpoint",
+    message: "Endpoint is live. Use POST to submit predictions."
+  });
+}
+
 function doPost(e) {
   try {
-    const payload = JSON.parse((e && e.postData && e.postData.contents) || "{}");
+    const rawBody = (e && e.postData && typeof e.postData.contents === "string") ? e.postData.contents : "{}";
+    const payload = JSON.parse(rawBody || "{}");
     const validationError = validatePayload_(payload);
     if (validationError) return jsonOutput_({ ok: false, error: validationError });
 
