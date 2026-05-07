@@ -79,7 +79,15 @@
     .rank { width:34px; height:34px; border-radius:10px; display:grid; place-items:center; background:#2a2d33; color:#d7dbe2; font-weight:700; }
     .rank.top { background:rgba(247,147,26,.2); color:var(--accent); border:1px solid rgba(247,147,26,.45); }
     .meta { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-    .vals { display:flex; gap:12px; margin-top:6px; font-size:.82rem; color:#cfd4dc; flex-wrap:wrap; }
+    .best-category { display:grid; gap:8px; }
+    .best-row { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .best-cell { min-width:0; display:flex; flex-direction:column; gap:2px; }
+    .best-cell.right { text-align:right; margin-left:auto; }
+    .best-triple { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+    .best-double { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+    .best-value { color:#f3f4f6; font-size:.88rem; font-weight:600; }
+    .best-value.pos { color: var(--green); }
+    .best-note { margin-top:6px; color:var(--muted); font-size:.75rem; }
     .pos { color: var(--green); font-weight:600; }
 
     .mini-table { width:100%; border-collapse:collapse; font-size:.84rem; }
@@ -235,77 +243,19 @@
       } catch (e) { emptyState(bestValueEl); emptyState(highChanceEl); }
     }
 
-    function normalizeRow(row) {
-      return row.map(cell => (cell || '').trim());
-    }
-
-    function findHeaderIndex(row, matcher) {
-      for (let i = 0; i < row.length; i++) {
-        if (matcher((row[i] || '').trim().toUpperCase())) return i;
-      }
-      return -1;
-    }
-
-    function parseWhatsHotFromCsv(csvText) {
-      const rows = parseCSV(csvText).map(normalizeRow);
-      const nonEmptyRows = rows
-        .map((row, index) => ({ row, index }))
-        .filter(({ row }) => row.some(cell => cell));
-
-      const titleMatch = 'BEST RETURN ON INVESTMENT';
-      const titleRowMeta = nonEmptyRows.find(({ row }) =>
-        row.some(cell => cell.toUpperCase().includes(titleMatch))
-      );
-      if (!titleRowMeta) return { categories: [], diagnostics: { titleRow: -1, headerRow: -1 } };
-
-      let headerMeta = null;
-      for (let i = titleRowMeta.index + 1; i < rows.length; i++) {
-        const row = normalizeRow(rows[i]);
-        if (!row.some(cell => cell)) continue;
-        const upperRow = row.map(cell => cell.toUpperCase());
-        const hasRequired =
-          upperRow.some(cell => cell === 'BET TYPE') &&
-          upperRow.some(cell => cell === 'VALUE') &&
-          upperRow.some(cell => cell === 'BETS') &&
-          upperRow.some(cell => cell === 'AVG ODDS') &&
-          upperRow.some(cell => cell === 'WINS') &&
-          upperRow.some(cell => cell === 'HIT RATE') &&
-          upperRow.some(cell => cell.includes('P/L')) &&
-          upperRow.some(cell => cell.includes('ROI'));
-        if (hasRequired) {
-          headerMeta = { row, index: i };
-          break;
-        }
-      }
-
-      if (!headerMeta) return { categories: [], diagnostics: { titleRow: titleRowMeta.index, headerRow: -1 } };
-
-      const header = headerMeta.row.map(cell => cell.toUpperCase());
-      const betTypeIdx = findHeaderIndex(header, cell => cell === 'BET TYPE');
-      const valueIdx = findHeaderIndex(header, cell => cell === 'VALUE');
-      const plIdx = findHeaderIndex(header, cell => cell.includes('P/L'));
-      const roiIdx = findHeaderIndex(header, cell => cell === 'ROI' || cell.includes('ROI'));
-
-      if ([betTypeIdx, valueIdx, plIdx, roiIdx].some(i => i === -1)) {
-        return { categories: [], diagnostics: { titleRow: titleRowMeta.index, headerRow: headerMeta.index } };
-      }
-
-      const categories = [];
-      const extractedRows = [];
-      for (let i = headerMeta.index + 1; i < rows.length && categories.length < 3; i++) {
-        const row = normalizeRow(rows[i]);
-        if (!row.some(cell => cell)) continue;
-        const betType = row[betTypeIdx] || '';
-        const value = row[valueIdx] || '';
-        const pl = row[plIdx] || '';
-        const roi = row[roiIdx] || '';
-        if (!betType) continue;
-        if (/^BET\s*TYPE$/i.test(betType)) continue;
-        categories.push({ betType, value, pl, roi });
-        extractedRows.push(i);
-      }
-
-      return { categories, diagnostics: { titleRow: titleRowMeta.index, headerRow: headerMeta.index, extractedRows } };
+    function extractBestPerformingCategories(rows) {
+      return rows.slice(33, 36)
+        .map((row, index) => ({
+          rank: index + 1,
+          betType: cleanCell(row[4]),
+          value: cleanCell(row[5]),
+          bets: cleanCell(row[6]),
+          avgOdds: cleanCell(row[7]),
+          hitRate: cleanCell(row[9]),
+          profitLoss: cleanCell(row[10]),
+          roi: cleanCell(row[11])
+        }))
+        .filter(item => item.betType);
     }
 
     async function loadWhatsHot() {
@@ -313,26 +263,57 @@
       skeleton(el, 3);
       try {
         const csvText = await fetch(WHATS_HOT_CSV).then(r => r.text());
-        console.log('Whats Hot CSV raw:', csvText);
-        const { categories, diagnostics } = parseWhatsHotFromCsv(csvText);
+        const rows = parseCSV(csvText);
+        const bestPerformingRows = rows.slice(33, 36).map(row => row.slice(4, 12));
+        const categories = extractBestPerformingCategories(rows);
+        console.log('Whats Hot CSV parsed rows:', rows);
+        console.log('Fixed Best Performing Categories rows E34:L36:', bestPerformingRows);
         if (!categories.length) {
-          console.warn('Whats Hot CSV parsed but no valid category rows were found.', diagnostics);
+          console.warn('Whats Hot CSV parsed but no valid category rows were found in fixed range E34:L36.');
           return emptyState(el);
         }
-        console.log('Whats Hot CSV parsed successfully.', diagnostics);
-        el.innerHTML = categories.map((c, i) => `
+        console.log('Whats Hot CSV loaded successfully.');
+        el.innerHTML = `${categories.map((c, i) => `
           <article class="rank-card">
-            <div class="rank ${i === 0 ? 'top' : ''}">${i + 1}</div>
-            <div>
-              <div class="meta">Bet Type</div>
-              <div>${c.betType}</div>
-              <div class="vals">
-                <span><span class="meta">Value:</span> ${c.value || '-'}</span>
-                <span><span class="meta">Historical P/L:</span> <span class="pos">${c.pl || '-'}</span></span>
-                <span><span class="meta">ROI:</span> <span class="pos">${c.roi || '-'}</span></span>
+            <div class="rank ${i === 0 ? 'top' : ''}">${c.rank}</div>
+            <div class="best-category">
+              <div class="best-row">
+                <div class="best-cell">
+                  <span class="meta">Bet Type</span>
+                  <span class="best-value">${c.betType || '-'}</span>
+                </div>
+                <div class="best-cell right">
+                  <span class="meta">Value</span>
+                  <span class="best-value">${c.value || '-'}</span>
+                </div>
+              </div>
+              <div class="best-triple">
+                <div class="best-cell">
+                  <span class="meta">Bets</span>
+                  <span class="best-value">${c.bets || '-'}</span>
+                </div>
+                <div class="best-cell">
+                  <span class="meta">Hit Rate</span>
+                  <span class="best-value">${c.hitRate || '-'}</span>
+                </div>
+                <div class="best-cell">
+                  <span class="meta">Avg Odds</span>
+                  <span class="best-value">${c.avgOdds || '-'}</span>
+                </div>
+              </div>
+              <div class="best-double">
+                <div class="best-cell">
+                  <span class="meta">Profit/Loss</span>
+                  <span class="best-value pos">${c.profitLoss || '-'}</span>
+                </div>
+                <div class="best-cell">
+                  <span class="meta">ROI</span>
+                  <span class="best-value pos">${c.roi || '-'}</span>
+                </div>
               </div>
             </div>
-          </article>`).join('');
+          </article>`).join('')}
+          <div class="best-note">Based on £10 single stakes</div>`;
       } catch (e) {
         console.warn('Failed to fetch or parse Whats Hot CSV.', e);
         emptyState(el);
