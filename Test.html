@@ -68,6 +68,11 @@
     .icon-card span { font-size:.9rem; }
 
     .section { margin-top:16px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; }
+    .stat-card { margin-top:16px; background:linear-gradient(145deg, rgba(247,147,26,.12), rgba(26,28,31,.96)); border:1px solid rgba(247,147,26,.35); border-radius:16px; padding:14px; box-shadow: var(--shadow); }
+    .stat-card__accent { width:34px; height:34px; border-radius:10px; border:1px solid rgba(247,147,26,.45); background:rgba(247,147,26,.14); display:grid; place-items:center; color:var(--accent); font-size:1rem; margin-bottom:12px; }
+    .stat-card__label { margin:0; color:var(--muted); font-size:.83rem; letter-spacing:.02em; }
+    .stat-card__value { margin:8px 0 0; font-size:2rem; line-height:1.1; font-weight:800; color:var(--text); word-break:break-word; }
+    .stat-card__support { margin:8px 0 0; color:#8f98a5; font-size:.78rem; }
     .section-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px; }
     .section-head h3 { margin:0; font-size:1.02rem; }
     .section-sub { margin:6px 0 0; color:var(--muted); font-size:.8rem; line-height:1.45; }
@@ -176,6 +181,13 @@
       <a class="icon-card" href="/faqs"><svg viewBox="0 0 24 24"><path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/><circle cx="12" cy="17" r=".8"/></svg><span>FAQs</span></a>
     </section>
 
+    <section class="stat-card" aria-live="polite" aria-atomic="true">
+      <div class="stat-card__accent" aria-hidden="true">📊</div>
+      <p class="stat-card__label">Total games analysed by the model</p>
+      <p class="stat-card__value" id="totalGamesAnalysedValue">—</p>
+      <p class="stat-card__support">Across historical model results</p>
+    </section>
+
     <section class="section" id="whatsHotSection">
       <div class="section-head"><div><h3>Best Performing Angles</h3><p class="section-sub">Historical returns based on £10 single stakes</p></div><a class="pill-cta" href="/historical">See all</a></div>
       <div id="whatsHotContent"></div>
@@ -235,6 +247,34 @@
 
     function cleanCell(value) {
       return (value || '').trim();
+    }
+
+    function animateNumberRoll(element, finalValue, duration = 3000) {
+      const finalText = String(finalValue || '').trim();
+      if (!element) return;
+      if (!finalText) {
+        element.textContent = '—';
+        return;
+      }
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        element.textContent = finalText;
+        return;
+      }
+      const digitsOnly = finalText.replace(/\D/g, '');
+      const length = Math.max(digitsOnly.length, 4);
+      const start = performance.now();
+
+      function tick(now) {
+        const elapsed = now - start;
+        if (elapsed >= duration) {
+          element.textContent = finalText;
+          return;
+        }
+        const randomDigits = Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
+        element.textContent = randomDigits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
     }
 
     function extractFixedRangeRows(rows, startRowIndex, endRowIndex, columnMap) {
@@ -333,10 +373,16 @@
 
     async function loadWhatsHot() {
       const el = document.getElementById('whatsHotContent');
+      const totalGamesEl = document.getElementById('totalGamesAnalysedValue');
+      const loadStart = performance.now();
       skeleton(el, 3);
       try {
         const csvText = await fetchCsv(WHATS_HOT_CSV);
         const rows = parseCSV(csvText);
+        const totalGamesAnalysed = cleanCell(rows?.[0]?.[5]);
+        const elapsed = performance.now() - loadStart;
+        const remainingDuration = Math.max(0, 3000 - elapsed);
+        animateNumberRoll(totalGamesEl, totalGamesAnalysed, remainingDuration);
         const categories = extractBestPerformingCategories(rows);
         if (!categories.length) {
           return emptyState(el);
@@ -369,6 +415,7 @@
           </article>`;
         }).join('')}</div>`;
       } catch (e) {
+        if (totalGamesEl) totalGamesEl.textContent = '—';
         emptyState(el);
       }
     }
