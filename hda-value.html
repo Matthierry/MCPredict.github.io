@@ -8,8 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
 </head>
-
-<body class="home prediction-page hda-value-page">
+<body class="home prediction-page">
   <div class="loading-overlay" id="loadingOverlay" aria-live="polite">
     <div class="loading-ball">⚽</div>
     <div class="loading-pitch-line"></div>
@@ -27,24 +26,16 @@
           <p>Data-driven Football predictions</p>
         </div>
       </a>
-
       <button class="menu-btn" id="openMenu" aria-label="Open menu">
-        <svg viewBox="0 0 24 24">
-          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
     </header>
 
     <div class="menu-overlay" id="menuOverlay" aria-hidden="true">
       <div class="menu-top">
         <h3 style="margin:0;">Menu</h3>
-        <button class="close-btn" id="closeMenu" aria-label="Close menu">
-          <svg viewBox="0 0 24 24">
-            <path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </button>
+        <button class="close-btn" id="closeMenu" aria-label="Close menu"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
       </div>
-
       <nav class="menu-links">
         <a href="/">Home</a>
         <a href="/hda-value">Match Result - Best Value</a>
@@ -86,124 +77,54 @@
   </div>
 
   <nav class="mobile-bottom-nav prediction-bottom-nav" aria-label="Mobile primary navigation">
-    <a class="mobile-bottom-nav__item" data-nav-path="/hda-value" href="/hda-value">
-      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24">
-        <path d="M6 19h12M8 19V9h8v10M10 9V5h4v4"/>
-      </svg>
-      <span class="mobile-bottom-nav__label">Winner</span>
-    </a>
-
-    <a class="mobile-bottom-nav__item" data-nav-path="/uo-value" href="/uo-value">
-      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="8"/>
-        <path d="M12 8v8M8 12h8"/>
-      </svg>
-      <span class="mobile-bottom-nav__label">U/O 2.5</span>
-    </a>
-
-    <a class="mobile-bottom-nav__item" data-nav-path="/historical" href="/historical">
-      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24">
-        <path d="M5 19V9M12 19V5M19 19v-7"/>
-      </svg>
-      <span class="mobile-bottom-nav__label">Data</span>
-    </a>
-
-    <a class="mobile-bottom-nav__item" data-nav-path="/faqs" href="/faqs">
-      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24">
-        <path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/>
-        <circle cx="12" cy="17" r=".8"/>
-      </svg>
-      <span class="mobile-bottom-nav__label">FAQs</span>
-    </a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/hda-value" href="/hda-value"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M6 19h12M8 19V9h8v10M10 9V5h4v4"/></svg><span class="mobile-bottom-nav__label">Winner</span></a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/uo-value" href="/uo-value"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg><span class="mobile-bottom-nav__label">U/O 2.5</span></a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/historical" href="/historical"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/></svg><span class="mobile-bottom-nav__label">Data</span></a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/faqs" href="/faqs"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/><circle cx="12" cy="17" r=".8"/></svg><span class="mobile-bottom-nav__label">FAQs</span></a>
   </nav>
 
   <script src="/site.js"></script>
 
   <script>
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
-
     let headerRow = [];
     let dataRows = [];
-
     const activeDayFilters = new Set();
     const activeResultFilters = new Set();
 
     const predictionUtils = window.MCPredictPrediction;
-
-    function hideLoadingOverlay() {
-      const overlay = document.getElementById("loadingOverlay");
-      if (!overlay) return;
-
-      overlay.classList.add("hidden");
-
-      setTimeout(() => {
-        overlay.style.display = "none";
-      }, 450);
-    }
-
-    function showLoadError() {
-      document.getElementById("results-summary").innerHTML = "";
-      document.getElementById("sheet-data").innerHTML = "<p class='prediction-empty'>We couldn’t load live data. Please refresh in a minute.</p>";
-    }
+    function hideLoadingOverlay() { const overlay = document.getElementById("loadingOverlay"); if (!overlay) return; overlay.classList.add("hidden"); setTimeout(() => { overlay.style.display = "none"; }, 450); }
+    function showLoadError() { document.getElementById("sheet-data").innerHTML = "<p class='prediction-empty'>We couldn’t load live data. Please refresh in a minute.</p>"; }
 
     function createFilterButton(text, onClick) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "prediction-filter-button";
       btn.textContent = text;
-
       btn.addEventListener("click", () => onClick(btn));
-
       return btn;
     }
 
     function buildFilters() {
       const dayWrap = document.getElementById("day-filters");
       const resultWrap = document.getElementById("result-filters");
-
       dayWrap.innerHTML = "";
       resultWrap.innerHTML = "";
 
-      const days = Array.from(
-        new Set(
-          dataRows
-            .map(row => predictionUtils.extractRowData(headerRow, row).day)
-            .filter(Boolean)
-        )
-      );
-
-      days.forEach(day => {
-        dayWrap.appendChild(
-          createFilterButton(day, btn => {
-            activeDayFilters.has(day)
-              ? activeDayFilters.delete(day)
-              : activeDayFilters.add(day);
-
-            btn.classList.toggle("prediction-filter-button--active");
-            renderTable();
-          })
-        );
+      Array.from(new Set(dataRows.map(r => predictionUtils.extractRowData(headerRow, r).day).filter(Boolean))).forEach(day => {
+        dayWrap.appendChild(createFilterButton(day, btn => {
+          activeDayFilters.has(day) ? activeDayFilters.delete(day) : activeDayFilters.add(day);
+          btn.classList.toggle("prediction-filter-button--active");
+          renderTable();
+        }));
       });
 
-      const results = Array.from(
-        new Set(
-          dataRows
-            .map(row => predictionUtils.extractRowData(headerRow, row).prediction.toUpperCase())
-            .filter(Boolean)
-        )
-      );
-
-      results.forEach(result => {
-        resultWrap.appendChild(
-          createFilterButton(result, btn => {
-            activeResultFilters.has(result)
-              ? activeResultFilters.delete(result)
-              : activeResultFilters.add(result);
-
-            btn.classList.toggle("prediction-filter-button--active");
-            renderTable();
-          })
-        );
+      Array.from(new Set(dataRows.map(r => predictionUtils.extractRowData(headerRow, r).prediction.toUpperCase()).filter(Boolean))).forEach(result => {
+        resultWrap.appendChild(createFilterButton(result, btn => {
+          activeResultFilters.has(result) ? activeResultFilters.delete(result) : activeResultFilters.add(result);
+          btn.classList.toggle("prediction-filter-button--active");
+          renderTable();
+        }));
       });
     }
 
@@ -211,98 +132,40 @@
       const rowData = predictionUtils.extractRowData(headerRow, row);
       const day = rowData.day;
       const result = rowData.prediction.toUpperCase();
-
-      return (
-        (activeDayFilters.size === 0 || activeDayFilters.has(day)) &&
-        (activeResultFilters.size === 0 || activeResultFilters.has(result))
-      );
+      return (activeDayFilters.size === 0 || activeDayFilters.has(day)) && (activeResultFilters.size === 0 || activeResultFilters.has(result));
     }
 
     function renderTable() {
       const container = document.getElementById("sheet-data");
       const summary = document.getElementById("results-summary");
       const filtered = dataRows.filter(rowMatches);
-
-      summary.innerHTML = `
-        <div class="selection-summary">
-          <strong>Showing ${filtered.length} selections</strong>
-          <span>Latest model data</span>
-        </div>
-      `;
-
-      if (!headerRow.length) {
-        container.innerHTML = "<p class='prediction-empty'>No table header found in source data.</p>";
-        return;
-      }
-
-      if (!filtered.length) {
-        container.innerHTML = "<p class='prediction-empty'>No selections match the active filters.</p>";
-        return;
-      }
+      summary.innerHTML = `<div class="selection-summary"><strong>Showing ${filtered.length} selections</strong><span>Latest model data</span></div>`;
+      if (!headerRow.length) { container.innerHTML = "<p class='prediction-empty'>No table header found in source data.</p>"; return; }
+      if (!filtered.length) { container.innerHTML = "<p class='prediction-empty'>No selections match the active filters.</p>"; return; }
 
       let cards = "<div class='prediction-results mobile-prediction-cards'>";
-
       filtered.forEach(row => {
-        cards += predictionUtils.renderPredictionCard(
-          predictionUtils.extractRowData(headerRow, row)
-        );
+        cards += predictionUtils.renderPredictionCard(predictionUtils.extractRowData(headerRow, row));
       });
-
       cards += "</div>";
 
-      let table = `
-        <div class='prediction-table-wrap desktop-prediction-table'>
-          <table class='prediction-table'>
-            <thead>
-              <tr>
-                ${headerRow.map(cell => `<th>${cell}</th>`).join("")}
-              </tr>
-            </thead>
-            <tbody>
-      `;
-
-      filtered.forEach(row => {
-        table += `
-          <tr>
-            ${row.map(cell => `<td>${cell}</td>`).join("")}
-          </tr>
-        `;
-      });
-
-      table += `
-            </tbody>
-          </table>
-        </div>
-      `;
-
+      let table = "<div class='prediction-table-wrap desktop-prediction-table'><table class='prediction-table'><thead><tr>" + headerRow.map(cell => `<th>${cell}</th>`).join("") + "</tr></thead><tbody>";
+      filtered.forEach(row => { table += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>"; });
+      table += "</tbody></table></div>";
       container.innerHTML = cards + table;
     }
 
     async function loadCSV() {
       try {
-        if (!predictionUtils) {
-          throw new Error("MCPredictPrediction utilities are not available. Check that /site.js is loading correctly.");
-        }
-
         const response = await fetch(csvUrl);
-
-        if (!response.ok) {
-          throw new Error(`CSV request failed with status ${response.status}`);
-        }
-
+        if (!response.ok) throw new Error("Network error");
         const rows = predictionUtils.csvToRows(await response.text());
-
         headerRow = rows[1] || [];
         dataRows = rows.slice(2);
-
         buildFilters();
         renderTable();
-
-        console.info("HDA value CSV loaded successfully");
-        console.info("Rows parsed:", dataRows.length);
-        console.info("Detected headers:", headerRow);
       } catch (error) {
-        console.error("Failed to load hda-value CSV", error);
+        console.error(error);
         showLoadError();
       } finally {
         hideLoadingOverlay();
@@ -311,5 +174,6 @@
 
     loadCSV();
   </script>
+
 </body>
 </html>
