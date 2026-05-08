@@ -928,3 +928,16 @@ body.home .table-container table {
   .mobile-prediction-cards { display:none; }
   .desktop-prediction-table { display:block; }
 }
+
+/* hda-value page scoped layout updates */
+.hda-value-page .prediction-shell { max-width: 1020px; margin-inline: auto; }
+.hda-value-page .prediction-intro { max-width: 760px; }
+.hda-value-page .prediction-status { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px; border:1px solid rgba(255,255,255,.12); border-radius:14px; background:rgba(255,255,255,.03); }
+.hda-value-page .prediction-status strong { display:block; color:#fff; font-size:1.3rem; }
+.hda-value-page .prediction-status span { color:#bfc2c9; font-size:.98rem; }
+.hda-value-page .prediction-clear-btn { border:1px solid rgba(242,159,31,.45); background:rgba(242,159,31,.12); color:#f7a838; border-radius:12px; padding:10px 14px; font-weight:700; cursor:pointer; }
+.hda-value-page .prediction-empty { margin-top:12px; }
+@media (min-width: 960px){
+  .hda-value-page .mobile-prediction-cards { display:flex; }
+  .hda-value-page .desktop-prediction-table { display:none; }
+}
