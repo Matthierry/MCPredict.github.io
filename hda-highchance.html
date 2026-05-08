@@ -4,36 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MC Predict | Match Result Highest Chance</title>
-
-  <!-- Global site stylesheet -->
   <link rel="stylesheet" href="style.css">
-
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
-
-
 </head>
-
-<body class="home">
-  <!-- Soccer-themed loading overlay -->
+<body class="home prediction-page">
   <div class="loading-overlay" id="loadingOverlay" aria-live="polite">
     <div class="loading-ball">⚽</div>
     <div class="loading-pitch-line"></div>
-    <div class="loading-title">Finding High-Probability Picks</div>
-    <p class="loading-subtitle">
-      We&#39;re surfacing the fixtures where the model sees the strongest chances for a result.
-    </p>
+    <div class="loading-title">Loading predictions</div>
+    <p class="loading-subtitle">Fetching the latest model output and market prices.</p>
     <div class="loading-ticker">Fetching latest sheet data...</div>
   </div>
 
-  <div class="home-page">
-
-    <!-- Top bar -->
-    <header class="header standard-header">
+  <div class="prediction-shell">
+    <header class="header standard-header prediction-header">
       <a class="brand" href="/">
         <img src="/images/mcpredcirclebg.png" alt="MCPredict logo">
         <div>
-          <h1>MCPredict</h1>
+          <h1>MCPREDICT</h1>
           <p>Data-driven Football predictions</p>
         </div>
       </a>
@@ -60,223 +49,121 @@
       </nav>
     </div>
 
+    <div class="prediction-tabs" role="tablist" aria-label="View switch">
+      <a href="/hda-value" class="prediction-tab ">Best Value</a>
+      <a href="/hda-highchance" class="prediction-tab prediction-tab--active">Highest Chance</a>
+    </div>
 
-    <section class="proof-strip" aria-label="Trust and methodology notes">
-      <p class="proof-title">Before you use these picks</p>
-      <ul class="proof-items">
-        <li>Compare today's picks with <a href="/historical">Historical Data</a> and the <a href="/faqs">FAQ methodology</a>.</li>
-        <li>Value compares model chance vs market chance — it is not a guarantee on a single fixture.</li>
-      </ul>
-      <p class="freshness-inline">Last refreshed: <strong id="refresh-time">Loading…</strong> (page data refresh time).</p>
-      <div class="cadence-row"><span class="cadence-chip">Friday shortlist</span><span class="cadence-chip">Weekend picks</span><span class="cadence-chip">Monday review</span></div>
-    </section>
+    <section class="prediction-panel">
+      <div class="prediction-eyebrow">MATCH RESULT</div>
+      <h2 class="prediction-title">Highest chance selections</h2>
+      <p class="prediction-intro">Use the filters to focus on specific days or outcomes. The table updates instantly using the latest data from the model.</p>
 
-    <!-- Main data layout -->
-    <section class="data-layout">
-      <!-- Filters + table -->
-      <div class="data-main-card">
-        <div class="data-eyebrow">Match Result</div>
-        <h2 class="data-title">Highest chance selections</h2>
-        <p class="data-subtitle">
-          Use the filters to focus on specific days or outcomes. The table updates instantly
-          using the latest data from the model.
-        </p>
-
-        <!-- Day filters -->
-        <div class="data-label">Filter by day</div>
-        <div class="filters-row" id="day-filters">
-          <!-- buttons injected by JS -->
-        </div>
-
-        <!-- Result filters -->
-        <div class="data-label">Filter by predicted result</div>
-        <div class="filters-row" id="result-filters">
-          <button data-result="HOME WIN">Home Win</button>
-          <button data-result="AWAY WIN">Away Win</button>
-        </div>
-
-        <div class="mobile-info">
-          Bookmaker and model prices are shown in the price columns.
-        </div>
-
-        <!-- Table -->
-        <div class="table-container" id="sheet-data"></div>
+      <div class="prediction-filter-section">
+        <div class="prediction-filter-label">Filter by day</div>
+        <div class="prediction-filter-row" id="day-filters"></div>
       </div>
 
-      <!-- Side info / explanatory card -->
-      <aside class="data-side-card">
-        <h3 class="data-side-title">What does “highest chance” mean?</h3>
-        <p class="data-side-subtitle">
-          These are fixtures where the model assigns the strongest probability to a specific
-          match result (home win or away win), regardless of price.
-        </p>
-        <ul class="value-list">
-          <li><span class="emoji">📈</span> Focuses on win probability, not strictly value.</li>
-          <li><span class="emoji">🏠</span> High-confidence home favourites can appear frequently.</li>
-          <li><span class="emoji">🧳</span> Strong away sides with favourable match-ups also show here.</li>
-        </ul>
+      <div class="prediction-filter-section">
+        <div class="prediction-filter-label">Filter by predicted result</div>
+        <div class="prediction-filter-row" id="result-filters"></div>
+      </div>
 
-        <p class="side-note">
-          You can combine this view with the Best Value page: a selection that appears in both
-          can be a strong candidate, but still never guaranteed.
-        </p>
-      </aside>
+      <p class="prediction-note">Bookmaker and model prices are shown in the price columns.</p>
+
+      <div id="sheet-data" class="prediction-table-wrap"></div>
     </section>
-
-    <footer class="home-footer">
-      MC Predict is for informational purposes only and does not guarantee outcomes. Please bet responsibly.
-    </footer>
   </div>
 
-  <!-- Bottom mobile nav -->
-
+  <nav class="mobile-bottom-nav prediction-bottom-nav" aria-label="Mobile primary navigation">
+    <a class="mobile-bottom-nav__item" data-nav-path="/hda-value" href="/hda-value"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M6 19h12M8 19V9h8v10M10 9V5h4v4"/></svg><span class="mobile-bottom-nav__label">Winner</span></a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/uo-value" href="/uo-value"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg><span class="mobile-bottom-nav__label">U/O 2.5</span></a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/historical" href="/historical"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/></svg><span class="mobile-bottom-nav__label">Data</span></a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/faqs" href="/faqs"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/><circle cx="12" cy="17" r=".8"/></svg><span class="mobile-bottom-nav__label">FAQs</span></a>
+  </nav>
 
   <script>
-    let allRows = [];
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv";
+    const secondFilterLabel = "predicted result";
     let headerRow = [];
     let dataRows = [];
-
     const activeDayFilters = new Set();
     const activeResultFilters = new Set();
 
-    function csvToRows(text) {
-      // Simple CSV split; assumes your sheet cells don't contain unescaped commas/newlines.
-      return text.trim().split("\n").map(r => r.split(","));
+    function csvToRows(text) { return text.trim().split("\n").map(r => r.split(",")); }
+    function hideLoadingOverlay() { const overlay = document.getElementById("loadingOverlay"); if (!overlay) return; overlay.classList.add("hidden"); setTimeout(() => { overlay.style.display = "none"; }, 450); }
+    function showLoadError() { document.getElementById("sheet-data").innerHTML = "<p class='prediction-empty'>We couldn’t load live data. Please refresh in a minute.</p>"; }
+    function sanitize(v) { return (v || "").trim(); }
+
+    function createFilterButton(text, onClick) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "prediction-filter-button";
+      btn.textContent = text;
+      btn.addEventListener("click", () => onClick(btn));
+      return btn;
     }
 
-    function formatRefreshTime(d){ return d.toLocaleString("en-GB", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit", hour12:false, timeZone:"UTC" }) + " UTC"; }
+    function buildFilters() {
+      const dayWrap = document.getElementById("day-filters");
+      const resultWrap = document.getElementById("result-filters");
+      dayWrap.innerHTML = "";
+      resultWrap.innerHTML = "";
 
-    function setRefreshNow(){ const el=document.getElementById("refresh-time"); if(el){ el.textContent=formatRefreshTime(new Date()); } }
+      Array.from(new Set(dataRows.map(r => sanitize(r[0])).filter(Boolean))).forEach(day => {
+        dayWrap.appendChild(createFilterButton(day, btn => {
+          activeDayFilters.has(day) ? activeDayFilters.delete(day) : activeDayFilters.add(day);
+          btn.classList.toggle("prediction-filter-button--active");
+          renderTable();
+        }));
+      });
 
-    function showLoadError(){ const container=document.getElementById("sheet-data"); if(container){ container.innerHTML="<p style='font-size:13px;color:#f7b057;margin:8px 0;'>We couldn\'t load the live data just now. Please refresh in a minute.</p>"; } }
+      Array.from(new Set(dataRows.map(r => sanitize(r[5]).toUpperCase()).filter(Boolean))).forEach(result => {
+        const label = result.replace(/\b\w/g, c => c.toUpperCase()).toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+        resultWrap.appendChild(createFilterButton(label, btn => {
+          activeResultFilters.has(result) ? activeResultFilters.delete(result) : activeResultFilters.add(result);
+          btn.classList.toggle("prediction-filter-button--active");
+          renderTable();
+        }));
+      });
+    }
 
-    function hideLoadingOverlay() {
-      const overlay = document.getElementById("loadingOverlay");
-      if (!overlay) return;
-      overlay.classList.add("hidden");
-      setTimeout(() => {
-        overlay.style.display = "none";
-      }, 450);
+    function rowMatches(row) {
+      const day = sanitize(row[0]);
+      const result = sanitize(row[5]).toUpperCase();
+      return (activeDayFilters.size === 0 || activeDayFilters.has(day)) && (activeResultFilters.size === 0 || activeResultFilters.has(result));
+    }
+
+    function renderTable() {
+      const container = document.getElementById("sheet-data");
+      const filtered = dataRows.filter(rowMatches);
+      if (!headerRow.length) { container.innerHTML = "<p class='prediction-empty'>No table header found in source data.</p>"; return; }
+      if (!filtered.length) { container.innerHTML = "<p class='prediction-empty'>No selections match the active filters.</p>"; return; }
+      let html = "<table class='prediction-table'><thead><tr>" + headerRow.map(cell => `<th>${cell}</th>`).join("") + "</tr></thead><tbody>";
+      filtered.forEach(row => { html += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>"; });
+      html += "</tbody></table>";
+      container.innerHTML = html;
     }
 
     async function loadCSV() {
-      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=1040433174&single=true&output=csv";
-
       try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const text = await response.text();
-        allRows = csvToRows(text);
-
-        // Headers are in Row 2 (index 1). Data starts at Row 3 (index 2).
-        headerRow = allRows[1] || [];
-        dataRows = allRows.slice(2);
-
-        buildDayButtons();
-        attachResultButtonHandlers();
+        const response = await fetch(csvUrl);
+        if (!response.ok) throw new Error("Network error");
+        const rows = csvToRows(await response.text());
+        headerRow = rows[1] || [];
+        dataRows = rows.slice(2);
+        buildFilters();
         renderTable();
-        setRefreshNow();
-      } catch (err) {
-        console.error("Error loading CSV:", err);
+      } catch (error) {
+        console.error(error);
         showLoadError();
       } finally {
         hideLoadingOverlay();
       }
     }
 
-    function buildDayButtons() {
-      const dayFiltersDiv = document.getElementById("day-filters");
-      dayFiltersDiv.innerHTML = "";
-
-      // Column A = day (index 0); filter out blanks and normalize
-      const uniqueDays = Array.from(new Set(
-        dataRows
-          .map(r => (r[0] || "").trim())
-          .filter(v => v.length > 0)
-      ));
-
-      uniqueDays.forEach(day => {
-        const btn = document.createElement("button");
-        btn.textContent = day;
-        btn.dataset.day = day;
-        btn.addEventListener("click", () => {
-          if (activeDayFilters.has(day)) {
-            activeDayFilters.delete(day);
-            btn.classList.remove("active");
-          } else {
-            activeDayFilters.add(day);
-            btn.classList.add("active");
-          }
-          renderTable();
-        });
-        dayFiltersDiv.appendChild(btn);
-      });
-    }
-
-    function attachResultButtonHandlers() {
-      document.querySelectorAll("#result-filters button").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const value = (btn.dataset.result || "").trim().toUpperCase(); // e.g., "HOME WIN"
-          if (activeResultFilters.has(value)) {
-            activeResultFilters.delete(value);
-            btn.classList.remove("active");
-          } else {
-            activeResultFilters.add(value);
-            btn.classList.add("active");
-          }
-          renderTable();
-        });
-      });
-    }
-
-    function rowMatchesFilters(row) {
-      const dayVal = (row[0] || "").trim();                  // Column A
-      const resultVal = (row[5] || "").trim().toUpperCase(); // Column F
-
-      const dayOk = activeDayFilters.size === 0 || activeDayFilters.has(dayVal);
-      const resultOk = activeResultFilters.size === 0 || activeResultFilters.has(resultVal);
-
-      return dayOk && resultOk;
-    }
-
-    function renderTable() {
-      const container = document.getElementById("sheet-data");
-
-      let html = "<table>";
-
-      // Headers
-      if (headerRow.length) {
-        html += "<tr>" + headerRow.map((cell, idx) => {
-          // If you still want extra wrapping on certain headers, you can flag them here:
-          // const needsWrap = idx === 6 || idx === 7;
-          const needsWrap = false;
-          const cls = needsWrap ? ' class="wrap-header"' : '';
-          return `<th${cls}>${cell}</th>`;
-        }).join("") + "</tr>";
-      }
-
-      // Filtered data rows
-      dataRows.forEach(row => {
-        if (rowMatchesFilters(row)) {
-          html += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>";
-        }
-      });
-
-      html += "</table>";
-      container.innerHTML = html;
-    }
-
     loadCSV();
   </script>
-
-  <nav class="mobile-bottom-nav" aria-label="Mobile primary navigation">
-    <a class="mobile-bottom-nav__item" data-nav-path="/hda-value" href="/hda-value"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M6 19h12M8 19V9h8v10M10 9V5h4v4"/></svg><span class="mobile-bottom-nav__label">Winner</span></a>
-    <a class="mobile-bottom-nav__item" data-nav-path="/uo-value" href="/uo-value"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg><span class="mobile-bottom-nav__label">U/O 2.5</span></a>
-    <a class="mobile-bottom-nav__item" data-nav-path="/historical" href="/historical"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/></svg><span class="mobile-bottom-nav__label">Data</span></a>
-    <a class="mobile-bottom-nav__item" data-nav-path="/faqs" href="/faqs"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/><circle cx="12" cy="17" r=".8"/></svg><span class="mobile-bottom-nav__label">FAQs</span></a>
-  </nav>
 
   <script src="/site.js"></script>
 </body>
