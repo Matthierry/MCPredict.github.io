@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MC Predict</title>
+  <link rel="stylesheet" href="/style.css" />
   <style>
     :root {
       --bg: #111214;
@@ -25,17 +26,11 @@
     }
     .container { max-width: 1120px; margin: 0 auto; padding: 12px 14px 34px; }
 
-    .header {
-      position: sticky; top: 10px; z-index: 20;
-      border: 1px solid var(--border); border-radius: 16px;
-      padding: 10px 12px; background: rgba(20,22,26,.95);
-      box-shadow: var(--shadow); backdrop-filter: blur(8px);
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-    }
-    .brand { display:flex; align-items:center; gap:10px; min-width:0; text-decoration:none; color:inherit; }
-    .brand img { width:40px; height:40px; border-radius:10px; object-fit:contain; background:#15171a; }
-    .brand h1 { margin:0; font-size:1rem; letter-spacing:.08em; }
-    .brand p { margin:2px 0 0; color:var(--muted); font-size:.73rem; }
+    .header { margin-bottom: 16px; }
+    .brand-copy { min-width: 0; display: grid; }
+    .brand h1 { margin:0; font-size:1rem; letter-spacing:.08em; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .brand p { margin:2px 0 0; color:var(--muted); font-size:.73rem; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .menu-btn { margin-left:auto; }
     .menu-btn, .close-btn {
       background: transparent; color: var(--text); border: 1px solid var(--border);
       width: 42px; height: 42px; border-radius: 12px; cursor: pointer;
@@ -222,11 +217,11 @@
 </head>
 <body>
   <div class="container">
-    <header class="header">
+    <header class="header standard-header">
       <a class="brand" href="/">
         <img src="/images/mcpredcirclebg.png" alt="MCPredict logo">
-        <div>
-          <h1>MCPredict</h1>
+        <div class="brand-copy">
+          <h1>MC PREDICT</h1>
           <p>Data-driven Football predictions</p>
         </div>
       </a>
