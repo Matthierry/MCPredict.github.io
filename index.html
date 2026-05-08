@@ -26,7 +26,7 @@
     }
     .container { max-width: 1120px; margin: 0 auto; padding: 12px 14px 34px; }
 
-    .header { margin-bottom: 16px; position:sticky; top:0; z-index:1200; background:rgba(17,18,20,.94); backdrop-filter:blur(8px); border:1px solid rgba(47,51,58,.9); border-radius:16px; padding:10px 12px; box-shadow:0 8px 18px rgba(0,0,0,.35);} 
+    .header { margin: 0 0 16px; position:sticky; top:0; z-index:2000; width:100%; background:#18181a; border:0; border-bottom:1px solid rgba(255,255,255,.06); border-radius:0; padding:14px 16px; box-shadow:none; } 
     .brand-copy { min-width: 0; display: grid; }
     .brand h1 { margin:0; font-size:1rem; letter-spacing:.08em; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .brand p { margin:2px 0 0; color:var(--muted); font-size:.73rem; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -39,7 +39,7 @@
     .menu-btn svg, .close-btn svg { width: 20px; height:20px; }
 
     .menu-overlay {
-      position: fixed; inset:0; z-index: 100;
+      position: fixed; inset:0; z-index: 3000;
       background: rgba(8,9,11,.95);
       transform: translateX(100%); transition: transform .3s ease;
       display:flex; flex-direction:column; padding:18px;

@@ -845,3 +845,55 @@ body.cheltenham iframe {
 .menu-links{display:grid;gap:10px;}
 .menu-links a{text-decoration:none;color:#f3f4f6;border:1px solid #2f333a;background:#1a1c1f;border-radius:14px;padding:14px;font-weight:600;}
 .menu-links a.active{border-color:rgba(247,147,26,.7);color:#f7931a;}
+
+
+/* Unified flat sticky header (single source of truth) */
+.standard-header,
+.home-topbar,
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 2000;
+  width: 100%;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  border-radius: 0;
+  background: #18181a;
+  box-shadow: none;
+  backdrop-filter: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.standard-header .brand,
+.brand-header-link,
+.site-header .brand {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+  flex:1 1 auto;
+  text-decoration:none;
+}
+.standard-header .brand-copy,
+.topbar-title {
+  min-width:0;
+  display:grid;
+  text-align:left;
+}
+.standard-header .brand h1,
+.brand-header-link .topbar-title h1,
+.standard-header .brand-copy h1 {font-size:1rem;}
+.standard-header .brand p,
+.brand-header-link .topbar-title span,
+.standard-header .brand-copy p {font-size:.73rem;}
+.menu-btn,.close-btn{margin-left:auto;flex:0 0 auto;}
+.menu-overlay{z-index:3000;}
+@media (max-width:430px){
+  .standard-header, .home-topbar, .site-header{padding:12px;}
+  .standard-header .brand h1, .brand-header-link .topbar-title h1, .standard-header .brand-copy h1{font-size:.96rem;}
+  .standard-header .brand p, .brand-header-link .topbar-title span, .standard-header .brand-copy p{font-size:.7rem;}
+}
