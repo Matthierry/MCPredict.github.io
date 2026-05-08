@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
 </head>
+
 <body class="home prediction-page hda-value-page">
   <div class="loading-overlay" id="loadingOverlay" aria-live="polite">
     <div class="loading-ball">⚽</div>
@@ -26,16 +27,24 @@
           <p>Data-driven Football predictions</p>
         </div>
       </a>
+
       <button class="menu-btn" id="openMenu" aria-label="Open menu">
-        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
       </button>
     </header>
 
     <div class="menu-overlay" id="menuOverlay" aria-hidden="true">
       <div class="menu-top">
         <h3 style="margin:0;">Menu</h3>
-        <button class="close-btn" id="closeMenu" aria-label="Close menu"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <button class="close-btn" id="closeMenu" aria-label="Close menu">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
+
       <nav class="menu-links">
         <a href="/">Home</a>
         <a href="/hda-value">Match Result - Best Value</a>
@@ -51,7 +60,7 @@
 
     <div class="prediction-tabs" role="tablist" aria-label="View switch">
       <a href="/hda-value" class="prediction-tab prediction-tab--active">Best Value</a>
-      <a href="/hda-highchance" class="prediction-tab ">Highest Chance</a>
+      <a href="/hda-highchance" class="prediction-tab">Highest Chance</a>
     </div>
 
     <section class="prediction-panel">
@@ -72,166 +81,229 @@
       <p class="prediction-note">Bookmaker and model prices are shown side-by-side with model edge strength for each selection.</p>
 
       <div id="results-summary" class="prediction-results-summary" aria-live="polite"></div>
-      <div id="sheet-data" aria-live="polite"></div>
+      <div id="sheet-data"></div>
     </section>
   </div>
 
   <nav class="mobile-bottom-nav prediction-bottom-nav" aria-label="Mobile primary navigation">
-    <a class="mobile-bottom-nav__item" data-nav-path="/hda-value" href="/hda-value"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M6 19h12M8 19V9h8v10M10 9V5h4v4"/></svg><span class="mobile-bottom-nav__label">Winner</span></a>
-    <a class="mobile-bottom-nav__item" data-nav-path="/uo-value" href="/uo-value"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg><span class="mobile-bottom-nav__label">U/O 2.5</span></a>
-    <a class="mobile-bottom-nav__item" data-nav-path="/historical" href="/historical"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/></svg><span class="mobile-bottom-nav__label">Data</span></a>
-    <a class="mobile-bottom-nav__item" data-nav-path="/faqs" href="/faqs"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/><circle cx="12" cy="17" r=".8"/></svg><span class="mobile-bottom-nav__label">FAQs</span></a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/hda-value" href="/hda-value">
+      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24">
+        <path d="M6 19h12M8 19V9h8v10M10 9V5h4v4"/>
+      </svg>
+      <span class="mobile-bottom-nav__label">Winner</span>
+    </a>
+
+    <a class="mobile-bottom-nav__item" data-nav-path="/uo-value" href="/uo-value">
+      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8"/>
+        <path d="M12 8v8M8 12h8"/>
+      </svg>
+      <span class="mobile-bottom-nav__label">U/O 2.5</span>
+    </a>
+
+    <a class="mobile-bottom-nav__item" data-nav-path="/historical" href="/historical">
+      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24">
+        <path d="M5 19V9M12 19V5M19 19v-7"/>
+      </svg>
+      <span class="mobile-bottom-nav__label">Data</span>
+    </a>
+
+    <a class="mobile-bottom-nav__item" data-nav-path="/faqs" href="/faqs">
+      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24">
+        <path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/>
+        <circle cx="12" cy="17" r=".8"/>
+      </svg>
+      <span class="mobile-bottom-nav__label">FAQs</span>
+    </a>
   </nav>
 
   <script src="/site.js"></script>
 
   <script>
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=772292951&single=true&output=csv";
+
+    let headerRow = [];
     let dataRows = [];
-    let activeDayFilter = null;
-    let activeResultFilter = null;
-    let latestUpdatedLabel = "Latest model data";
 
-    function hideLoadingOverlay() { const overlay = document.getElementById("loadingOverlay"); if (!overlay) return; overlay.classList.add("hidden"); setTimeout(() => { overlay.style.display = "none"; }, 450); }
-    function normHeader(value) { return (value || "").trim().toLowerCase().replace(/[\s\-]+/g, "_"); }
-    function clean(value) { return (value || "").trim(); }
+    const activeDayFilters = new Set();
+    const activeResultFilters = new Set();
 
-    function parseCSV(text) {
-      const rows = [];
-      let row = [];
-      let cell = "";
-      let inQuotes = false;
-      for (let i = 0; i < text.length; i += 1) {
-        const char = text[i];
-        if (char === '"') {
-          if (inQuotes && text[i + 1] === '"') { cell += '"'; i += 1; } else { inQuotes = !inQuotes; }
-        } else if (char === ',' && !inQuotes) {
-          row.push(cell); cell = "";
-        } else if ((char === '\n' || char === '\r') && !inQuotes) {
-          if (char === '\r' && text[i + 1] === '\n') i += 1;
-          row.push(cell); rows.push(row); row = []; cell = "";
-        } else {
-          cell += char;
-        }
-      }
-      if (cell.length || row.length) { row.push(cell); rows.push(row); }
-      return rows.filter(r => r.some(c => clean(c)));
+    const predictionUtils = window.MCPredictPrediction;
+
+    function hideLoadingOverlay() {
+      const overlay = document.getElementById("loadingOverlay");
+      if (!overlay) return;
+
+      overlay.classList.add("hidden");
+
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 450);
     }
 
-    function pick(row, mapping, aliases) {
-      for (const alias of aliases) {
-        const idx = mapping[alias];
-        if (idx !== undefined && row[idx] !== undefined) {
-          const value = clean(row[idx]);
-          if (value) return value;
-        }
-      }
-      return "";
+    function showLoadError() {
+      document.getElementById("results-summary").innerHTML = "";
+      document.getElementById("sheet-data").innerHTML = "<p class='prediction-empty'>We couldn’t load live data. Please refresh in a minute.</p>";
     }
 
-    function edgeText(value) {
-      const t = clean(value);
-      const n = Number.parseFloat(t);
-      if (!Number.isNaN(n)) return n >= 10 ? "Strong" : (n >= 6 ? "Medium" : "Small");
-      return t || "Small";
-    }
-
-    function valueIconCount(valueLabel) {
-      const key = (valueLabel || "").toLowerCase();
-      if (key === "strong") return 3;
-      if (key === "medium") return 2;
-      return 1;
-    }
-
-    function valueIcons(valueLabel) {
-      const count = valueIconCount(valueLabel);
-      return Array.from({ length: count }, () => '<span class="prediction-value-icon" aria-hidden="true">💰</span>').join("");
-    }
-
-    function toCardData(row, mapping) {
-      return {
-        day: pick(row, mapping, ["day", "match_day", "date", "match_date"]),
-        league: pick(row, mapping, ["league", "competition"]),
-        homeTeam: pick(row, mapping, ["home_team", "home", "hometeam"]),
-        awayTeam: pick(row, mapping, ["away_team", "away", "awayteam"]),
-        prediction: pick(row, mapping, ["prediction", "predicted_result", "result", "pick"]),
-        bookiePrice: pick(row, mapping, ["bookie_price", "bookmaker_odds", "bookmaker_price", "bo"]),
-        modelPrice: pick(row, mapping, ["model_price", "model_odds", "model", "mo"]),
-        edgeRaw: pick(row, mapping, ["edge", "value", "value_rating"]),
-        updatedAt: pick(row, mapping, ["updated", "updated_at", "time", "last_updated"])
-      };
-    }
-
-    function createFilterButton(text, active, onClick) {
+    function createFilterButton(text, onClick) {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = `prediction-filter-button${active ? " prediction-filter-button--active" : ""}`;
+      btn.className = "prediction-filter-button";
       btn.textContent = text;
-      btn.addEventListener("click", onClick);
+
+      btn.addEventListener("click", () => onClick(btn));
+
       return btn;
     }
 
     function buildFilters() {
       const dayWrap = document.getElementById("day-filters");
       const resultWrap = document.getElementById("result-filters");
+
       dayWrap.innerHTML = "";
       resultWrap.innerHTML = "";
-      const days = [...new Set(dataRows.map(r => r.day).filter(Boolean))];
-      const results = ["Home Win", "Away Win", "Draw"];
-      days.forEach(day => dayWrap.appendChild(createFilterButton(day, activeDayFilter === day, () => { activeDayFilter = activeDayFilter === day ? null : day; buildFilters(); renderCards(); })));
-      results.forEach(result => resultWrap.appendChild(createFilterButton(result, activeResultFilter === result, () => { activeResultFilter = activeResultFilter === result ? null : result; buildFilters(); renderCards(); })));
+
+      const days = Array.from(
+        new Set(
+          dataRows
+            .map(row => predictionUtils.extractRowData(headerRow, row).day)
+            .filter(Boolean)
+        )
+      );
+
+      days.forEach(day => {
+        dayWrap.appendChild(
+          createFilterButton(day, btn => {
+            activeDayFilters.has(day)
+              ? activeDayFilters.delete(day)
+              : activeDayFilters.add(day);
+
+            btn.classList.toggle("prediction-filter-button--active");
+            renderTable();
+          })
+        );
+      });
+
+      const results = Array.from(
+        new Set(
+          dataRows
+            .map(row => predictionUtils.extractRowData(headerRow, row).prediction.toUpperCase())
+            .filter(Boolean)
+        )
+      );
+
+      results.forEach(result => {
+        resultWrap.appendChild(
+          createFilterButton(result, btn => {
+            activeResultFilters.has(result)
+              ? activeResultFilters.delete(result)
+              : activeResultFilters.add(result);
+
+            btn.classList.toggle("prediction-filter-button--active");
+            renderTable();
+          })
+        );
+      });
     }
 
-    function filteredRows() {
-      return dataRows.filter(row => (!activeDayFilter || row.day === activeDayFilter) && (!activeResultFilter || row.prediction.toLowerCase() === activeResultFilter.toLowerCase()));
+    function rowMatches(row) {
+      const rowData = predictionUtils.extractRowData(headerRow, row);
+      const day = rowData.day;
+      const result = rowData.prediction.toUpperCase();
+
+      return (
+        (activeDayFilters.size === 0 || activeDayFilters.has(day)) &&
+        (activeResultFilters.size === 0 || activeResultFilters.has(result))
+      );
     }
 
-    function renderCards() {
+    function renderTable() {
       const container = document.getElementById("sheet-data");
       const summary = document.getElementById("results-summary");
-      const filtered = filteredRows();
-      summary.innerHTML = `<div class="prediction-status"><div><strong>Showing ${filtered.length} selections</strong><span>${latestUpdatedLabel}</span></div><button type="button" id="clear-filters" class="prediction-clear-btn">Clear filters</button></div>`;
-      document.getElementById("clear-filters").addEventListener("click", () => { activeDayFilter = null; activeResultFilter = null; buildFilters(); renderCards(); });
+      const filtered = dataRows.filter(rowMatches);
 
-      if (!filtered.length) {
-        container.innerHTML = "<p class='prediction-empty'>No selections match these filters.</p>";
+      summary.innerHTML = `
+        <div class="selection-summary">
+          <strong>Showing ${filtered.length} selections</strong>
+          <span>Latest model data</span>
+        </div>
+      `;
+
+      if (!headerRow.length) {
+        container.innerHTML = "<p class='prediction-empty'>No table header found in source data.</p>";
         return;
       }
 
-      container.innerHTML = `<div class="prediction-results mobile-prediction-cards">${filtered.map(row => `
-        <article class="prediction-card">
-          <div class="prediction-card-header prediction-card__top">
-            <div class="prediction-card__meta"><span>${row.day || "-"}</span><span>${row.league || "-"}</span></div>
-            <div class="prediction-pill-wrap"><span class="prediction-badge">${row.prediction || "-"}</span></div>
-          </div>
-          <div class="prediction-card__fixture"><span class="prediction-card__team prediction-card__team--home">${row.homeTeam || "-"}</span><span class="prediction-card__versus">v</span><span class="prediction-card__team prediction-card__team--away">${row.awayTeam || "-"}</span></div>
-          <div class="prediction-card__stats"><div class="stat-cell"><span>Bookie Price</span><strong>${row.bookiePrice || "-"}</strong></div><div class="stat-cell"><span>Model Price</span><strong>${row.modelPrice || "-"}</strong></div></div>
-          <div class="prediction-value-row"><span class="prediction-value-label">Value</span><span class="prediction-value-icons" aria-label="${edgeText(row.edgeRaw)} value">${valueIcons(edgeText(row.edgeRaw))}</span></div>
-        </article>
-      `).join("")}</div>`;
+      if (!filtered.length) {
+        container.innerHTML = "<p class='prediction-empty'>No selections match the active filters.</p>";
+        return;
+      }
+
+      let cards = "<div class='prediction-results mobile-prediction-cards'>";
+
+      filtered.forEach(row => {
+        cards += predictionUtils.renderPredictionCard(
+          predictionUtils.extractRowData(headerRow, row)
+        );
+      });
+
+      cards += "</div>";
+
+      let table = `
+        <div class='prediction-table-wrap desktop-prediction-table'>
+          <table class='prediction-table'>
+            <thead>
+              <tr>
+                ${headerRow.map(cell => `<th>${cell}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      filtered.forEach(row => {
+        table += `
+          <tr>
+            ${row.map(cell => `<td>${cell}</td>`).join("")}
+          </tr>
+        `;
+      });
+
+      table += `
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      container.innerHTML = cards + table;
     }
 
     async function loadCSV() {
       try {
+        if (!predictionUtils) {
+          throw new Error("MCPredictPrediction utilities are not available. Check that /site.js is loading correctly.");
+        }
+
         const response = await fetch(csvUrl);
-        if (!response.ok) throw new Error(`CSV request failed with status ${response.status}`);
-        const parsed = parseCSV(await response.text());
-        const header = parsed[0] || [];
-        const mapping = {};
-        header.forEach((h, idx) => { mapping[normHeader(h)] = idx; });
-        dataRows = parsed.slice(1).map(row => toCardData(row, mapping)).filter(row => row.homeTeam && row.awayTeam);
-        const first = dataRows[0] || null;
-        latestUpdatedLabel = first?.updatedAt ? `Latest model data • Updated ${first.updatedAt}` : "Latest model data";
-        console.info("CSV loaded successfully");
-        console.info("Rows parsed:", dataRows.length);
-        console.info("Detected headers:", header);
-        console.info("First parsed row:", first);
+
+        if (!response.ok) {
+          throw new Error(`CSV request failed with status ${response.status}`);
+        }
+
+        const rows = predictionUtils.csvToRows(await response.text());
+
+        headerRow = rows[1] || [];
+        dataRows = rows.slice(2);
+
         buildFilters();
-        renderCards();
+        renderTable();
+
+        console.info("HDA value CSV loaded successfully");
+        console.info("Rows parsed:", dataRows.length);
+        console.info("Detected headers:", headerRow);
       } catch (error) {
         console.error("Failed to load hda-value CSV", error);
-        document.getElementById("results-summary").innerHTML = "";
-        document.getElementById("sheet-data").innerHTML = "<p class='prediction-empty'>We couldn’t load the latest selections. Please try again shortly.</p>";
+        showLoadError();
       } finally {
         hideLoadingOverlay();
       }
@@ -239,6 +311,5 @@
 
     loadCSV();
   </script>
-
 </body>
 </html>
