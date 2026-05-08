@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC PREDICT - Historical Data</title>
+  <title>MC Predict | Historical Data</title>
 
   <!-- Global site stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -386,34 +386,36 @@
   <div class="home-page">
 
     <!-- Top bar -->
-    <header class="home-topbar">
-      <div class="topbar-inner">
-        <a class="brand-header-link" href="/" aria-label="MC Predict home">
-          <div class="topbar-left">
-            <div class="topbar-logo">
-              <img src="/images/mcpredcirclebg.png" alt="">
-            </div>
-            <div class="topbar-title">
-              <h1>MC PREDICT</h1>
-              <span>Data-driven Football predictions</span>
-            </div>
-          </div>
-        </a>
-        <div class="topbar-tag">
-          <span class="topbar-tag-dot"></span>
-          <span>Historical</span>
+    <header class="header standard-header">
+      <a class="brand" href="/">
+        <img src="/images/mcpredcirclebg.png" alt="MCPredict logo">
+        <div>
+          <h1>MCPredict</h1>
+          <p>Data-driven Football predictions</p>
         </div>
-      </div>
-
-      <!-- Desktop / tablet nav -->
-      <nav class="primary-nav" aria-label="Primary navigation">
-        <a href="/index">Home</a>
-        <a href="/hda-value">Match Result</a>
-        <a href="/uo-value">Under/Over 2.5</a>
-        <a href="/historical" class="active">Historical Data</a>
-        <a href="/faqs">FAQs</a>
-      </nav>
+      </a>
+      <button class="menu-btn" id="openMenu" aria-label="Open menu">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
     </header>
+
+    <div class="menu-overlay" id="menuOverlay" aria-hidden="true">
+      <div class="menu-top">
+        <h3 style="margin:0;">Menu</h3>
+        <button class="close-btn" id="closeMenu" aria-label="Close menu"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      </div>
+      <nav class="menu-links">
+        <a href="/">Home</a>
+        <a href="/hda-value">Match Result - Best Value</a>
+        <a href="/hda-highchance">Match Result - Highest Chance</a>
+        <a href="/uo-value">U/O 2.5 - Best Value</a>
+        <a href="/uo-highchance">U/O 2.5 - Highest Chance</a>
+        <a href="/historical">Historical Data</a>
+        <a href="/faqs">FAQs</a>
+        <a href="/lucky-dip">Lucky Dip</a>
+        <a href="/wc26/">World Cup 2026</a>
+      </nav>
+    </div>
 
     <!-- Main content -->
     <main class="historical-layout">
@@ -465,28 +467,7 @@
   </div>
 
   <!-- Bottom mobile nav -->
-  <nav class="bottom-nav" aria-label="Primary navigation">
-    <a href="/index" data-key="home">
-      <span class="icon">🏠</span>
-      <span class="label">Home</span>
-    </a>
-    <a href="/hda-value" data-key="hda">
-      <span class="icon">🏆</span>
-      <span class="label">Result</span>
-    </a>
-    <a href="/uo-value" data-key="uo">
-      <span class="icon">⚽</span>
-      <span class="label">U/O 2.5</span>
-    </a>
-    <a href="/historical" class="active" data-key="historical">
-      <span class="icon">📊</span>
-      <span class="label">History</span>
-    </a>
-    <a href="/faqs" data-key="faqs">
-      <span class="icon">❓</span>
-      <span class="label">FAQs</span>
-    </a>
-  </nav>
+  
   
   <nav class="mobile-bottom-nav" aria-label="Mobile primary navigation">
     <a class="mobile-bottom-nav__item" data-nav-path="/hda-value" href="/hda-value"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M6 19h12M8 19V9h8v10M10 9V5h4v4"/></svg><span class="mobile-bottom-nav__label">Winner</span></a>
