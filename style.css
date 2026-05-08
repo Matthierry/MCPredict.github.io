@@ -1025,7 +1025,7 @@ body.historical-page {
   padding: 14px 16px;
 }
 
-.trust-dot {
+.historical-trust-dot {
   width: 12px;
   height: 12px;
   border-radius: 999px;
@@ -1041,16 +1041,10 @@ body.historical-page {
 .historical-social-link a {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   color: #6f7782;
-  font-size: 1rem;
+  font-size: 0.92rem;
   text-decoration: none;
-}
-
-.historical-social-link img {
-  width: 20px;
-  height: 20px;
-  opacity: 0.5;
+  letter-spacing: 0.02em;
 }
 
 .historical-feature-grid {
