@@ -402,7 +402,8 @@
     setMobileFooterActiveState();
 
     function skeleton(el, count = 3) { el.innerHTML = Array.from({ length: count }, () => '<div class="skeleton"></div>').join(''); }
-    function emptyState(el) { el.innerHTML = '<div class="empty">No fixtures available today</div>'; }
+    const DAILY_PICKS_EMPTY_MESSAGE = 'No fixtures available. Check again later — weekend fixtures are usually available from 16:00 UK time on Friday.';
+    function emptyState(el, message = 'No fixtures available today') { el.innerHTML = `<div class="empty">${message}</div>`; }
 
     function parseCSV(text) {
       const rows = [];
@@ -433,6 +434,11 @@
 
     function cleanCell(value) {
       return (value || '').trim();
+    }
+
+    function isInvalidDailyPickCell(value) {
+      const normalized = cleanCell(value).toLowerCase();
+      return !normalized || normalized === '#n/a' || normalized === 'undefined' || normalized === 'null' || normalized === 'nan';
     }
 
     function animateNumberRoll(element, finalValue, duration = 3000) {
@@ -473,7 +479,15 @@
           confidence: columnMap.confidence !== undefined ? cleanCell(row[columnMap.confidence]) : undefined,
           value: columnMap.value !== undefined ? cleanCell(row[columnMap.value]) : undefined
         }))
-        .filter(item => item.fixture);
+        .filter((item) => {
+          const baseValid = !isInvalidDailyPickCell(item.fixture)
+            && !isInvalidDailyPickCell(item.bookiePrice)
+            && !isInvalidDailyPickCell(item.modelPrice);
+          if (!baseValid) return false;
+          if (columnMap.confidence !== undefined) return !isInvalidDailyPickCell(item.confidence);
+          if (columnMap.value !== undefined) return !isInvalidDailyPickCell(item.value);
+          return true;
+        });
     }
 
     function getValueBadgeContent(value) {
@@ -507,7 +521,7 @@
     }
 
     function renderPickCards(el, rows, type) {
-      if (!rows.length) return emptyState(el);
+      if (!rows.length) return emptyState(el, DAILY_PICKS_EMPTY_MESSAGE);
       el.innerHTML = `<div class="pick-list">${rows.map((r) => `
         <article class="pick-card">
           <div class="pick-title">${r.fixture || '-'}</div>
