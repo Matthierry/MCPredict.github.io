@@ -27,6 +27,8 @@
     const homeIndex = getColumnIndex(headerRow, ['home'], 2);
     const awayIndex = getColumnIndex(headerRow, ['away'], 3);
     const predictionIndex = getColumnIndex(headerRow, ['prediction', 'result', 'pick'], 5);
+    const awayRaw = sanitize(row[awayIndex]);
+    const awayTeam = awayRaw.toLowerCase() === 'v' ? sanitize(row[awayIndex + 1]) : awayRaw;
     const bookmakerIndex = getColumnIndex(headerRow, ['bookmaker'], 6);
     const modelIndex = getColumnIndex(headerRow, ['model'], 7);
     const edgeIndex = getColumnIndex(headerRow, ['edge', 'value'], 8);
@@ -35,7 +37,7 @@
       day: sanitize(row[dayIndex]),
       league: sanitize(row[leagueIndex]),
       homeTeam: sanitize(row[homeIndex]),
-      awayTeam: sanitize(row[awayIndex]),
+      awayTeam,
       prediction: sanitize(row[predictionIndex]),
       bookmakerPrice: sanitize(row[bookmakerIndex]),
       modelPrice: sanitize(row[modelIndex]),
