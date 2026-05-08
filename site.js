@@ -23,6 +23,10 @@
       const target=normalize(item.dataset.navPath||item.getAttribute('href'));
       item.classList.toggle('mobile-bottom-menu__item--active', current===target);
     });
+    document.querySelectorAll('.menu-links a[href]').forEach((item)=>{
+      const target=normalize(item.getAttribute('href'));
+      item.classList.toggle('active', current===target);
+    });
 
     const trigger=document.getElementById('bottomMenuTrigger');
     const panel=document.getElementById('bottomMenuPanel');
