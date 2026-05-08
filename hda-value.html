@@ -145,18 +145,18 @@
       const container = document.getElementById("sheet-data");
       const summary = document.getElementById("results-summary");
       const filtered = dataRows.filter(rowMatches);
-      summary.innerHTML = `<div class="prediction-summary-count">Showing ${filtered.length} selections</div><div>Latest model data</div>`;
+      summary.innerHTML = `<div class="selection-summary"><strong>Showing ${filtered.length} selections</strong><span>Latest model data</span></div>`;
       if (!headerRow.length) { container.innerHTML = "<p class='prediction-empty'>No table header found in source data.</p>"; return; }
       if (!filtered.length) { container.innerHTML = "<p class='prediction-empty'>No selections match the active filters.</p>"; return; }
 
-      let cards = "<div class='prediction-card-list prediction-mobile-only'>";
+      let cards = "<div class='prediction-results mobile-prediction-cards'>";
       filtered.forEach(row => {
         const edge = edgeBand(row[8]);
-        cards += `<article class='prediction-card'><div class='prediction-card-top'><div>${sanitize(row[0])} • ${sanitize(row[1])}</div><span class='prediction-badge'>${sanitize(row[5])}</span></div><div class='prediction-fixture'><span>${sanitize(row[2])}</span><span class='prediction-versus'>v</span><span>${sanitize(row[3])}</span></div><div class='prediction-card-grid'><div class='prediction-odds-box'><div class='prediction-box-label'>Bookmaker Price</div><div class='prediction-box-value'>${sanitize(row[6])}</div></div><div class='prediction-odds-box'><div class='prediction-box-label'>Model Price</div><div class='prediction-box-value'>${sanitize(row[7])}</div></div><div class='prediction-edge-box' style='grid-column:1 / -1;'><div class='prediction-box-label'>Value / Edge Strength</div><div class='prediction-box-value ${edge.cls}'>${edge.label}</div></div></div></article>`;
+        cards += `<article class='prediction-card'><div class='prediction-card__meta'><span class='prediction-card__day'>${sanitize(row[0])}</span><span class='prediction-card__league'>${sanitize(row[1])}</span></div><div class='prediction-card__main'><div class='prediction-card__teams'><span class='prediction-card__team prediction-card__team--home'>${sanitize(row[2])}</span><span class='prediction-card__versus'>v</span><span class='prediction-card__team prediction-card__team--away'>${sanitize(row[3])}</span></div><div class='prediction-card__pick'><span class='prediction-badge'>${sanitize(row[5])}</span></div></div><div class='prediction-card__odds'><div class='odds-cell'><span>Bookmaker Price</span><strong>${sanitize(row[6])}</strong></div><div class='odds-cell'><span>Model Price</span><strong>${sanitize(row[7])}</strong></div></div><div class='prediction-card__edge'><span>Value / Edge Strength</span><strong class='${edge.cls}'>${edge.label}</strong></div></article>`;
       });
       cards += "</div>";
 
-      let table = "<div class='prediction-table-wrap prediction-desktop-only'><table class='prediction-table'><thead><tr>" + headerRow.map(cell => `<th>${cell}</th>`).join("") + "</tr></thead><tbody>";
+      let table = "<div class='prediction-table-wrap desktop-prediction-table'><table class='prediction-table'><thead><tr>" + headerRow.map(cell => `<th>${cell}</th>`).join("") + "</tr></thead><tbody>";
       filtered.forEach(row => { table += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>"; });
       table += "</tbody></table></div>";
       container.innerHTML = cards + table;
