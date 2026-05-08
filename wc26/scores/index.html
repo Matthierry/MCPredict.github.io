@@ -174,7 +174,7 @@
     #submitBtn:disabled { background: #666; color: #ccc; cursor:not-allowed; }
     .secondary-btn { margin-top: 8px; background: #2f3140; color: #fff; border:1px solid var(--border); }
     :focus-visible { outline: 2px solid #7bb1ff; outline-offset: 2px; }
-    
+
     .section-nav { display:flex; flex-wrap:wrap; gap:8px; margin: 0 0 12px; }
     .section-nav a { text-decoration:none; color:#dfe6ff; background:#2a2c33; border:1px solid var(--border); border-radius:999px; padding:8px 12px; font-size:.82rem; }
     .section-nav a.active { background: linear-gradient(135deg, rgba(42,57,141,.45), rgba(230,29,37,.35)); border-color: rgba(230,29,37,.8); color:#fff; }
@@ -184,35 +184,24 @@
     }
   </style>
 
-  <style>
-    .home-topbar{padding-bottom:8px;margin:14px auto 8px;max-width:1120px;padding-left:14px;padding-right:14px;}
-    .topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:16px;background:linear-gradient(135deg,#3a3a3c,#262628);box-shadow:0 12px 25px rgba(0,0,0,.45);}
-    .brand-header-link{display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;color:inherit;border-radius:12px;}
-    .brand-header-link:focus-visible{outline:2px solid #f7b057;outline-offset:3px;}
-    .topbar-left{display:flex;align-items:center;gap:10px;min-width:0;}
-    .topbar-logo{width:44px;height:44px;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 30% 20%,#f09300,#1d1d1f);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-    .topbar-logo img{width:70%;height:70%;object-fit:contain;}
-    .topbar-title h1{margin:0;font-size:20px;letter-spacing:.18em;color:#fff;white-space:nowrap;}
-    .topbar-title span{font-size:12px;color:#a5a5a7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
-    @media (max-width:640px){.home-topbar{padding-left:10px;padding-right:10px;margin-top:10px}.topbar-title h1{font-size:17px;letter-spacing:.14em}}
-  </style>
+
 </head>
 <body>
-  <header class="home-topbar">
-    <div class="topbar-inner">
-      <a class="brand-header-link" href="/" aria-label="MC Predict home">
-        <div class="topbar-left">
-          <div class="topbar-logo"><img src="/images/mcpredcirclebg.png" alt=""></div>
-          <div class="topbar-title">
-            <h1>MC PREDICT</h1>
-            <span>Data-driven Football predictions</span>
-          </div>
-        </div>
-      </a>
-    </div>
+  <header class="standard-header">
+    <a class="brand" href="/" aria-label="MC Predict home">
+      <img src="/images/mcpredcirclebg.png" alt="MCPredict logo">
+      <div class="brand-copy"><h1>MC PREDICT</h1><p>Data-driven Football predictions</p></div>
+    </a>
+    <button class="menu-btn" id="openMenu" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   </header>
+  <div class="menu-overlay" id="menuOverlay" aria-hidden="true">
+    <div class="menu-top"><strong>Menu</strong><button class="close-btn" id="closeMenu" aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <nav class="menu-links" aria-label="Primary">
+      <a href="/">Home</a><a href="/hda-value">Match Result</a><a href="/uo-value">U/O 2.5</a><a href="/historical">Historical</a><a href="/faqs">FAQs</a><a href="/wc26/">World Cup 2026</a>
+    </nav>
+  </div>
 
-  <main class="wc26-page">
+<main class="wc26-page">
     <nav class="section-nav" aria-label="World Cup section">
       <a href="/wc26/">Menu</a><a href="/wc26/scores/" class="active" aria-current="page">Submit Predictions</a><a href="/wc26/payment/">Payment</a><a href="/wc26/rules/">Rules</a><a href="/wc26/table/">League Table</a><a href="/wc26/halloffame/">Hall Of Fame</a>
     </nav>
@@ -524,5 +513,6 @@
 
     loadFixtures();
   </script>
+  <script src="/site.js"></script>
 </body>
 </html>
