@@ -14,7 +14,7 @@
 
 </head>
 
-<body class="home">
+<body class="home historical-page">
   <div class="home-page">
 
     <!-- Top bar -->
@@ -50,52 +50,51 @@
     </div>
 
     <!-- Main content -->
-    <main class="historical-layout">
-      <section class="historical-card" aria-labelledby="historical-title">
-        <div class="historical-eyebrow">Historical Data</div>
-        <h2 id="historical-title" class="historical-title">Model performance & full history</h2>
-        <p class="historical-intro">
-          This is where you’ll find everything you’re looking for regarding the model’s historical performance.
-        </p>
-
-        <!-- Twitter Link -->
-        <div class="twitter-link">
+    <main class="historical-main">
+      <section class="historical-hero" aria-labelledby="historical-title">
+        <p class="historical-eyebrow">Historical Data</p>
+        <h2 id="historical-title" class="historical-title">Transparency you can verify</h2>
+        <p class="historical-subtitle">Explore the model’s historical performance and review every recorded prediction and outcome.</p>
+        <div class="historical-trust-strip">
+          <span class="trust-dot" aria-hidden="true"></span>
+          <span>Every prediction is logged. Every outcome can be reviewed.</span>
+        </div>
+        <p class="historical-social-link">
           <a href="https://x.com/mc_predict" target="_blank" rel="noopener">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/1/18/X_icon_-_Gray.svg" alt="X Logo">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/1/18/X_icon_-_Gray.svg" alt="X logo">
             @MC_Predict
           </a>
-        </div>
-
-        <!-- Profit / Loss -->
-        <h3 class="historical-section-title">Profit / Loss</h3>
-        <p class="historical-section-copy">
-          Summaries of the overall performance of the model, grouped by value category.
-        </p>
-        <div class="cta-buttons">
-          <a href="/hda-results" class="secondary">PROFIT / LOSS – MATCH RESULT</a>
-          <a href="/uo-results" class="secondary">PROFIT / LOSS – UNDER / OVER 2.5 GOALS</a>
-        </div>
-
-        <!-- History -->
-        <h3 class="historical-section-title">Full History</h3>
-        <p class="historical-section-copy">
-          Breakdowns of <strong>every</strong> fixture the model has provided a prediction for and its outcome.
-        </p>
-        <div class="cta-buttons">
-          <a href="/hda-histf" class="secondary">HISTORY – MATCH RESULT</a>
-          <a href="/uo-histf" class="secondary">HISTORY – UNDER / OVER 2.5 GOALS</a>
-        </div>
-
-        <p class="historical-link-note">
-          All historical data, odds and fixtures are sourced from
-          <a href="https://www.football-data.co.uk/" target="_blank" rel="noopener">Football-Data.co.uk</a>.
         </p>
       </section>
+
+      <section class="historical-feature-grid" aria-label="Historical data features">
+        <article class="historical-card historical-card-history">
+          <h3 class="historical-card-title">Full History</h3>
+          <p class="historical-card-copy">Review every single match the model has processed, the prediction it made, and the final outcome.</p>
+          <p class="historical-card-reason"><strong>Why this matters:</strong> full accountability for every prediction.</p>
+          <div class="historical-card-actions">
+            <a class="historical-action-btn" href="/hda-histf">MATCH RESULT HISTORY <span aria-hidden="true">›</span></a>
+            <a class="historical-action-btn" href="/uo-histf">UNDER / OVER 2.5 HISTORY <span aria-hidden="true">›</span></a>
+          </div>
+        </article>
+
+        <article class="historical-card historical-card-profit">
+          <h3 class="historical-card-title">Profit / Loss</h3>
+          <p class="historical-card-copy">Break down performance by value category and track how selections have performed over time.</p>
+          <p class="historical-card-reason"><strong>Why this matters:</strong> transparent performance by value tier.</p>
+          <div class="historical-card-actions">
+            <a class="historical-action-btn" href="/hda-results">MATCH RESULT PROFIT / LOSS <span aria-hidden="true">›</span></a>
+            <a class="historical-action-btn" href="/uo-results">UNDER / OVER 2.5 PROFIT / LOSS <span aria-hidden="true">›</span></a>
+          </div>
+        </article>
+      </section>
+
+      <footer class="historical-source-credit">
+        <p>Historical data, odds and fixtures sourced from <a href="https://www.football-data.co.uk/" target="_blank" rel="noopener">Football-Data.co.uk</a>.</p>
+        <p>MC Predict is for informational purposes only and does not guarantee outcomes. Please bet responsibly.</p>
+      </footer>
     </main>
 
-    <footer class="home-footer">
-      MC Predict is for informational purposes only and does not guarantee outcomes. Please bet responsibly.
-    </footer>
   </div>
 
   <!-- Bottom mobile nav -->
