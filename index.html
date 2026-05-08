@@ -26,7 +26,7 @@
     }
     .container { max-width: 1120px; margin: 0 auto; padding: 12px 14px 34px; }
 
-    .header { margin-bottom: 16px; }
+    .header { margin-bottom: 16px; position:sticky; top:0; z-index:1200; background:rgba(17,18,20,.94); backdrop-filter:blur(8px); border:1px solid rgba(47,51,58,.9); border-radius:16px; padding:10px 12px; box-shadow:0 8px 18px rgba(0,0,0,.35);} 
     .brand-copy { min-width: 0; display: grid; }
     .brand h1 { margin:0; font-size:1rem; letter-spacing:.08em; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .brand p { margin:2px 0 0; color:var(--muted); font-size:.73rem; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -331,13 +331,7 @@
     </a>
   </nav>
 
-  <script>
-    const menuOverlay = document.getElementById('menuOverlay');
-    document.getElementById('openMenu').addEventListener('click', () => menuOverlay.classList.add('open'));
-    document.getElementById('closeMenu').addEventListener('click', () => menuOverlay.classList.remove('open'));
-    menuOverlay.addEventListener('click', (e) => { if (e.target === menuOverlay) menuOverlay.classList.remove('open'); });
-
-    const HOMEPAGE_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=799163917&single=true&output=csv';
+  <script>    const HOMEPAGE_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=799163917&single=true&output=csv';
     const WHATS_HOT_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=56710734&single=true&output=csv';
     let deferredInstallPrompt = null;
     const homeScreenModal = document.getElementById('homeScreenModal');
@@ -625,5 +619,6 @@
       }
     })();
   </script>
+  <script src="/site.js"></script>
 </body>
 </html>
