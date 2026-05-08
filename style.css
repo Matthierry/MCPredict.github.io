@@ -943,10 +943,10 @@ body.home .table-container table {
 }
 
 /* hda-value fixture card refinement */
-.hda-value-page .prediction-card__top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:12px; }
-.hda-value-page .prediction-card__meta { margin-bottom:0; }
-.hda-value-page .prediction-card__pick-row { margin-bottom:0; justify-content:flex-end; }
-.hda-value-page .prediction-card__pick-label { display:none; }
+
+.hda-value-page .prediction-card-header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.hda-value-page .prediction-pill-wrap { display:flex; justify-content:flex-end; align-items:center; flex:0 0 auto; }
+.hda-value-page .prediction-card__meta { margin-bottom:0; flex:1 1 auto; min-width:0; }
 .hda-value-page .prediction-badge { max-width:unset; }
 .hda-value-page .prediction-card__fixture { grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr); gap:12px; margin-bottom:14px; }
 .hda-value-page .prediction-card__team { font-size:clamp(.8rem,3.3vw,.96rem); line-height:1.2; }
