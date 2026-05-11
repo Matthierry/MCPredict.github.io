@@ -65,6 +65,13 @@
       <p class="prediction-note">Bookmaker and model prices are shown side-by-side with the value for each selection.</p>
 
       <div id="results-summary" class="prediction-results-summary" aria-live="polite"></div>
+      <div id="predictionLoading" class="prediction-loading is-hidden" role="status" aria-live="polite">
+        <span class="prediction-loading-dot" aria-hidden="true"></span>
+        <div>
+          <strong>Loading latest predictions…</strong>
+          <span>Fetching model prices and fixture data.</span>
+        </div>
+      </div>
       <div id="sheet-data"></div>
     </section>
   </div>
@@ -86,7 +93,16 @@
     const activeResultFilters = new Set();
 
     const predictionUtils = window.MCPredictPrediction;
-    function showLoadError() { document.getElementById("sheet-data").innerHTML = "<p class='prediction-empty'>We couldn’t load live data. Please refresh in a minute.</p>"; }
+    function setPredictionLoading(isLoading) {
+      const loading = document.getElementById("predictionLoading");
+      if (!loading) return;
+      loading.classList.toggle("is-hidden", !isLoading);
+    }
+
+    function showLoadError() {
+      setPredictionLoading(false);
+      document.getElementById("sheet-data").innerHTML = "<p class='prediction-empty'>We couldn’t load live data. Please refresh in a minute.</p>";
+    }
 
     function createFilterButton(text, onClick) {
       const btn = document.createElement("button");
@@ -148,6 +164,7 @@
     }
 
     async function loadCSV() {
+      setPredictionLoading(true);
       try {
         const response = await fetch(csvUrl);
         if (!response.ok) throw new Error("Network error");
@@ -159,6 +176,8 @@
       } catch (error) {
         console.error(error);
         showLoadError();
+      } finally {
+        setPredictionLoading(false);
       }
     }
 
