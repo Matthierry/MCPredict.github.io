@@ -1177,3 +1177,61 @@ body.historical-page {
     min-height: 50px;
   }
 }
+
+/* Shared active state readability */
+nav a.active,
+nav a.current,
+nav a.is-active,
+nav a[aria-current="page"],
+.menu-links a.active,
+.menu-links a.current,
+.menu-links a.is-active,
+.menu-links a[aria-current="page"],
+.section-nav a.active,
+.section-nav a.current,
+.section-nav a.is-active,
+.section-nav a[aria-current="page"],
+.sub-nav a.active,
+.sub-nav a.current,
+.sub-nav a.is-active,
+.sub-nav a[aria-current="page"] {
+  color: #111 !important;
+}
+nav a.active:hover,
+nav a.active:focus-visible,
+nav a[aria-current="page"]:hover,
+nav a[aria-current="page"]:focus-visible,
+.menu-links a.active:hover,
+.menu-links a.active:focus-visible,
+.menu-links a[aria-current="page"]:hover,
+.menu-links a[aria-current="page"]:focus-visible,
+.section-nav a.active:hover,
+.section-nav a.active:focus-visible,
+.section-nav a[aria-current="page"]:hover,
+.section-nav a[aria-current="page"]:focus-visible { color:#111 !important; }
+
+/* Shared prediction loading overlay */
+.loading-overlay { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 24px; background: radial-gradient(circle at top, rgba(60,60,62,0.98), rgba(24,24,26,0.98)); text-align:center; }
+.loading-overlay.hidden, .loading-overlay.is-hidden { display:none !important; }
+
+/* WC26 shared shell + sub-navigation */
+.wc26-page, .wrap { max-width: 960px; margin: 0 auto; padding: 0 14px 56px; }
+.section-nav { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+.section-nav a { text-decoration:none; color:#dfe6ff; background:#2a2c33; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:8px 12px; font-size:.82rem; }
+.section-nav a.active, .section-nav a[aria-current="page"] { background: linear-gradient(135deg, #f7931a, #f4b244); border-color: rgba(247,147,26,.75); }
+
+/* WC26 Hall of Fame premium styling */
+.hof-hero { background: linear-gradient(145deg, rgba(247,147,26,.15), rgba(26,28,31,.96)); border:1px solid rgba(247,147,26,.35); border-radius:16px; padding:20px; margin-bottom:14px; text-align:center; }
+.hof-hero h1 { margin:0 0 8px; color:#fff; }
+.hof-hero p { margin:0; color:#c9c9cf; }
+.hof-grid { display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); }
+.tournament { background: linear-gradient(155deg, rgba(38,40,46,.95), rgba(24,26,31,.95)); border:1px solid rgba(247,147,26,.25); border-radius:16px; padding:14px; box-shadow:0 10px 24px rgba(0,0,0,.3); }
+.tournament h2 { margin:0 0 10px; color:#ffd18e; font-size:1.05rem; }
+.rankings { list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.rankings li { display:flex; justify-content:space-between; gap:10px; padding:8px 10px; border-radius:10px; background:rgba(255,255,255,.03); }
+.rankings .first { border:1px solid rgba(255,193,7,.5); box-shadow:0 0 10px rgba(255,193,7,.2); }
+.rankings .second { border:1px solid rgba(196,201,214,.4); }
+.rankings .third { border:1px solid rgba(205,127,50,.5); }
+.rankings .place { color:#f1f1f1; font-weight:700; }
+.rankings .name { color:#d0d0d7; text-align:right; }
+.lost { border:1px dashed rgba(247,147,26,.35); border-radius:12px; padding:10px; color:#d0d0d7; }
