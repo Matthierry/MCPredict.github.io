@@ -50,6 +50,14 @@
     return `<article class='prediction-card'><div class='prediction-card__meta'><span class='prediction-card__day'>${rowData.day}</span><span class='prediction-card__league'>${rowData.league}</span></div><div class='prediction-card__pick-row'><span class='prediction-card__pick-label'>Prediction</span><span class='prediction-badge'>${rowData.prediction}</span></div><div class='prediction-card__fixture'><span class='prediction-card__team prediction-card__team--home'>${rowData.homeTeam}</span><span class='prediction-card__versus'>v</span><span class='prediction-card__team prediction-card__team--away'>${rowData.awayTeam}</span></div><div class='prediction-card__odds'><div class='odds-cell'><span>Bookmaker Price</span><strong>${rowData.bookmakerPrice}</strong></div><div class='odds-cell'><span>Model Price</span><strong>${rowData.modelPrice}</strong></div></div><div class='prediction-card__edge'><span>Value / Edge Strength</span><strong class='${edge.cls}'>${edge.label}</strong></div></article>`;
   }
 
+
+  function hideLoadingOverlay(overlayId='loadingOverlay'){
+    const overlay=document.getElementById(overlayId);
+    if(!overlay) return;
+    overlay.classList.add('is-hidden');
+    window.setTimeout(()=>{ overlay.style.display='none'; }, 320);
+  }
+
   function initMenu(){/* unchanged */
     const overlay=document.getElementById('menuOverlay');
     const open=document.getElementById('openMenu');
@@ -90,6 +98,6 @@
     document.addEventListener('keydown',(event)=>{if(event.key==='Escape' && !panel.hidden) closeBottomMenu();});
   }
 
-  window.MCPredictPrediction = { csvToRows, extractRowData, renderPredictionCard, sanitize };
+  window.MCPredictPrediction = { csvToRows, extractRowData, renderPredictionCard, sanitize, hideLoadingOverlay };
   document.addEventListener('DOMContentLoaded',()=>{initMenu();initBottomNav();});
 })();
