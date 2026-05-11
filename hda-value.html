@@ -9,12 +9,22 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;700&display=swap">
 </head>
 <body class="home prediction-page">
-  <div class="loading-overlay" id="loadingOverlay" aria-live="polite">
-    <div class="loading-ball">⚽</div>
-    <div class="loading-pitch-line"></div>
-    <div class="loading-title">Loading predictions</div>
-    <p class="loading-subtitle">Fetching the latest model output and market prices.</p>
-    <div class="loading-ticker">Fetching latest sheet data...</div>
+  <div class="loading-overlay" id="loadingOverlay" aria-live="polite" role="status">
+    <div class="loading-card">
+      <div class="loading-brand">
+        <img src="/images/mcpredcirclebg.png" alt="MC Predict" class="loading-logo">
+        <span>MCPREDICT</span>
+      </div>
+
+      <div class="loading-ball" aria-hidden="true">⚽</div>
+      <div class="loading-pitch-line" aria-hidden="true"></div>
+
+      <div class="loading-title">Loading predictions</div>
+      <p class="loading-subtitle">Fetching the latest model output and market prices.</p>
+
+      <div class="loading-progress" aria-hidden="true"><span></span></div>
+      <div class="loading-ticker">Fetching latest sheet data...</div>
+    </div>
   </div>
 
   <div class="prediction-shell">
@@ -93,7 +103,7 @@
     const activeResultFilters = new Set();
 
     const predictionUtils = window.MCPredictPrediction;
-    function hideLoadingOverlay() { const overlay = document.getElementById("loadingOverlay"); if (!overlay) return; overlay.classList.add("hidden"); setTimeout(() => { overlay.style.display = "none"; }, 450); }
+    function hideLoadingOverlay() { predictionUtils.hideLoadingOverlay("loadingOverlay"); }
     function showLoadError() { document.getElementById("sheet-data").innerHTML = "<p class='prediction-empty'>We couldn’t load live data. Please refresh in a minute.</p>"; }
 
     function createFilterButton(text, onClick) {
