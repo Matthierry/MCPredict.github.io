@@ -979,7 +979,7 @@
           // --- Summary update ---
           function updateSummary() {
             const api = table;
-            const rows = api.rows({ filter: 'applied' }).data();
+            const rows = api.rows({ search: 'applied' }).data();
             const totalBets = rows.length;
 
             let correctBets = 0;
@@ -988,14 +988,15 @@
             for (let i = 0; i < rows.length; i++) {
               const row = rows[i];
 
-              // Correct? column (HTML with FA icon)
-              const correctHtml = row[11] || "";
-              if (typeof correctHtml === "string" && correctHtml.indexOf("fa-circle-check") !== -1) {
+              // Correct? column (last column, HTML icon or text fallback)
+              const correctCol = row[9] || "";
+              const correctHtml = String(correctCol).toLowerCase();
+              if (correctHtml.includes('fa-circle-check') || correctHtml.includes('correct') || correctHtml.includes('✅') || correctHtml.includes('✔') || correctHtml.includes('✓')) {
                 correctBets++;
               }
 
               // P/L column
-              const plCol = row[10];
+              const plCol = row[8];
               let plVal = 0;
               if (plCol && typeof plCol.sort !== "undefined") {
                 plVal = plCol.sort;
@@ -1005,8 +1006,8 @@
               totalPL += plVal;
             }
 
-            $('#summary-bets').text(totalBets);
-            $('#summary-correct').text(correctBets);
+            $('#summary-bets').text(totalBets.toLocaleString('en-GB'));
+            $('#summary-correct').text(correctBets.toLocaleString('en-GB'));
 
             // Update PL display + colour
             const plDisplay = formatPL(totalPL);
