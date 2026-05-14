@@ -618,10 +618,18 @@
         display: flex;
       }
     }
+    #predictionsTable { width:100% !important; table-layout: fixed; }
+    #predictionsTable th { background:#f2980c !important; color:#111 !important; white-space:normal; overflow-wrap:normal; word-break:normal; line-height:1.1; font-weight:700; }
+    #predictionsTable td, #predictionsTable th { box-sizing:border-box; }
+    @media (max-width: 640px) {
+      #predictionsTable { font-size: clamp(9px,2.4vw,11px); }
+      #predictionsTable th, #predictionsTable td { padding:6px 3px !important; line-height:1.15; }
+    }
+
   </style>
 </head>
 
-<body class="home">
+<body class="home prediction-page">
   <!-- Loading overlay for historical data -->
   <div class="loading-overlay" id="loadingOverlay" aria-live="polite">
     <div class="loading-ball">⚽</div>
@@ -635,35 +643,35 @@
 
   <div class="home-page">
 
-    <!-- Top bar -->
-    <header class="home-topbar">
-      <div class="topbar-inner">
-        <div class="topbar-left">
-          <div class="topbar-logo">
-            <img src="images/mcpredcirclebg.png" alt="MC Predict Logo" />
-          </div>
-          <div class="topbar-title">
-            <h1>MC PREDICT</h1>
-            <span>Data-driven Football predictions</span>
-          </div>
+    <header class="header standard-header prediction-header">
+      <a class="brand" href="/">
+        <img src="/images/mcpredcirclebg.png" alt="MCPredict logo">
+        <div>
+          <h1>MCPREDICT</h1>
+          <p>Data-driven Football predictions</p>
         </div>
-        <div class="topbar-tag">
-          <span class="topbar-tag-dot"></span>
-          <span>Historical</span>
-        </div>
-      </div>
+      </a>
+      <button class="menu-btn" id="openMenu" aria-label="Open menu">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </header>
 
-      <!-- Desktop / tablet nav -->
-      <nav class="primary-nav" aria-label="Primary navigation">
-        <a href="/index">Home</a>
-        <a href="/hda-value">Match Result</a>
-        <a href="/uo-value">Under/Over 2.5</a>
+    <div class="menu-overlay" id="menuOverlay" aria-hidden="true">
+      <div class="menu-top">
+        <h3 style="margin:0;">Menu</h3>
+        <button class="close-btn" id="closeMenu" aria-label="Close menu"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      </div>
+      <nav class="menu-links">
+        <a href="/hda-value">Match Result - Best Value</a>
+        <a href="/hda-highchance">Match Result - Highest Probability</a>
+        <a href="/uo-value">U/O 2.5 - Best Value</a>
+        <a href="/uo-highchance">U/O 2.5 - Highest Probability</a>
         <a href="/historical" class="active">Historical Data</a>
         <a href="/faqs">FAQs</a>
       </nav>
+    </div>
 
-      <!-- Sub-nav for fractional / decimal -->
-      <div class="sub-nav-pills" aria-label="Odds format views">
+    <div class="sub-nav-pills" aria-label="Odds format views">
         <a href="/uo-histf" class="active">Fractional Odds</a>
         <a href="/uo-histd">Decimal Odds</a>
       </div>
@@ -672,11 +680,9 @@
     <!-- Main content layout -->
     <section class="data-layout">
       <div class="data-main-card">
-        <div class="data-eyebrow">Under/Over 2.5</div>
-        <h2 class="data-title">Historical predictions – fractional odds</h2>
-        <p class="data-subtitle">
-          Explore every Under/Over 2.5 prediction the model has made, including value rating, result and P/L.
-        </p>
+        <div class="data-eyebrow">UNDER / OVER 2.5</div>
+        <h2 class="data-title">Full Historical Results</h2>
+        <p class="data-subtitle">Review every historical under/over 2.5 prediction, including fixture details, model output, prices, results, and settled performance.</p>
 
         <!-- SUMMARY PANEL -->
         <div class="summary-strip" aria-label="Summary of filtered bets">
@@ -739,9 +745,7 @@
               <tr>
                 <th>Date</th>
                 <th>League</th>
-                <th>Home</th>
-                <th>V</th>
-                <th>Away</th>
+                <th>Fixture</th>
                 <th>Prediction</th>
                 <th>Bookmaker Price</th>
                 <th>Model Price</th>
@@ -861,9 +865,7 @@
             data.push([
               { display: dateDisp, sort: dateSort }, // 0 Date
               r[IDX.L] || "",                         // 1 League
-              r[IDX.M] || "",                         // 2 Home
-              r[IDX.N] || "",                         // 3 V
-              r[IDX.O] || "",                         // 4 Away
+              `${r[IDX.M] || ""} v ${r[IDX.O] || ""}`.trim(), // 2 Fixture
               r[IDX.P] || "",                         // 5 Prediction (UNDER/OVER 2.5)
               r[IDX.S] || "",                         // 6 Bookmaker Price
               r[IDX.V] || "",                         // 7 Model Price
@@ -884,9 +886,7 @@
             columns: [
               { title: 'Date', render: { _: 'display', sort: 'sort' } },
               { title: 'League' },
-              { title: 'Home' },
-              { title: 'V' },
-              { title: 'Away' },
+              { title: 'Fixture' },
               { title: 'Prediction' },
               { title: 'Bookmaker Price' },
               { title: 'Model Price' },
@@ -1035,5 +1035,13 @@
       });
     });
   </script>
+  <nav class="mobile-bottom-nav prediction-bottom-nav" aria-label="Mobile primary navigation">
+    <a class="mobile-bottom-nav__item" data-nav-path="/hda-value" href="/hda-value"><span class="mobile-bottom-nav__label">Winner</span></a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/uo-value" href="/uo-value"><span class="mobile-bottom-nav__label">U/O 2.5</span></a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/historical" href="/historical"><span class="mobile-bottom-nav__label">Data</span></a>
+    <a class="mobile-bottom-nav__item" data-nav-path="/faqs" href="/faqs"><span class="mobile-bottom-nav__label">FAQs</span></a>
+  </nav>
+
+  <script src="/site.js"></script>
 </body>
 </html>
