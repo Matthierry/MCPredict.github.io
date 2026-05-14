@@ -151,16 +151,7 @@
       if (!headerRow.length) { container.innerHTML = "<p class='prediction-empty'>No table header found in source data.</p>"; return; }
       if (!filtered.length) { container.innerHTML = "<p class='prediction-empty'>No selections match the active filters.</p>"; return; }
 
-      let cards = "<div class='prediction-results mobile-prediction-cards'>";
-      filtered.forEach(row => {
-        cards += predictionUtils.renderPredictionCard(predictionUtils.extractRowData(headerRow, row));
-      });
-      cards += "</div>";
-
-      let table = "<div class='prediction-table-wrap desktop-prediction-table'><table class='prediction-table'><thead><tr>" + headerRow.map(cell => `<th>${cell}</th>`).join("") + "</tr></thead><tbody>";
-      filtered.forEach(row => { table += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>"; });
-      table += "</tbody></table></div>";
-      container.innerHTML = cards + table;
+      container.innerHTML = predictionUtils.renderPredictionTable(filtered, headerRow);
     }
 
     async function loadCSV() {
