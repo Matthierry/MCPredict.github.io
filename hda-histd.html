@@ -725,16 +725,16 @@
         <!-- Filter controls -->
         <div class="filter-title">Filter options</div>
         <div class="filters" id="prediction-filters">
-          <button data-pred="HOME WIN">Home Win</button>
-          <button data-pred="AWAY WIN">Away Win</button>
+          <button data-prediction-filter="home-win">Home Win</button>
+          <button data-prediction-filter="away-win">Away Win</button>
         </div>
         <div class="filters" id="value-filters">
-          <button data-val="❌">❌</button>
-          <button data-val="❌❌">❌❌</button>
-          <button data-val="❌❌❌">❌❌❌</button>
-          <button data-val="💰">💰</button>
-          <button data-val="💰💰">💰💰</button>
-          <button data-val="💰💰💰">💰💰💰</button>
+          <button data-value-filter="cross-1">❌</button>
+          <button data-value-filter="cross-2">❌❌</button>
+          <button data-value-filter="cross-3">❌❌❌</button>
+          <button data-value-filter="money-1">💰</button>
+          <button data-value-filter="money-2">💰💰</button>
+          <button data-value-filter="money-3">💰💰💰</button>
         </div>
 
         <!-- DataTable -->
@@ -813,12 +813,12 @@
     function normaliseValueCategory(value){
       const text = stripHtml(value).toLowerCase();
       if (!text) return "";
-      if (text.includes("💰💰💰") || text.includes("strong") || text.includes("high value")) return "money-3";
-      if (text.includes("💰💰") || text.includes("medium")) return "money-2";
-      if (text.includes("💰") || text.includes("small")) return "money-1";
-      if (text.includes("❌❌❌") || text.includes("large negative")) return "cross-3";
-      if (text.includes("❌❌") || text.includes("medium negative")) return "cross-2";
-      if (text.includes("❌") || text.includes("negative") || text.includes("no value")) return "cross-1";
+      if (text.includes("💰💰💰") || text.includes("money-3") || text.includes("strong") || text.includes("high value")) return "money-3";
+      if (text.includes("💰💰") || text.includes("money-2") || text.includes("medium")) return "money-2";
+      if (text.includes("💰") || text.includes("money-1") || text.includes("small")) return "money-1";
+      if (text.includes("❌❌❌") || text.includes("cross-3") || text.includes("large negative")) return "cross-3";
+      if (text.includes("❌❌") || text.includes("cross-2") || text.includes("medium negative")) return "cross-2";
+      if (text.includes("❌") || text.includes("cross-1") || text.includes("negative") || text.includes("no value")) return "cross-1";
       return "";
     }
 
@@ -959,7 +959,7 @@
           $.fn.dataTable.ext.search.push(historicalTableFilter);
 
           $('#prediction-filters button').on('click', function(){
-            const next = normalisePrediction($(this).data('pred'));
+            const next = String($(this).data('prediction-filter') || '').trim();
             const isActive = historyFilterState.prediction === next;
             historyFilterState.prediction = isActive ? null : next;
             $('#prediction-filters button').removeClass('active');
@@ -968,7 +968,7 @@
           });
 
           $('#value-filters button').on('click', function(){
-            const next = String($(this).data('val') || '').trim();
+            const next = String($(this).data('value-filter') || '').trim();
             const isActive = historyFilterState.valueCategory === next;
             historyFilterState.valueCategory = isActive ? null : next;
             $('#value-filters button').removeClass('active');
