@@ -793,38 +793,76 @@
   <script>
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=1055864228&single=true&output=csv";
 
-    // Column indices for this UO (fractional) sheet
+    // Column index mapping into the CSV
     const IDX = { H:7, L:11, M:12, N:13, O:14, P:15, S:18, V:21, X:23, AA:27, AC:28, AD:29 };
 
-    // DataTables visible column positions:
-    // 0: Date, 1: League, 2: Home, 3: V, 4: Away, 5: Prediction,
-    // 6: Bookmaker, 7: Model, 8: Value, 9: Result, 10: P/L, 11: Correct?
-    const DT_COL_PREDICTION = 5; // maps to CSV column P
-    const DT_COL_VALUE = 8;      // maps to CSV column X
+    const historyFilterState = {
+      prediction: null,
+      valueCategory: null,
+      dateFrom: null,
+      dateTo: null
+    };
 
-    // Filter state (multi-select). Empty = no restriction.
-    const selectedPredictions = new Set();
-    const selectedValues = new Set();
-
-    // Date range filter state
-    let minDate = null;
-    let maxDate = null;
-
-    function ddmmyyyyToISO(str){
-      if (!str) return "";
-      const parts = str.split("/");
-      if (parts.length !== 3) return "";
-      let [d, m, y] = parts;
-      if (y.length === 2) y = "20" + y;
-      return `${y.padStart(4,"0")}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`;
+    function stripHtml(value){
+      return String(value || "").replace(/<[^>]*>/g, "").trim();
     }
 
-    function parseCurrencyToNumber(text){
-      if (!text) return 0;
-      const s = String(text).trim();
-      const sign = s.includes("-") ? -1 : 1;
-      const num = parseFloat(s.replace(/[^0-9.]/g, ""));
-      return (isNaN(num) ? 0 : num) * sign;
+    function normalisePrediction(value){
+      return stripHtml(value).toLowerCase().replace(/\s+/g, "-");
+    }
+
+    function normaliseValueCategory(value){
+      const text = stripHtml(value).toLowerCase();
+      if (!text) return "";
+      if (text.includes("💰💰💰") || text.includes("strong") || text.includes("high value")) return "money-3";
+      if (text.includes("💰💰") || text.includes("medium")) return "money-2";
+      if (text.includes("💰") || text.includes("small")) return "money-1";
+      if (text.includes("❌❌❌") || text.includes("large negative")) return "cross-3";
+      if (text.includes("❌❌") || text.includes("medium negative")) return "cross-2";
+      if (text.includes("❌") || text.includes("negative") || text.includes("no value")) return "cross-1";
+      return "";
+    }
+
+    function parseUKDate(value){
+      const text = stripHtml(value);
+      if (!text) return null;
+      const parts = text.split('/');
+      if (parts.length !== 3) return null;
+      let [d,m,y] = parts;
+      if (y.length === 2) y = `20${y}`;
+      const day = Number.parseInt(d,10);
+      const month = Number.parseInt(m,10);
+      const year = Number.parseInt(y,10);
+      if (!day || !month || !year) return null;
+      return new Date(year, month - 1, day);
+    }
+
+    function toISODateString(date){
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function parseMoney(value){
+      if (value == null) return 0;
+      const cleaned = String(value)
+        .replace(/<[^>]*>/g, "")
+        .replace(/[£,\s]/g, "")
+        .replace(/[^\d.-]/g, "");
+      const parsed = Number.parseFloat(cleaned);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function normaliseCorrect(value, profitLossRaw){
+      const text = stripHtml(value).toLowerCase();
+      const trueValues = ["true","yes","y","1","correct","win","won","winner","✅","✓","✔"];
+      const falseValues = ["false","no","n","0","incorrect","loss","lost","lose","loser","❌","x","✕","✖"];
+      if (trueValues.includes(text)) return true;
+      if (falseValues.includes(text)) return false;
+      if (!text) return profitLossRaw > 0;
+      return false;
     }
 
     function hideLoadingOverlay() {
@@ -852,28 +890,34 @@
 
           for (let i = 1; i < rows.length; i++){
             const r = rows[i];
-            const dateDisp = r[IDX.H] || "";
-            const dateSort = ddmmyyyyToISO(dateDisp);
+            const dateDisplay = r[IDX.H] || "";
+            const dateObj = parseUKDate(dateDisplay);
+            const plDisplay = r[IDX.AC] || "";
+            const profitLossRaw = parseMoney(plDisplay);
+            const correctRaw = r[IDX.AD] || "";
+            const predictionRaw = r[IDX.P] || "";
+            const valueRaw = r[IDX.X] || "";
 
-            const plDisp = r[IDX.AC] || "";
-            const plSort = parseCurrencyToNumber(plDisp);
-
-            const correct =
-              r[IDX.AD] === "1" ? '<i class="fa-solid fa-circle-check" title="Correct"></i>' :
-              r[IDX.AD] === "0" ? '<i class="fa-solid fa-circle-xmark" title="Incorrect"></i>' : "";
-
-            data.push([
-              { display: dateDisp, sort: dateSort }, // 0 Date
-              r[IDX.L] || "",                         // 1 League
-              `${r[IDX.M] || ""} v ${r[IDX.O] || ""}`.trim(), // 2 Fixture
-              r[IDX.P] || "",                         // 5 Prediction (UNDER/OVER 2.5)
-              r[IDX.S] || "",                         // 6 Bookmaker Price
-              r[IDX.V] || "",                         // 7 Model Price
-              r[IDX.X] || "",                         // 8 Value (❌/💰 sequence)
-              r[IDX.AA] || "",                        // 9 Result
-              { display: plDisp, sort: plSort },      // 10 P/L
-              correct                                 // 11 Correct?
-            ]);
+            data.push({
+              dateDisplay,
+              dateSort: toISODateString(dateObj),
+              dateObj,
+              league: r[IDX.L] || "",
+              fixture: `${r[IDX.M] || ""} v ${r[IDX.O] || ""}`.trim(),
+              predictionDisplay: predictionRaw,
+              predictionKey: normalisePrediction(predictionRaw),
+              bookmakerPrice: r[IDX.S] || "",
+              modelPrice: r[IDX.V] || "",
+              valueDisplay: valueRaw,
+              valueCategory: normaliseValueCategory(valueRaw),
+              result: r[IDX.AA] || "",
+              profitLossDisplay: plDisplay,
+              profitLossRaw,
+              correctRaw,
+              correctDisplay: normaliseCorrect(correctRaw, profitLossRaw)
+                ? '<i class="fa-solid fa-circle-check" title="Correct"></i>'
+                : '<i class="fa-solid fa-circle-xmark" title="Incorrect"></i>'
+            });
           }
 
           const table = $('#predictionsTable').DataTable({
@@ -884,148 +928,97 @@
             autoWidth: false,
             deferRender: true,
             columns: [
-              { title: 'Date', render: { _: 'display', sort: 'sort' } },
-              { title: 'League' },
-              { title: 'Fixture' },
-              { title: 'Prediction' },
-              { title: 'Bookmaker Price' },
-              { title: 'Model Price' },
-              { title: 'Value' },
-              { title: 'Result' },
-              { title: 'P/L', render: { _: 'display', sort: 'sort' } },
-              { title: 'Correct?' }
+              { title: 'Date', data: 'dateDisplay', render: function(d,t,row){ return t === 'sort' ? row.dateSort : d; } },
+              { title: 'League', data: 'league' },
+              { title: 'Fixture', data: 'fixture' },
+              { title: 'Prediction', data: 'predictionDisplay' },
+              { title: 'Bookmaker Price', data: 'bookmakerPrice' },
+              { title: 'Model Price', data: 'modelPrice' },
+              { title: 'Value', data: 'valueDisplay' },
+              { title: 'Result', data: 'result' },
+              { title: 'P/L', data: 'profitLossDisplay', render: function(d,t,row){ return t === 'sort' ? row.profitLossRaw : d; } },
+              { title: 'Correct?', data: 'correctDisplay' }
             ]
           });
 
-          // Custom filtering: date range + OR within group, AND across groups
-          $.fn.dataTable.ext.search.push(function(settings, dataArr, dataIndex){
-            if (settings.nTable !== document.getElementById('predictionsTable')) return true;
+          const tableNode = document.getElementById('predictionsTable');
+          const historicalTableFilter = function(settings, _data, dataIndex) {
+            if (settings.nTable !== tableNode) return true;
+            const row = table.row(dataIndex).data();
+            if (!row) return true;
 
-            const api = new $.fn.dataTable.Api(settings);
-            const rowData = api.row(dataIndex).data() || [];
+            if (historyFilterState.prediction && row.predictionKey !== historyFilterState.prediction) return false;
+            if (historyFilterState.valueCategory && row.valueCategory !== historyFilterState.valueCategory) return false;
 
-            // Date filter
-            let datePass = true;
-            const dateObj = rowData[0] || {};
-            const dateSortStr = dateObj.sort || null;
-
-            if (dateSortStr && (minDate || maxDate)) {
-              const rowDate = new Date(dateSortStr);
-              if (minDate && rowDate < minDate) datePass = false;
-              if (maxDate && rowDate > maxDate) datePass = false;
+            if (historyFilterState.dateFrom || historyFilterState.dateTo) {
+              if (!row.dateObj) return false;
+              if (historyFilterState.dateFrom && row.dateObj < historyFilterState.dateFrom) return false;
+              if (historyFilterState.dateTo && row.dateObj > historyFilterState.dateTo) return false;
             }
+            return true;
+          };
+          $.fn.dataTable.ext.search.push(historicalTableFilter);
 
-            const predVal = (dataArr[DT_COL_PREDICTION] || "").trim(); // "UNDER 2.5" / "OVER 2.5"
-            const valueVal = (dataArr[DT_COL_VALUE] || "").trim();     // "❌", "💰💰", etc.
-
-            const predPass = (selectedPredictions.size === 0) || selectedPredictions.has(predVal);
-            const valuePass = (selectedValues.size === 0) || selectedValues.has(valueVal);
-
-            return predPass && valuePass && datePass;
-          });
-
-          // Pre-select value filters 💰, 💰💰, 💰💰💰 on load
-          ['💰', '💰💰', '💰💰💰'].forEach(val => {
-            selectedValues.add(val);
-            $('#value-filters button[data-val="' + val + '"]').addClass('active');
-          });
-
-          // Wire up prediction filter buttons
           $('#prediction-filters button').on('click', function(){
-            const v = String($(this).data('pred') || "").trim();
-            if (selectedPredictions.has(v)) {
-              selectedPredictions.delete(v);
-              $(this).removeClass('active');
-            } else {
-              selectedPredictions.add(v);
-              $(this).addClass('active');
-            }
+            const next = normalisePrediction($(this).data('pred'));
+            const isActive = historyFilterState.prediction === next;
+            historyFilterState.prediction = isActive ? null : next;
+            $('#prediction-filters button').removeClass('active');
+            if (!isActive) $(this).addClass('active');
             table.draw();
           });
 
-          // Wire up value filter buttons
           $('#value-filters button').on('click', function(){
-            const v = String($(this).data('val') || "").trim();
-            if (selectedValues.has(v)) {
-              selectedValues.delete(v);
-              $(this).removeClass('active');
-            } else {
-              selectedValues.add(v);
-              $(this).addClass('active');
-            }
+            const next = String($(this).data('val') || '').trim();
+            const isActive = historyFilterState.valueCategory === next;
+            historyFilterState.valueCategory = isActive ? null : next;
+            $('#value-filters button').removeClass('active');
+            if (!isActive) $(this).addClass('active');
             table.draw();
           });
 
-          // Date range events
           $('#start-date').on('change', function() {
-            minDate = this.value ? new Date(this.value) : null;
+            historyFilterState.dateFrom = this.value ? new Date(`${this.value}T00:00:00`) : null;
             table.draw();
           });
 
           $('#end-date').on('change', function() {
-            maxDate = this.value ? new Date(this.value) : null;
+            historyFilterState.dateTo = this.value ? new Date(`${this.value}T23:59:59`) : null;
             table.draw();
           });
 
           $('#clear-date-filters').on('click', function() {
             $('#start-date').val('');
             $('#end-date').val('');
-            minDate = null;
-            maxDate = null;
+            historyFilterState.dateFrom = null;
+            historyFilterState.dateTo = null;
             table.draw();
           });
 
-          // --- Summary update ---
           function updateSummary() {
-            const rows = table.rows({ search: 'applied' }).data();
+            const rows = table.rows({ search: 'applied' }).data().toArray();
             const totalBets = rows.length;
-
-            let correctBets = 0;
-            let totalPL = 0;
-
-            for (let i = 0; i < rows.length; i++) {
-              const row = rows[i];
-
-              // Correct? column (last column, HTML icon or text fallback)
-              const correctCol = row[9] || "";
-              const correctHtml = String(correctCol).toLowerCase();
-              if (correctHtml.includes('fa-circle-check') || correctHtml.includes('correct') || correctHtml.includes('✅') || correctHtml.includes('✔') || correctHtml.includes('✓')) {
-                correctBets++;
-              }
-
-              // P/L column
-              const plCol = row[8];
-              let plVal = 0;
-              if (plCol && typeof plCol.sort !== "undefined") {
-                plVal = plCol.sort;
-              } else if (plCol != null) {
-                plVal = parseCurrencyToNumber(plCol);
-              }
-              totalPL += plVal;
-            }
+            const correctBets = rows.filter((row) => normaliseCorrect(row.correctRaw, row.profitLossRaw)).length;
+            const totalPL = rows.reduce((sum, row) => sum + (Number.isFinite(row.profitLossRaw) ? row.profitLossRaw : parseMoney(row.profitLossDisplay)), 0);
 
             $('#summary-bets').text(totalBets.toLocaleString('en-GB'));
             $('#summary-correct').text(correctBets.toLocaleString('en-GB'));
-
-            const plDisplay = formatPL(totalPL);
-            const plEl = $('#summary-pl');
-            plEl.text(plDisplay);
+            $('#summary-pl').text(formatPL(totalPL));
 
             const plCard = $('.summary-card--pl');
             if (totalPL < 0) {
               plCard.css('color', '#ff6b6b');
-              plEl.css('color', '#ff6b6b');
+              $('#summary-pl').css('color', '#ff6b6b');
             } else {
               plCard.css('color', '');
-              plEl.css('color', '#40c456');
+              $('#summary-pl').css('color', '#40c456');
             }
           }
 
-          // Bind summary to draw and trigger one draw so defaults apply
-          table.on('draw', function() {
-            updateSummary();
-          });
-          table.draw(); // apply default filters + update summary
+          table.on('draw', updateSummary);
+          table.on('search.dt order.dt page.dt', updateSummary);
+          updateSummary();
+          table.draw();
 
           hideLoadingOverlay();
         },
