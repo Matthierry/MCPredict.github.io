@@ -61,6 +61,7 @@
     .icon-card { text-decoration:none; color:var(--text); background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px; display:flex; align-items:center; gap:10px; }
     .icon-card svg { width:22px; height:22px; stroke:var(--accent); fill:none; stroke-width:1.8; }
     .icon-card span { font-size:.9rem; }
+    .world-cup-game-button { margin-top:10px; width:100%; justify-content:center; box-shadow:0 0 0 1px rgba(247,147,26,.15), 0 0 18px rgba(247,147,26,.14); }
 
     .section { margin-top:16px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; }
     .stat-card { margin-top:16px; background:linear-gradient(145deg, rgba(247,147,26,.12), rgba(26,28,31,.96)); border:1px solid rgba(247,147,26,.35); border-radius:16px; padding:14px; box-shadow: var(--shadow); }
@@ -259,6 +260,10 @@
       <a class="icon-card" href="/historical"><svg viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/></svg><span>Historical Data</span></a>
       <a class="icon-card" href="/faqs"><svg viewBox="0 0 24 24"><path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/><circle cx="12" cy="17" r=".8"/></svg><span>FAQs</span></a>
     </section>
+    <a class="icon-card world-cup-game-button" href="/wc26">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v2h2a2 2 0 0 1 2 2c0 2.4-1.5 4.5-3.7 5.3A4.7 4.7 0 0 1 13.5 16v1H16v3H8v-3h2.5v-1a4.7 4.7 0 0 1-1.8-2.7C6.5 12.5 5 10.4 5 8a2 2 0 0 1 2-2h2V4Zm8 4h-2c.1 1.3.3 2.4.6 3.5A3.7 3.7 0 0 0 17 8ZM7 8a3.7 3.7 0 0 0 1.4 3.5c.3-1.1.5-2.2.6-3.5H7Z"/></svg>
+      <span>World Cup Game</span>
+    </a>
 
     <section class="stat-card" aria-live="polite" aria-atomic="true">
       <p class="stat-card__label">Total games analysed by the model</p>
