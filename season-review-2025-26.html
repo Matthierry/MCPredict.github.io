@@ -19,10 +19,9 @@
     .card .label{font-size:.75rem;color:#9ba3af;text-transform:uppercase}
     .card .value{font-size:1.2rem;font-weight:800;margin-top:4px}
     .chart-wrap{background:#15171a;border:1px solid #2f333a;border-radius:12px;padding:10px;margin:14px 0}
-    .chart-wrap canvas{display:block;width:100%}
-    .chart-cum,.chart-bar{height:auto !important}
-    .chart-wrap--cum{height:auto}
-    .chart-wrap--bar{height:auto}
+    .season-chart-frame{position:relative;width:100%;height:360px;max-height:360px;overflow:hidden}
+    .season-chart-frame canvas,.season-chart-frame svg{display:block;width:100% !important;height:100% !important;max-height:100% !important}
+    .season-chart-frame--bar{height:280px;max-height:280px}
     .chart-caption{font-size:.85rem;color:#9ba3af;margin:8px 0 0}
     .controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
     .control-btn{background:#21242a;color:#f3f4f6;border:1px solid #2f333a;border-radius:999px;padding:8px 10px;font-size:.8rem;text-align:center;cursor:pointer}
@@ -34,7 +33,7 @@
     .strategy-grid{display:grid;gap:10px}
     .strategy-item{background:#21242a;border:1px solid #2f333a;border-radius:12px;padding:10px}
     .links-bottom a{color:#f7931a}
-    @media(max-width:700px){.chart-wrap--cum{height:340px}.chart-wrap--bar{height:300px}}
+    @media(max-width:700px){.season-chart-frame{height:360px;max-height:360px}.season-chart-frame--bar{height:320px;max-height:320px}}
     @media(min-width:800px){.article-panel{padding:22px}.controls{grid-template-columns:repeat(4,minmax(0,1fr))}.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
   </style>
 </head>
@@ -58,15 +57,15 @@
     <p>MC Predict was built to be open with the numbers.</p><p>The model does not only show the good picks after the event. It makes a prediction on every fixture it receives, and that gives us a much clearer view of what worked, what did not work, and where the model needs to improve next.</p><p>This review covers 4,479 match result predictions from 22 August 2025 to 18 May 2026.</p><p>Every return shown below is based on a £10 level stake on each selection. The bookmaker return uses the average bookmaker odds available when the fixtures were collected. The Betfair return uses the Betfair Exchange closing price, with 2% commission taken from any profit.</p>
 
     <h2>The headline result</h2><p>Backing every model prediction was not profitable.</p><p>Across all 4,479 selections, the model returned:</p><ul><li>Bookmaker average odds: -£1,544.10</li><li>Betfair closing odds: -£546.82</li></ul><p>That is the first important point. This model should not be judged by blindly backing every prediction. That was never the aim.</p><p>The aim is to find where the model has an edge, where the price makes sense, and where future selections can be filtered in a smarter way.</p>
-    <div class="chart-wrap chart-wrap--cum"><h3>Cumulative profit/loss through the season</h3><div class="controls" id="seriesControls"></div><canvas id="cumChart" class="chart-cum" height="120"></canvas><p class="chart-caption">Two lines are shown for each group: Bookmaker average odds and Betfair close after 2% commission.</p></div>
+    <div class="chart-wrap chart-wrap--cum"><h3>Cumulative profit/loss through the season</h3><div class="controls" id="seriesControls"></div><div class="season-chart-frame"><canvas id="cumChart" class="chart-cum"></canvas></div><p class="chart-caption">Two lines are shown for each group: Bookmaker average odds and Betfair close after 2% commission.</p></div>
 
     <h2>Positive value was better, but not perfect</h2>
     <p>The main website selections are built around value. In simple terms, value means the model thinks the outcome is more likely than the bookmaker price suggests.</p><p>Across the full season, positive value selections returned:</p><ul><li>2,120 selections</li><li>937 winners</li><li>44.2% strike rate</li><li>Bookmaker average odds: -£706.20</li><li>Betfair closing odds: -£160.65</li></ul><p>That is not a profit, but it is a better starting point than backing every prediction.</p><p>The most interesting part comes when the value bands are split out.</p>
-    <div class="chart-wrap chart-wrap--bar"><h3>Profit/loss by value band</h3><canvas id="valuePlChart" class="chart-bar" height="110"></canvas></div>
-    <div class="chart-wrap chart-wrap--bar"><h3>ROI by value band</h3><canvas id="valueRoiChart" class="chart-bar" height="110"></canvas></div>
+    <div class="chart-wrap chart-wrap--bar"><h3>Profit/loss by value band</h3><div class="season-chart-frame season-chart-frame--bar"><canvas id="valuePlChart" class="chart-bar"></canvas></div></div>
+    <div class="chart-wrap chart-wrap--bar"><h3>ROI by value band</h3><div class="season-chart-frame season-chart-frame--bar"><canvas id="valueRoiChart" class="chart-bar"></canvas></div></div>
 
     <h2>Model probability looks important</h2><p>The cleaner result came from model probability.</p><p>The higher probability selections performed better, especially at the very top end.</p>
-    <div class="chart-wrap chart-wrap--bar"><h3>ROI by model probability band</h3><canvas id="probChart" class="chart-bar" height="110"></canvas></div>
+    <div class="chart-wrap chart-wrap--bar"><h3>ROI by model probability band</h3><div class="season-chart-frame season-chart-frame--bar"><canvas id="probChart" class="chart-bar"></canvas></div></div>
 
     <h2>The best simple filter</h2><p>The best simple filter from this review was:</p><p><strong>Positive value selections with a model probability of 70% or higher.</strong></p>
     <div class="chart-wrap"><h3>Strategy comparison</h3><div class="strategy-grid" id="strategyGrid"></div></div>
