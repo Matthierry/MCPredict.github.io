@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MC Predict 2025/26 Season Review | Match Result Model Performance</title>
+  <meta name="description" content="A transparent review of MC Predict’s 2025/26 match result model, including profit/loss, value bands, probability ranges and what we learned from the season.">
+  <link rel="stylesheet" href="/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .article-shell{max-width:960px;margin:0 auto;padding:0 14px 24px}
+    .article-panel{background:#1a1c1f;border:1px solid #2f333a;border-radius:16px;padding:16px}
+    .article-panel h1{color:#f7931a;font-size:1.7rem;line-height:1.2;margin:0 0 10px}
+    .article-panel h2{margin-top:28px;font-size:1.25rem}
+    .article-panel p,.article-panel li{line-height:1.6;color:#f3f4f6}
+    .article-meta{color:#9ba3af;font-size:.9rem;margin-bottom:14px}
+    .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 10px}
+    .card{background:#21242a;border:1px solid #2f333a;border-radius:12px;padding:12px}
+    .card .label{font-size:.75rem;color:#9ba3af;text-transform:uppercase}
+    .card .value{font-size:1.2rem;font-weight:800;margin-top:4px}
+    .chart-wrap{background:#15171a;border:1px solid #2f333a;border-radius:12px;padding:10px;margin:14px 0}
+    .chart-caption{font-size:.85rem;color:#9ba3af;margin:8px 0 0}
+    .controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+    .control-btn{background:#21242a;color:#f3f4f6;border:1px solid #2f333a;border-radius:999px;padding:8px 10px;font-size:.8rem;text-align:center;cursor:pointer}
+    .control-btn.active{border-color:#f7931a;color:#f7931a}
+    .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    table{width:100%;border-collapse:collapse;min-width:680px}
+    th,td{padding:8px;border-bottom:1px solid #2f333a;text-align:left;font-size:.86rem}
+    th{color:#9ba3af;font-size:.75rem;text-transform:uppercase}
+    .strategy-grid{display:grid;gap:10px}
+    .strategy-item{background:#21242a;border:1px solid #2f333a;border-radius:12px;padding:10px}
+    .links-bottom a{color:#f7931a}
+    @media(min-width:800px){.article-panel{padding:22px}.controls{grid-template-columns:repeat(4,minmax(0,1fr))}.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+  </style>
+</head>
+<body class="home prediction-page">
+<div class="article-shell">
+  <header class="header standard-header prediction-header">
+    <a class="brand" href="/"><img src="/images/mcpredcirclebg.png" alt="MCPredict logo"><div><h1>MCPREDICT</h1><p>Data-driven Football predictions</p></div></a>
+    <button class="menu-btn" id="openMenu" aria-label="Open menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </header>
+  <div class="menu-overlay" id="menuOverlay" aria-hidden="true"><div class="menu-top"><h3 style="margin:0;">Menu</h3><button class="close-btn" id="closeMenu" aria-label="Close menu"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div><nav class="menu-links"><a href="/hda-value">Match Result - Best Value</a><a href="/hda-highchance">Match Result - Highest Probability</a><a href="/uo-value">U/O 2.5 - Best Value</a><a href="/uo-highchance">U/O 2.5 - Highest Probability</a><a href="/historical">Historical Data</a><a href="/faqs">FAQs</a><a href="/wc26/">World Cup 2026 Game</a></nav></div>
+
+  <main class="article-panel">
+    <h1>MC Predict Season Review: What The First Full Season Told Us</h1>
+    <p class="article-meta">First article · 4,479 match result predictions · 22 August 2025 to 18 May 2026</p>
+    <div class="cards">
+      <div class="card"><div class="label">Selections</div><div class="value">4,479</div></div>
+      <div class="card"><div class="label">Bookmaker average odds</div><div class="value" id="headlineBook"></div></div>
+      <div class="card"><div class="label">Betfair close after 2% commission</div><div class="value" id="headlineBetfair"></div></div>
+      <div class="card"><div class="label">Stake</div><div class="value">£10 level stakes</div></div>
+    </div>
+    <p>MC Predict was built to be open with the numbers.</p><p>The model does not only show the good picks after the event. It makes a prediction on every fixture it receives, and that gives us a much clearer view of what worked, what did not work, and where the model needs to improve next.</p><p>This review covers 4,479 match result predictions from 22 August 2025 to 18 May 2026.</p><p>Every return shown below is based on a £10 level stake on each selection. The bookmaker return uses the average bookmaker odds available when the fixtures were collected. The Betfair return uses the Betfair Exchange closing price, with 2% commission taken from any profit.</p>
+
+    <h2>The headline result</h2><p>Backing every model prediction was not profitable.</p><p>Across all 4,479 selections, the model returned:</p><ul><li>Bookmaker average odds: -£1,544.10</li><li>Betfair closing odds: -£546.82</li></ul><p>That is the first important point. This model should not be judged by blindly backing every prediction. That was never the aim.</p><p>The aim is to find where the model has an edge, where the price makes sense, and where future selections can be filtered in a smarter way.</p>
+    <div class="chart-wrap"><h3>Cumulative profit/loss through the season</h3><div class="controls" id="seriesControls"></div><canvas id="cumChart" height="120"></canvas><p class="chart-caption">Two lines are shown for each group: Bookmaker average odds and Betfair close after 2% commission.</p></div>
+
+    <h2>Positive value was better, but not perfect</h2>
+    <p>The main website selections are built around value. In simple terms, value means the model thinks the outcome is more likely than the bookmaker price suggests.</p><p>Across the full season, positive value selections returned:</p><ul><li>2,120 selections</li><li>937 winners</li><li>44.2% strike rate</li><li>Bookmaker average odds: -£706.20</li><li>Betfair closing odds: -£160.65</li></ul><p>That is not a profit, but it is a better starting point than backing every prediction.</p><p>The most interesting part comes when the value bands are split out.</p>
+    <div class="chart-wrap"><h3>Profit/loss by value band</h3><canvas id="valuePlChart" height="110"></canvas></div>
+    <div class="chart-wrap"><h3>ROI by value band</h3><canvas id="valueRoiChart" height="110"></canvas></div>
+
+    <h2>Model probability looks important</h2><p>The cleaner result came from model probability.</p><p>The higher probability selections performed better, especially at the very top end.</p>
+    <div class="chart-wrap"><h3>ROI by model probability band</h3><canvas id="probChart" height="110"></canvas></div>
+
+    <h2>The best simple filter</h2><p>The best simple filter from this review was:</p><p><strong>Positive value selections with a model probability of 70% or higher.</strong></p>
+    <div class="chart-wrap"><h3>Strategy comparison</h3><div class="strategy-grid" id="strategyGrid"></div></div>
+
+    <h2>Home wins, away wins and draws</h2><p>The model predicted home wins far more often than anything else.</p><p>The draw sample is too small to take much from. Only 15 draw predictions were made across the full season, so it should be treated as noise rather than a real finding.</p>
+
+    <h2>What we learned</h2><p>The season gave us a few clear lessons.</p><p>Backing every prediction is not the right way to use the model.</p><p>Positive value selections were better than the full set, but value alone was not enough.</p><p>The strongest positive value band was much better than the middle positive value band.</p><p>The 70%+ model probability group was the cleanest simple signal.</p><p>The best simple result came when positive value was combined with high model probability.</p><p>That is the direction the next version of the model output is likely to move towards.</p>
+    <h2>What comes next</h2><p>The money bag bands have been a simple way to show where the model sees value.</p><p>They are easy to understand, and they still have a place.</p><p>But this review suggests they may not be the best way to group selections going forward.</p><p>The next step is to test a different way of sorting predictions. One that does not only look at the difference between the model and the bookmaker, but also looks at the strength of the model prediction itself.</p><p>That work is already being explored.</p><p>The aim is simple: fewer weak selections, better grouping, and a clearer view of where the model is actually performing well.</p><p>Past results do not guarantee future results. This review is based on historic model output and historic prices, using £10 level stakes for comparison.</p>
+
+    <div class="table-scroll"><table id="summaryTable"></table></div>
+    <p class="links-bottom"><strong>Next links:</strong> <a href="/hda-value">Match Result Best Value</a> · <a href="/hda-highchance">Match Result Highest Probability</a> · <a href="/historical">Historical Data</a></p>
+  </main>
+</div>
+<nav class="mobile-bottom-nav prediction-bottom-nav" aria-label="Mobile primary navigation"><a class="mobile-bottom-nav__item" data-nav-path="/hda-value" href="/hda-value"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M6 19h12M8 19V9h8v10M10 9V5h4v4"/></svg><span class="mobile-bottom-nav__label">Winner</span></a><a class="mobile-bottom-nav__item" data-nav-path="/uo-value" href="/uo-value"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg><span class="mobile-bottom-nav__label">U/O 2.5</span></a><a class="mobile-bottom-nav__item" data-nav-path="/historical" href="/historical"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/></svg><span class="mobile-bottom-nav__label">Data</span></a><a class="mobile-bottom-nav__item" data-nav-path="/faqs" href="/faqs"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/><circle cx="12" cy="17" r=".8"/></svg><span class="mobile-bottom-nav__label">FAQs</span></a></nav>
+<script src="/site.js"></script>
+<script src="/season-review-2025-26.data.js"></script>
+<script>
+const gbp=n=>`${n<0?'-':''}£${Math.abs(n).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+const pct=n=>`${(n*100).toFixed(1)}%`;
+document.getElementById('headlineBook').textContent=gbp(-1544.1);document.getElementById('headlineBetfair').textContent=gbp(-546.824);
+const cumulativeChartCtx=document.getElementById('cumChart');
+const controls=document.getElementById('seriesControls');
+const allSeries=[...new Set(weeklyData.map(r=>r.series))];
+const labelMap={'💰':'💰 (Small positive value)','💰💰':'💰💰 (Medium positive value)','💰💰💰':'💰💰💰 (Strong positive value)','Negative value only':'❌ Negative value only'};
+const usable=['All predictions','Positive value only','💰','💰💰','💰💰💰','Negative value only','70%+ model probability','Positive value + 70%+ model probability'];
+let selected='All predictions';
+usable.forEach(s=>{const b=document.createElement('button');b.className='control-btn'+(s===selected?' active':'');b.textContent=labelMap[s]||s;b.onclick=()=>{selected=s;document.querySelectorAll('.control-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderCum()};controls.appendChild(b);});
+let cumChart;
+function renderCum(){const targetSeries=selected==='70%+ model probability'?'All predictions + 70%+ model probability':selected;const rows=weeklyData.filter(r=>r.series===targetSeries).sort((a,b)=>a.week-b.week);let cb=0,cf=0;const lbl=[],book=[],bet=[];rows.forEach(r=>{cb+=r.bookmaker_pl;cf+=r.betfair_pl_after_commission;lbl.push(`W${r.week}`);book.push(cb);bet.push(cf)});if(!rows.length){if(cumChart)cumChart.destroy();return;}if(cumChart)cumChart.destroy();cumChart=new Chart(cumulativeChartCtx,{type:'line',data:{labels:lbl,datasets:[{label:'Bookmaker average odds',data:book,borderColor:'#f7931a',tension:.25},{label:'Betfair close after 2% commission',data:bet,borderColor:'#60a5fa',tension:.25}]},options:{responsive:true,plugins:{legend:{labels:{color:'#e5e7eb'}},tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${gbp(ctx.raw)}`}}},scales:{x:{ticks:{color:'#9ca3af'}},y:{ticks:{color:'#9ca3af',callback:v=>gbp(v)}}}}});}
+function makeBar(id,labels,a,b,la,lb,isPct=false){new Chart(document.getElementById(id),{type:'bar',data:{labels,datasets:[{label:la,data:a,backgroundColor:'#f7931a'},{label:lb,data:b,backgroundColor:'#60a5fa'}]},options:{plugins:{legend:{labels:{color:'#e5e7eb'}},tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${isPct?pct(ctx.raw):gbp(ctx.raw)}`}}},scales:{x:{ticks:{color:'#9ca3af'}},y:{ticks:{color:'#9ca3af',callback:v=>isPct?pct(v):gbp(v)}}}}})}
+const v=valueBandData;makeBar('valuePlChart',v.map(x=>x.band),v.map(x=>x.bookmaker_pl),v.map(x=>x.betfair_close_pl_after_commission),'Bookmaker P/L','Betfair close after 2% commission P/L');
+makeBar('valueRoiChart',v.map(x=>x.band),v.map(x=>x.bookmaker_roi),v.map(x=>x.betfair_close_roi_after_commission),'Bookmaker ROI','Betfair close after 2% commission ROI',true);
+const p=probabilityBandData;makeBar('probChart',p.map(x=>x.probability_band),p.map(x=>x.bookmaker_roi),p.map(x=>x.betfair_close_roi_after_commission),'Bookmaker ROI','Betfair close after 2% commission ROI',true);
+const sg=document.getElementById('strategyGrid');strategyData.forEach(s=>{const d=document.createElement('div');d.className='strategy-item';d.innerHTML=`<strong>${s.strategy==='Strong positive value only'?'💰💰💰 only':s.strategy}</strong><br>Selections: ${s.selections} · Strike rate: ${pct(s.strike_rate)}<br>Bookmaker: ${gbp(s.bookmaker_pl)} (${pct(s.bookmaker_roi)})<br>Betfair close after 2% commission: ${gbp(s.betfair_close_pl_after_commission)} (${pct(s.betfair_close_roi_after_commission)})`;sg.appendChild(d);});
+const t=document.getElementById('summaryTable');t.innerHTML='<thead><tr><th>Prediction type</th><th>Selections</th><th>Strike rate</th><th>Bookmaker P/L</th><th>Bookmaker ROI</th><th>Betfair close after 2% commission P/L</th><th>Betfair ROI</th></tr></thead><tbody>'+predictionTypeData.map(r=>`<tr><td>${r.prediction}</td><td>${r.selections}</td><td>${pct(r.strike_rate)}</td><td>${gbp(r.bookmaker_pl)}</td><td>${pct(r.bookmaker_roi)}</td><td>${gbp(r.betfair_close_pl_after_commission)}</td><td>${pct(r.betfair_close_roi_after_commission)}</td></tr>`).join('')+'</tbody>';
+renderCum();
+</script>
+</body></html>
