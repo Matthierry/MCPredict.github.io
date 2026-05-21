@@ -22,7 +22,7 @@
     .chart-caption{font-size:.85rem;color:#9ba3af;margin:8px 0 0}
     .controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
     .control-btn{background:#21242a;color:#f3f4f6;border:1px solid #2f333a;border-radius:999px;padding:8px 10px;font-size:.8rem;text-align:center;cursor:pointer}
-    .control-btn.active{border-color:#f7931a;color:#f7931a}
+    .control-btn.active{background:#f7931a;border-color:#f7931a;color:#111827;opacity:1}
     .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
     table{width:100%;border-collapse:collapse;min-width:680px}
     th,td{padding:8px;border-bottom:1px solid #2f333a;text-align:left;font-size:.86rem}
@@ -84,13 +84,24 @@ const pct=n=>`${(n*100).toFixed(1)}%`;
 document.getElementById('headlineBook').textContent=gbp(-1544.1);document.getElementById('headlineBetfair').textContent=gbp(-546.824);
 const cumulativeChartCtx=document.getElementById('cumChart');
 const controls=document.getElementById('seriesControls');
-const allSeries=[...new Set(weeklyData.map(r=>r.series))];
-const labelMap={'💰':'💰 (Small positive value)','💰💰':'💰💰 (Medium positive value)','💰💰💰':'💰💰💰 (Strong positive value)','Negative value only':'❌ Negative value only'};
-const usable=['All predictions','Positive value only','💰','💰💰','💰💰💰','Negative value only','70%+ model probability','Positive value + 70%+ model probability'];
-let selected='All predictions';
-usable.forEach(s=>{const b=document.createElement('button');b.className='control-btn'+(s===selected?' active':'');b.textContent=labelMap[s]||s;b.onclick=()=>{selected=s;document.querySelectorAll('.control-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderCum()};controls.appendChild(b);});
+const filterConfig=[
+  {key:'all',label:'All predictions',series:'All predictions'},
+  {key:'positive',label:'Positive value only',series:'Positive value only'},
+  {key:'money1',label:'💰 Small positive value',series:'💰'},
+  {key:'money2',label:'💰💰 Medium positive value',series:'💰💰'},
+  {key:'money3',label:'💰💰💰 Strong positive value',series:'💰💰💰'},
+  {key:'negative',label:'Negative value only',series:'Negative value only'},
+  {key:'prob70',label:'70%+ model probability',series:'All predictions + 70%+ model probability'},
+  {key:'positiveProb70',label:'Positive value + 70%+ model probability',series:'Positive value + 70%+ model probability'}
+];
+const filterMap=Object.fromEntries(filterConfig.map(cfg=>[cfg.key,cfg]));
+const seasonWeeks=Array.from({length:42},(_,i)=>i+1);
+const rowsBySeriesWeek=new Map();
+weeklyData.forEach(r=>{rowsBySeriesWeek.set(`${r.series}|${r.week}`,r);});
+let selected='all';
+filterConfig.forEach(cfg=>{const b=document.createElement('button');b.className='control-btn'+(cfg.key===selected?' active':'');b.textContent=cfg.label;b.onclick=()=>{selected=cfg.key;document.querySelectorAll('.control-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderCum()};controls.appendChild(b);});
 let cumChart;
-function renderCum(){const targetSeries=selected==='70%+ model probability'?'All predictions + 70%+ model probability':selected;const rows=weeklyData.filter(r=>r.series===targetSeries).sort((a,b)=>a.week-b.week);let cb=0,cf=0;const lbl=[],book=[],bet=[];rows.forEach(r=>{cb+=r.bookmaker_pl;cf+=r.betfair_pl_after_commission;lbl.push(`W${r.week}`);book.push(cb);bet.push(cf)});if(!rows.length){if(cumChart)cumChart.destroy();return;}if(cumChart)cumChart.destroy();cumChart=new Chart(cumulativeChartCtx,{type:'line',data:{labels:lbl,datasets:[{label:'Bookmaker average odds',data:book,borderColor:'#f7931a',tension:.25},{label:'Betfair close after 2% commission',data:bet,borderColor:'#60a5fa',tension:.25}]},options:{responsive:true,plugins:{legend:{labels:{color:'#e5e7eb'}},tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${gbp(ctx.raw)}`}}},scales:{x:{ticks:{color:'#9ca3af'}},y:{ticks:{color:'#9ca3af',callback:v=>gbp(v)}}}}});}
+function renderCum(){const current=filterMap[selected]||filterMap.all;let cb=0,cf=0;const lbl=[],book=[],bet=[];seasonWeeks.forEach(week=>{const row=rowsBySeriesWeek.get(`${current.series}|${week}`);const weeklyBook=row?row.bookmaker_pl:0;const weeklyBet=row?row.betfair_pl_after_commission:0;cb+=weeklyBook;cf+=weeklyBet;lbl.push(`W${week}`);book.push(Number(cb.toFixed(3)));bet.push(Number(cf.toFixed(3)));});if(cumChart)cumChart.destroy();cumChart=new Chart(cumulativeChartCtx,{type:'line',data:{labels:lbl,datasets:[{label:'Bookmaker average odds',data:book,borderColor:'#f7931a',tension:.25},{label:'Betfair close after 2% commission',data:bet,borderColor:'#60a5fa',tension:.25}]},options:{responsive:true,plugins:{legend:{labels:{color:'#e5e7eb'}},tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${gbp(ctx.raw)}`}}},scales:{x:{ticks:{color:'#9ca3af'}},y:{ticks:{color:'#9ca3af',callback:v=>gbp(v)}}}}});}
 function makeBar(id,labels,a,b,la,lb,isPct=false){new Chart(document.getElementById(id),{type:'bar',data:{labels,datasets:[{label:la,data:a,backgroundColor:'#f7931a'},{label:lb,data:b,backgroundColor:'#60a5fa'}]},options:{plugins:{legend:{labels:{color:'#e5e7eb'}},tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${isPct?pct(ctx.raw):gbp(ctx.raw)}`}}},scales:{x:{ticks:{color:'#9ca3af'}},y:{ticks:{color:'#9ca3af',callback:v=>isPct?pct(v):gbp(v)}}}}})}
 const v=valueBandData;makeBar('valuePlChart',v.map(x=>x.band),v.map(x=>x.bookmaker_pl),v.map(x=>x.betfair_close_pl_after_commission),'Bookmaker P/L','Betfair close after 2% commission P/L');
 makeBar('valueRoiChart',v.map(x=>x.band),v.map(x=>x.bookmaker_roi),v.map(x=>x.betfair_close_roi_after_commission),'Bookmaker ROI','Betfair close after 2% commission ROI',true);
