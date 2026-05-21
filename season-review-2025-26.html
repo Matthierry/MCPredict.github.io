@@ -19,6 +19,9 @@
     .card .label{font-size:.75rem;color:#9ba3af;text-transform:uppercase}
     .card .value{font-size:1.2rem;font-weight:800;margin-top:4px}
     .chart-wrap{background:#15171a;border:1px solid #2f333a;border-radius:12px;padding:10px;margin:14px 0}
+    .chart-wrap canvas{display:block;width:100%}
+    .chart-cum{height:340px !important}
+    .chart-bar{height:280px !important}
     .chart-caption{font-size:.85rem;color:#9ba3af;margin:8px 0 0}
     .controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
     .control-btn{background:#21242a;color:#f3f4f6;border:1px solid #2f333a;border-radius:999px;padding:8px 10px;font-size:.8rem;text-align:center;cursor:pointer}
@@ -30,7 +33,8 @@
     .strategy-grid{display:grid;gap:10px}
     .strategy-item{background:#21242a;border:1px solid #2f333a;border-radius:12px;padding:10px}
     .links-bottom a{color:#f7931a}
-    @media(min-width:800px){.article-panel{padding:22px}.controls{grid-template-columns:repeat(4,minmax(0,1fr))}.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    @media(min-width:620px){.chart-cum{height:300px !important}.chart-bar{height:250px !important}}
+    @media(min-width:800px){.article-panel{padding:22px}.controls{grid-template-columns:repeat(4,minmax(0,1fr))}.cards{grid-template-columns:repeat(4,minmax(0,1fr))}.chart-cum{height:240px !important}.chart-bar{height:220px !important}}
   </style>
 </head>
 <body class="home prediction-page">
@@ -53,15 +57,15 @@
     <p>MC Predict was built to be open with the numbers.</p><p>The model does not only show the good picks after the event. It makes a prediction on every fixture it receives, and that gives us a much clearer view of what worked, what did not work, and where the model needs to improve next.</p><p>This review covers 4,479 match result predictions from 22 August 2025 to 18 May 2026.</p><p>Every return shown below is based on a £10 level stake on each selection. The bookmaker return uses the average bookmaker odds available when the fixtures were collected. The Betfair return uses the Betfair Exchange closing price, with 2% commission taken from any profit.</p>
 
     <h2>The headline result</h2><p>Backing every model prediction was not profitable.</p><p>Across all 4,479 selections, the model returned:</p><ul><li>Bookmaker average odds: -£1,544.10</li><li>Betfair closing odds: -£546.82</li></ul><p>That is the first important point. This model should not be judged by blindly backing every prediction. That was never the aim.</p><p>The aim is to find where the model has an edge, where the price makes sense, and where future selections can be filtered in a smarter way.</p>
-    <div class="chart-wrap"><h3>Cumulative profit/loss through the season</h3><div class="controls" id="seriesControls"></div><canvas id="cumChart" height="120"></canvas><p class="chart-caption">Two lines are shown for each group: Bookmaker average odds and Betfair close after 2% commission.</p></div>
+    <div class="chart-wrap"><h3>Cumulative profit/loss through the season</h3><div class="controls" id="seriesControls"></div><canvas id="cumChart" class="chart-cum" height="120"></canvas><p class="chart-caption">Two lines are shown for each group: Bookmaker average odds and Betfair close after 2% commission.</p></div>
 
     <h2>Positive value was better, but not perfect</h2>
     <p>The main website selections are built around value. In simple terms, value means the model thinks the outcome is more likely than the bookmaker price suggests.</p><p>Across the full season, positive value selections returned:</p><ul><li>2,120 selections</li><li>937 winners</li><li>44.2% strike rate</li><li>Bookmaker average odds: -£706.20</li><li>Betfair closing odds: -£160.65</li></ul><p>That is not a profit, but it is a better starting point than backing every prediction.</p><p>The most interesting part comes when the value bands are split out.</p>
-    <div class="chart-wrap"><h3>Profit/loss by value band</h3><canvas id="valuePlChart" height="110"></canvas></div>
-    <div class="chart-wrap"><h3>ROI by value band</h3><canvas id="valueRoiChart" height="110"></canvas></div>
+    <div class="chart-wrap"><h3>Profit/loss by value band</h3><canvas id="valuePlChart" class="chart-bar" height="110"></canvas></div>
+    <div class="chart-wrap"><h3>ROI by value band</h3><canvas id="valueRoiChart" class="chart-bar" height="110"></canvas></div>
 
     <h2>Model probability looks important</h2><p>The cleaner result came from model probability.</p><p>The higher probability selections performed better, especially at the very top end.</p>
-    <div class="chart-wrap"><h3>ROI by model probability band</h3><canvas id="probChart" height="110"></canvas></div>
+    <div class="chart-wrap"><h3>ROI by model probability band</h3><canvas id="probChart" class="chart-bar" height="110"></canvas></div>
 
     <h2>The best simple filter</h2><p>The best simple filter from this review was:</p><p><strong>Positive value selections with a model probability of 70% or higher.</strong></p>
     <div class="chart-wrap"><h3>Strategy comparison</h3><div class="strategy-grid" id="strategyGrid"></div></div>
@@ -99,8 +103,13 @@ const filterConfig=[{key:'all',label:'All predictions'},{key:'positive',label:'P
 let selected='all';
 filterConfig.forEach(cfg=>{const b=document.createElement('button');b.className='control-btn'+(cfg.key===selected?' active':'');b.textContent=cfg.label;b.dataset.series=cfg.key;b.onclick=()=>{selected=b.dataset.series;document.querySelectorAll('.control-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderCum();};controls.appendChild(b);});
 let cumChart;
-function renderCum(){const current=cumulativeChartData[selected]||cumulativeChartData.all;if(cumChart)cumChart.destroy();cumChart=new Chart(cumulativeChartCtx,{type:'line',data:{labels:weekLabels,datasets:[{label:'Bookmaker average odds',data:current.bookmaker,borderColor:'#f7931a',backgroundColor:'#f7931a',tension:.25,pointRadius:0},{label:'Betfair close after 2% commission',data:current.betfair,borderColor:'#60a5fa',backgroundColor:'#60a5fa',tension:.25,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:'#e5e7eb'}},tooltip:{callbacks:{title:(items)=>`Week: ${items[0].label}`,afterTitle:(items)=>`Selections: ${current.selections[items[0].dataIndex]}`,label:(ctx)=>`${ctx.dataset.label}: ${gbp(ctx.raw)}`}}},scales:{x:{ticks:{color:'#9ca3af'}},y:{ticks:{color:'#9ca3af',callback:v=>gbp(v)}}}}});}
-function makeBar(id,labels,a,b,la,lb,isPct=false){new Chart(document.getElementById(id),{type:'bar',data:{labels,datasets:[{label:la,data:a,backgroundColor:'#f7931a'},{label:lb,data:b,backgroundColor:'#60a5fa'}]},options:{plugins:{legend:{labels:{color:'#e5e7eb'}},tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${isPct?pct(ctx.raw):gbp(ctx.raw)}`}}},scales:{x:{ticks:{color:'#9ca3af'}},y:{ticks:{color:'#9ca3af',callback:v=>isPct?pct(v):gbp(v)}}}}})}
+const BREAK_EVEN_LABEL='Break even';
+const breakEvenStyle={borderColor:'rgba(156,163,175,0.7)',borderDash:[5,5],borderWidth:1,pointRadius:0,pointHoverRadius:0};
+const legendFilter=(item)=>item.text!==BREAK_EVEN_LABEL;
+const tooltipFilter=(ctx)=>ctx.dataset.label!==BREAK_EVEN_LABEL;
+const breakEvenDataset=(labels)=>({label:BREAK_EVEN_LABEL,data:labels.map(()=>0),type:'line',fill:false,...breakEvenStyle});
+function renderCum(){const current=cumulativeChartData[selected]||cumulativeChartData.all;if(cumChart)cumChart.destroy();cumChart=new Chart(cumulativeChartCtx,{type:'line',data:{labels:weekLabels,datasets:[breakEvenDataset(weekLabels),{label:'Bookmaker average odds',data:current.bookmaker,borderColor:'#f7931a',backgroundColor:'#f7931a',tension:.25,pointRadius:0},{label:'Betfair close after 2% commission',data:current.betfair,borderColor:'#60a5fa',backgroundColor:'#60a5fa',tension:.25,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#e5e7eb',filter:legendFilter}},tooltip:{filter:tooltipFilter,callbacks:{title:(items)=>`Week: ${items[0].label}`,afterTitle:(items)=>`Selections: ${current.selections[items[0].dataIndex]}`,label:(ctx)=>`${ctx.dataset.label}: ${gbp(ctx.raw)}`}}},scales:{x:{ticks:{color:'#9ca3af'}},y:{ticks:{color:'#9ca3af',callback:v=>gbp(v)}}}}});}
+function makeBar(id,labels,a,b,la,lb,isPct=false){new Chart(document.getElementById(id),{type:'bar',data:{labels,datasets:[{label:la,data:a,backgroundColor:'#f7931a'},{label:lb,data:b,backgroundColor:'#60a5fa'},breakEvenDataset(labels)]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#e5e7eb',filter:legendFilter}},tooltip:{filter:tooltipFilter,callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${isPct?pct(ctx.raw):gbp(ctx.raw)}`}}},scales:{x:{ticks:{color:'#9ca3af'}},y:{ticks:{color:'#9ca3af',callback:v=>isPct?pct(v):gbp(v)}}}}})}
 const v=valueBandData;makeBar('valuePlChart',v.map(x=>x.band),v.map(x=>x.bookmaker_pl),v.map(x=>x.betfair_close_pl_after_commission),'Bookmaker P/L','Betfair close after 2% commission P/L');
 makeBar('valueRoiChart',v.map(x=>x.band),v.map(x=>x.bookmaker_roi),v.map(x=>x.betfair_close_roi_after_commission),'Bookmaker ROI','Betfair close after 2% commission ROI',true);
 const p=probabilityBandData;makeBar('probChart',p.map(x=>x.probability_band),p.map(x=>x.bookmaker_roi),p.map(x=>x.betfair_close_roi_after_commission),'Bookmaker ROI','Betfair close after 2% commission ROI',true);
