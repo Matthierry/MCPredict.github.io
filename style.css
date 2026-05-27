@@ -1291,19 +1291,26 @@ nav a[aria-current="page"]:focus-visible,
   --wc26-muted: #bdbdbd;
 }
 body.wc26-theme { margin:0; color:#f3f4f6; background: radial-gradient(circle at top, #2c2c2e 0%, #1d1d20 42%, #141417 100%); }
-.wc26-page, .wrap { max-width: 960px; margin: 0 auto; padding: 0 14px 56px; }
-.hero, .card, .tournament { background:linear-gradient(145deg, rgba(47,49,54,.95), rgba(27,28,31,.96)); border:1px solid var(--wc26-border); box-shadow:0 14px 30px rgba(0,0,0,.35); }
-.hero, .card { border-radius:16px; }
-.hero { padding:20px; margin-bottom:14px; }
-.card { padding:18px; }
-.section-nav { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
-.section-nav a { text-decoration:none; color:#d2d5db; background:#24262b; border:1px solid var(--wc26-border); border-radius:999px; padding:8px 12px; font-size:.82rem; }
-.section-nav a.active, .section-nav a[aria-current="page"] { color:#111 !important; background: linear-gradient(135deg, #f7931a, var(--wc26-gold)); border-color: rgba(247,147,26,.75); box-shadow:0 0 16px rgba(244,178,68,.22); }
-.btn, .pay-btn { display:inline-flex; justify-content:center; align-items:center; text-decoration:none; border-radius:12px; font-weight:700; padding:12px 14px; color:#151515; background:linear-gradient(135deg,#f2980c,var(--wc26-gold)); border:1px solid rgba(244,178,68,.55); box-shadow:0 8px 18px rgba(242,152,12,.25); }
-.nav-card { display:block; padding:16px; text-decoration:none; color:#f3f4f6; background:rgba(255,255,255,.04); border:1px solid var(--wc26-border); border-radius:14px; }
-.nav-card p { color:var(--wc26-muted); }
-.success-modal, .wc26-loading-card { border:1px solid var(--wc26-border); background:linear-gradient(145deg, rgba(47,49,54,.98), rgba(23,24,28,.98)); }
-.tournament { border:1px solid rgba(247,147,26,.25); border-radius:16px; padding:14px; }
+.wc26-page { max-width: 960px; margin: 0 auto; padding: 0 14px 56px; }
+.wc26-page .hero, .wc26-page .card, .wc26-page .tournament { background:linear-gradient(145deg, rgba(47,49,54,.95), rgba(27,28,31,.96)); border:1px solid var(--wc26-border); box-shadow:0 14px 30px rgba(0,0,0,.35); }
+.wc26-page .hero, .wc26-page .card { border-radius:16px; }
+.wc26-page .hero { padding:22px; margin-bottom:16px; text-align:center; }
+.wc26-page .card { padding:18px; }
+.wc26-page .section-nav { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+.wc26-page .section-nav a { text-decoration:none; color:#d2d5db; background:#24262b; border:1px solid var(--wc26-border); border-radius:999px; padding:8px 12px; font-size:.82rem; }
+.wc26-page .section-nav a.active, .wc26-page .section-nav a[aria-current="page"] { color:#111 !important; background: linear-gradient(135deg, #f7931a, var(--wc26-gold)); border-color: rgba(247,147,26,.75); box-shadow:0 0 16px rgba(244,178,68,.22); }
+.wc26-page .cta { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; align-items:center; margin-top:18px; }
+.wc26-page .cta .btn, .wc26-page .pay-btn { display:inline-flex; justify-content:center; align-items:center; min-height:44px; padding:12px 18px; border-radius:13px; font-weight:800; line-height:1; text-decoration:none; transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease, color .2s ease; }
+.wc26-page .btn-primary { color:#151515; background:linear-gradient(135deg,#f2980c,var(--wc26-gold)); border:1px solid rgba(244,178,68,.55); box-shadow:0 8px 18px rgba(242,152,12,.25); }
+.wc26-page .btn-secondary { color:#f3f4f6; background:rgba(255,255,255,.04); border:1px solid rgba(244,178,68,.45); box-shadow:0 8px 18px rgba(0,0,0,.2); }
+.wc26-page .cta .btn:hover, .wc26-page .cta .btn:focus-visible, .wc26-page .pay-btn:hover, .wc26-page .pay-btn:focus-visible { text-decoration:none; transform:translateY(-1px); box-shadow:0 0 20px rgba(244,178,68,.25), 0 10px 24px rgba(0,0,0,.3); }
+.wc26-page .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; }
+.wc26-page .nav-card { display:block; padding:18px; text-decoration:none; color:#f3f4f6; background:linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.025)); border:1px solid var(--wc26-border); border-radius:16px; box-shadow:0 10px 24px rgba(0,0,0,.22); transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.wc26-page .nav-card:hover, .wc26-page .nav-card:focus-visible { text-decoration:none; border-color:rgba(244,178,68,.55); transform:translateY(-1px); box-shadow:0 0 18px rgba(244,178,68,.18), 0 12px 26px rgba(0,0,0,.28); }
+.wc26-page .nav-card h3 { margin:0 0 8px; color:#f4b244; font-size:1.05rem; }
+.wc26-page .nav-card p { margin:0; color:var(--wc26-muted); line-height:1.45; }
+.wc26-page .success-modal, .wc26-page .wc26-loading-card { border:1px solid var(--wc26-border); background:linear-gradient(145deg, rgba(47,49,54,.98), rgba(23,24,28,.98)); }
+.wc26-page .tournament { border:1px solid rgba(247,147,26,.25); border-radius:16px; padding:14px; }
 
 /* WC26 Hall of Fame premium styling */
 .hof-hero { background: linear-gradient(145deg, rgba(247,147,26,.15), rgba(26,28,31,.96)); border:1px solid rgba(247,147,26,.35); border-radius:16px; padding:20px; margin-bottom:14px; text-align:center; }
