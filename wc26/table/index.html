@@ -191,7 +191,7 @@
         }
 
         if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
-        return rows.filter(function (r) { return r.some(function (c) { return String(c || '').trim() !== ''; }); });
+        return rows;
       }
 
       function topSix(row) {
