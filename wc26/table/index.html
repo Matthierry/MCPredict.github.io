@@ -60,6 +60,11 @@
       display: grid;
       gap: 3px;
     }
+    .wc26-scoring-item.featured {
+      border-color: rgba(242,152,12,.38);
+      background: linear-gradient(145deg, rgba(242,152,12,.12), rgba(255,255,255,.03));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+    }
     .wc26-scoring-code {
       display: inline-flex;
       align-items: center;
@@ -168,11 +173,13 @@
 
     @media (min-width: 780px) {
       .wc26-scoring-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .wc26-scoring-item.featured { grid-column: auto; }
     }
 
     @media (max-width: 560px) {
       .wrap { padding: 14px 10px 58px; }
       .wc26-league-section { padding: 14px; }
+      .wc26-scoring-item.featured { grid-column: 1 / -1; }
       .wc26-league-table { font-size: .75rem; }
       .wc26-league-table thead th, .wc26-league-table tbody td { padding: 7px 4px; }
       .wc26-league-table th:nth-child(2),
@@ -209,7 +216,7 @@
           <p>How your league table points are calculated.</p>
         </div>
         <div class="wc26-scoring-grid">
-          <article class="wc26-scoring-item">
+          <article class="wc26-scoring-item featured">
             <span class="wc26-scoring-code">CS</span>
             <span class="wc26-scoring-label">Correct Score</span>
             <span class="wc26-scoring-points">2 points for a correct score</span>
