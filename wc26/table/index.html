@@ -27,6 +27,63 @@
     }
     .wc26-league-section h1 { margin: 0 0 10px; font-size: 1.35rem; }
     .wc26-league-intro { margin: 0 0 14px; color: #bdbdbd; line-height: 1.45; }
+    .wc26-scoring-card {
+      margin: 0 0 14px;
+      background: linear-gradient(155deg, rgba(43,44,50,.88), rgba(31,32,36,.88));
+      border: 1px solid rgba(242,152,12,.2);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .wc26-scoring-header h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ececed;
+    }
+    .wc26-scoring-header p {
+      margin: 4px 0 0;
+      color: #a9acb3;
+      font-size: .84rem;
+      line-height: 1.4;
+    }
+    .wc26-scoring-grid {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .wc26-scoring-item {
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.02);
+      border-radius: 10px;
+      padding: 9px 10px;
+      display: grid;
+      gap: 3px;
+    }
+    .wc26-scoring-code {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 38px;
+      width: fit-content;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: .74rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: #1a1308;
+      background: linear-gradient(135deg,#f7931a,var(--wc26-gold));
+    }
+    .wc26-scoring-label { color: #f3f3f4; font-size: .88rem; font-weight: 600; }
+    .wc26-scoring-points { color: #b8bbc1; font-size: .8rem; line-height: 1.35; }
+    .wc26-scoring-note {
+      margin: 10px 0 0;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      color: #c8cacf;
+      font-size: .78rem;
+      line-height: 1.35;
+    }
     .wc26-table-card {
       background: linear-gradient(180deg, #2c2c2e 0%, #222224 100%);
       border: 1px solid rgba(242,152,12,.24);
@@ -109,6 +166,10 @@
     }
     .is-hidden { display: none !important; }
 
+    @media (min-width: 780px) {
+      .wc26-scoring-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
     @media (max-width: 560px) {
       .wrap { padding: 14px 10px 58px; }
       .wc26-league-section { padding: 14px; }
@@ -141,6 +202,31 @@
     <section class="wc26-league-section">
       <h1>League Table</h1>
       <p class="wc26-league-intro">Follow the World Cup 2026 prediction game standings as entries are scored throughout the tournament.</p>
+
+      <div class="wc26-scoring-card" aria-label="Scoring system">
+        <div class="wc26-scoring-header">
+          <h2>Scoring System</h2>
+          <p>How your league table points are calculated.</p>
+        </div>
+        <div class="wc26-scoring-grid">
+          <article class="wc26-scoring-item">
+            <span class="wc26-scoring-code">CS</span>
+            <span class="wc26-scoring-label">Correct Score</span>
+            <span class="wc26-scoring-points">2 points for a correct score</span>
+          </article>
+          <article class="wc26-scoring-item">
+            <span class="wc26-scoring-code">MR</span>
+            <span class="wc26-scoring-label">Match Result</span>
+            <span class="wc26-scoring-points">1 point for a correct match result</span>
+          </article>
+          <article class="wc26-scoring-item">
+            <span class="wc26-scoring-code">U/O</span>
+            <span class="wc26-scoring-label">Under/Over 2.5</span>
+            <span class="wc26-scoring-points">1 point for the correct under or over 2.5 goals</span>
+          </article>
+        </div>
+        <p class="wc26-scoring-note">All predictions are derived from your correct score prediction.</p>
+      </div>
 
       <div class="wc26-table-card">
         <div id="leagueLoading" class="wc26-table-state">Loading league table…</div>
