@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MC Predict | World Cup 2026 Predictions</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    :root { --border: rgba(255,255,255,.12); }
+    body {
+      margin: 0;
+      font-family: 'Proxima Nova', Arial, sans-serif;
+      color: #f4f4f4;
+      background: radial-gradient(circle at top,#2a2c33 0%,#1b1c20 42%,#111214 100%);
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 16px 14px 60px; }
+    .section-nav { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; }
+    .section-nav a { text-decoration:none; color:#d2d5db; background:#2a2c33; border:1px solid var(--border); border-radius:999px; padding:8px 12px; font-size:.82rem; }
+
+    .wc26-predictions-section {
+      background: linear-gradient(145deg, rgba(48,49,56,.95), rgba(28,29,33,.95));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 14px 30px rgba(0,0,0,.35);
+      padding: 18px;
+    }
+    .wc26-predictions-section h1 { margin: 0 0 10px; font-size: 1.35rem; }
+    .wc26-predictions-intro { margin: 0 0 14px; color: #bdbdbd; line-height: 1.45; }
+    .wc26-picker-card {
+      margin: 0 0 14px;
+      background: linear-gradient(155deg, rgba(43,44,50,.88), rgba(31,32,36,.88));
+      border: 1px solid rgba(242,152,12,.2);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .wc26-picker-label {
+      display: block;
+      margin: 0 0 7px;
+      color: #ececed;
+      font-size: .88rem;
+      font-weight: 700;
+      letter-spacing: .01em;
+    }
+    .wc26-select-wrap { position: relative; }
+    .wc26-select-wrap::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: 14px;
+      width: 9px;
+      height: 9px;
+      border-right: 2px solid #1a1308;
+      border-bottom: 2px solid #1a1308;
+      pointer-events: none;
+      transform: translateY(-65%) rotate(45deg);
+    }
+    .wc26-player-select {
+      width: 100%;
+      appearance: none;
+      border: 1px solid rgba(244,178,68,.55);
+      border-radius: 13px;
+      background: linear-gradient(135deg,#f2980c,var(--wc26-gold));
+      box-shadow: 0 8px 18px rgba(242,152,12,.18);
+      color: #151515;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+      line-height: 1.2;
+      min-height: 46px;
+      padding: 12px 42px 12px 14px;
+    }
+    .wc26-player-select:focus-visible {
+      outline: 3px solid rgba(244,178,68,.35);
+      outline-offset: 3px;
+    }
+    .wc26-player-select:disabled { cursor: wait; opacity: .72; }
+
+    .wc26-prediction-card {
+      background: linear-gradient(180deg, #2c2c2e 0%, #222224 100%);
+      border: 1px solid rgba(242,152,12,.24);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .wc26-predictions-table {
+      width: 100%;
+      min-width: 0;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: .84rem;
+    }
+    .wc26-predictions-table thead th {
+      text-align: left;
+      color: #f2980c;
+      font-weight: 800;
+      letter-spacing: .01em;
+      background: rgba(255,255,255,.03);
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      padding: 10px 8px;
+      white-space: nowrap;
+    }
+    .wc26-predictions-table tbody td {
+      color: #d5d5d7;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 10px 8px;
+      vertical-align: middle;
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+    .wc26-predictions-table tbody tr:hover { background: rgba(242,152,12,.06); }
+    .wc26-predictions-table tbody tr:last-child td { border-bottom: 0; }
+    .wc26-predictions-table th:nth-child(1),
+    .wc26-predictions-table td:nth-child(1) { width: 13%; }
+    .wc26-predictions-table th:nth-child(2),
+    .wc26-predictions-table td:nth-child(2) { width: 12%; white-space: nowrap; }
+    .wc26-predictions-table th:nth-child(3),
+    .wc26-predictions-table td:nth-child(3) { width: 11%; }
+    .wc26-predictions-table th:nth-child(4),
+    .wc26-predictions-table td:nth-child(4),
+    .wc26-predictions-table th:nth-child(5),
+    .wc26-predictions-table td:nth-child(5) { width: 24%; }
+    .wc26-predictions-table th:nth-child(6),
+    .wc26-predictions-table td:nth-child(6) { width: 16%; text-align: center; white-space: nowrap; }
+    .wc26-score-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 54px;
+      max-width: 100%;
+      border: 1px solid rgba(244,178,68,.34);
+      border-radius: 999px;
+      background: rgba(242,152,12,.1);
+      color: #f7d394;
+      font-weight: 800;
+      padding: 4px 9px;
+    }
+
+    .wc26-table-state {
+      margin: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      background: rgba(255,255,255,.03);
+      color: #bdbdbd;
+      padding: 14px;
+      text-align: center;
+      font-size: .93rem;
+      line-height: 1.35;
+    }
+    .wc26-table-state.error {
+      border-color: rgba(255,102,102,.45);
+      background: rgba(255,102,102,.08);
+      color: #ffcece;
+    }
+    .wc26-table-state strong { color: #f4b244; }
+    .is-hidden { display: none !important; }
+
+    @media (max-width: 680px) {
+      .wrap { padding: 14px 10px 58px; }
+      .wc26-predictions-section { padding: 14px; }
+      .wc26-predictions-section h1 { font-size: 1.28rem; }
+      .wc26-prediction-card { background: transparent; border: 0; overflow: visible; }
+      .wc26-predictions-table,
+      .wc26-predictions-table tbody,
+      .wc26-predictions-table tr,
+      .wc26-predictions-table td { display: block; width: 100%; }
+      .wc26-predictions-table thead { display: none; }
+      .wc26-predictions-table tbody tr {
+        margin: 0 0 10px;
+        border: 1px solid rgba(242,152,12,.22);
+        border-radius: 13px;
+        background: linear-gradient(155deg, rgba(43,44,50,.92), rgba(31,32,36,.92));
+        box-shadow: 0 8px 20px rgba(0,0,0,.22);
+        overflow: hidden;
+      }
+      .wc26-predictions-table tbody td {
+        display: grid;
+        grid-template-columns: minmax(76px, 33%) minmax(0, 1fr);
+        gap: 8px;
+        align-items: center;
+        border-bottom: 1px solid rgba(255,255,255,.07);
+        padding: 8px 10px;
+        font-size: .82rem;
+      }
+      .wc26-predictions-table tbody td::before {
+        content: attr(data-label);
+        color: #f2980c;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .03em;
+        text-transform: uppercase;
+      }
+      .wc26-predictions-table tbody td:nth-child(4),
+      .wc26-predictions-table tbody td:nth-child(5) { font-weight: 700; color: #ededee; }
+      .wc26-predictions-table tbody td:nth-child(6) { text-align: left; }
+      .wc26-predictions-table tbody td:last-child { border-bottom: 0; }
+      .wc26-score-pill { min-width: 50px; justify-self: start; }
+      .wc26-table-state { margin: 0; padding: 12px; font-size: .88rem; }
+    }
+  </style>
+</head>
+<body class="wc26-theme">
+  <header class="standard-header">
+    <a class="brand" href="/" aria-label="MC Predict home">
+      <img src="/images/mcpredcirclebg.png" alt="MCPredict logo">
+      <div class="brand-copy"><h1>MC PREDICT</h1><p>Data-driven Football predictions</p></div>
+    </a>
+    <button class="menu-btn" id="openMenu" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </header>
+  <div class="menu-overlay" id="menuOverlay" aria-hidden="true">
+    <div class="menu-top"><strong>Menu</strong><button class="close-btn" id="closeMenu" aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <nav class="menu-links" aria-label="Primary"></nav>
+  </div>
+
+  <main class="wrap">
+    <nav class="section-nav" aria-label="World Cup section">
+      <a href="/wc26/">Menu</a><a href="/wc26/scores/">Submit Predictions</a><a href="/wc26/payment/">Payment</a><a href="/wc26/rules/">Rules</a><a href="/wc26/table/">League Table</a><a href="/wc26/halloffame/">Hall Of Fame</a>
+    </nav>
+
+    <section class="wc26-predictions-section">
+      <h1>World Cup 2026 Predictions</h1>
+      <p class="wc26-predictions-intro">Select a player to view their match-by-match predictions.</p>
+
+      <div class="wc26-picker-card">
+        <label class="wc26-picker-label" for="playerSelect">Player</label>
+        <div class="wc26-select-wrap">
+          <select class="wc26-player-select" id="playerSelect" disabled>
+            <option>Loading players…</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="wc26-prediction-card">
+        <div id="predictionsLoading" class="wc26-table-state">Loading predictions…</div>
+        <div id="predictionsEmpty" class="wc26-table-state is-hidden">No players were found. Please check again later.</div>
+        <div id="fixturesEmpty" class="wc26-table-state is-hidden">No fixture data is available for the selected player yet.</div>
+        <div id="predictionsError" class="wc26-table-state error is-hidden">Unable to load predictions right now. Please refresh the page or check again later.</div>
+
+        <table class="wc26-predictions-table is-hidden" id="predictionsTable">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Time</th>
+              <th scope="col">Group</th>
+              <th scope="col">Team 1</th>
+              <th scope="col">Team 2</th>
+              <th scope="col">Score</th>
+            </tr>
+          </thead>
+          <tbody id="predictionsBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const PREDICTIONS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnj0ijqFw0UVhYOounuFrNdreTFovKqTTbYnnVvq_12RRwYxN8atQE3PkQJJSbPaBiM9JQyCSCioiZ/pub?gid=1173183870&single=true&output=csv';
+      const LOOKUP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnj0ijqFw0UVhYOounuFrNdreTFovKqTTbYnnVvq_12RRwYxN8atQE3PkQJJSbPaBiM9JQyCSCioiZ/pub?gid=729356436&single=true&output=csv';
+      const FIRST_SUBMISSION_COLUMN_INDEX = 5;
+      const LOOKUP_START_ROW_INDEX = 15;
+
+      const playerSelectEl = document.getElementById('playerSelect');
+      const loadingEl = document.getElementById('predictionsLoading');
+      const emptyEl = document.getElementById('predictionsEmpty');
+      const fixturesEmptyEl = document.getElementById('fixturesEmpty');
+      const errorEl = document.getElementById('predictionsError');
+      const tableEl = document.getElementById('predictionsTable');
+      const bodyEl = document.getElementById('predictionsBody');
+
+      let players = [];
+      let fixtures = [];
+
+      function setState(state) {
+        loadingEl.classList.toggle('is-hidden', state !== 'loading');
+        emptyEl.classList.toggle('is-hidden', state !== 'empty');
+        fixturesEmptyEl.classList.toggle('is-hidden', state !== 'fixtures-empty');
+        errorEl.classList.toggle('is-hidden', state !== 'error');
+        tableEl.classList.toggle('is-hidden', state !== 'table');
+      }
+
+      function cleanCell(value) {
+        return String(value || '').replace(/^\uFEFF/, '').trim();
+      }
+
+      function parseCsv(text) {
+        const rows = [];
+        let row = [];
+        let field = '';
+        let i = 0;
+        let inQuotes = false;
+
+        while (i < text.length) {
+          const char = text[i];
+          if (inQuotes) {
+            if (char === '"') {
+              if (text[i + 1] === '"') {
+                field += '"';
+                i += 2;
+                continue;
+              }
+              inQuotes = false;
+              i += 1;
+              continue;
+            }
+            field += char;
+            i += 1;
+            continue;
+          }
+
+          if (char === '"') { inQuotes = true; i += 1; continue; }
+          if (char === ',') { row.push(cleanCell(field)); field = ''; i += 1; continue; }
+          if (char === '\n') { row.push(cleanCell(field)); rows.push(row); row = []; field = ''; i += 1; continue; }
+          if (char === '\r') {
+            if (text[i + 1] === '\n') { i += 1; }
+            row.push(cleanCell(field)); rows.push(row); row = []; field = ''; i += 1; continue;
+          }
+          field += char;
+          i += 1;
+        }
+
+        if (field.length > 0 || row.length > 0) { row.push(cleanCell(field)); rows.push(row); }
+        return rows;
+      }
+
+      function buildLookup(rows) {
+        const lookup = new Map();
+        const participantCount = Number.parseInt(cleanCell(rows[0] && rows[0][1]), 10);
+        const scanLimit = Number.isFinite(participantCount) && participantCount > 0
+          ? Math.max(rows.length, LOOKUP_START_ROW_INDEX + participantCount)
+          : rows.length;
+
+        for (let index = LOOKUP_START_ROW_INDEX; index < scanLimit; index += 1) {
+          const row = rows[index] || [];
+          const submissionId = cleanCell(row[2]);
+          if (!submissionId) continue;
+          lookup.set(submissionId, cleanCell(row[5]));
+        }
+
+        return lookup;
+      }
+
+      function buildFixtures(rows) {
+        return rows.slice(1)
+          .filter(function (row) {
+            return row.slice(0, 5).some(function (cell) { return cleanCell(cell) !== ''; });
+          })
+          .map(function (row) {
+            return {
+              date: cleanCell(row[0]),
+              time: cleanCell(row[1]),
+              group: cleanCell(row[2]),
+              team1: cleanCell(row[3]),
+              team2: cleanCell(row[4]),
+              scores: row
+            };
+          });
+      }
+
+      function buildPlayers(predictionRows, lookup) {
+        const headerRow = predictionRows[0] || [];
+        const nameCounts = new Map();
+        const playerList = [];
+
+        for (let columnIndex = FIRST_SUBMISSION_COLUMN_INDEX; columnIndex < headerRow.length; columnIndex += 1) {
+          const submissionId = cleanCell(headerRow[columnIndex]);
+          if (!submissionId) continue;
+          const lookupName = cleanCell(lookup.get(submissionId));
+          const name = lookupName || 'Unknown Player';
+          nameCounts.set(name, (nameCounts.get(name) || 0) + 1);
+          playerList.push({ columnIndex, submissionId, name });
+        }
+
+        return playerList
+          .map(function (player) {
+            const needsSubmissionId = player.name === 'Unknown Player' || nameCounts.get(player.name) > 1;
+            return Object.assign({}, player, {
+              label: needsSubmissionId ? player.name + ' (' + player.submissionId + ')' : player.name
+            });
+          })
+          .sort(function (a, b) {
+            return a.label.localeCompare(b.label, undefined, { sensitivity: 'base', numeric: true });
+          });
+      }
+
+      function renderPlayerOptions() {
+        playerSelectEl.innerHTML = '';
+        players.forEach(function (player) {
+          const option = document.createElement('option');
+          option.value = player.submissionId;
+          option.textContent = player.label;
+          playerSelectEl.appendChild(option);
+        });
+        playerSelectEl.disabled = players.length === 0;
+      }
+
+      function renderPredictions(submissionId) {
+        const selectedPlayer = players.find(function (player) { return player.submissionId === submissionId; });
+        bodyEl.innerHTML = '';
+
+        if (!selectedPlayer || fixtures.length === 0) {
+          setState('fixtures-empty');
+          return;
+        }
+
+        fixtures.forEach(function (fixture) {
+          const score = cleanCell(fixture.scores[selectedPlayer.columnIndex]) || 'No prediction';
+          const tr = document.createElement('tr');
+          [
+            ['Date', fixture.date],
+            ['Time', fixture.time],
+            ['Group', fixture.group],
+            ['Team 1', fixture.team1],
+            ['Team 2', fixture.team2],
+            ['Score', score]
+          ].forEach(function (entry) {
+            const td = document.createElement('td');
+            td.setAttribute('data-label', entry[0]);
+            if (entry[0] === 'Score') {
+              const scorePill = document.createElement('span');
+              scorePill.className = 'wc26-score-pill';
+              scorePill.textContent = entry[1];
+              td.appendChild(scorePill);
+            } else {
+              td.textContent = entry[1];
+            }
+            tr.appendChild(td);
+          });
+          bodyEl.appendChild(tr);
+        });
+
+        setState('table');
+      }
+
+      async function fetchCsvRows(url) {
+        const response = await fetch(url + '&t=' + Date.now(), { cache: 'no-store' });
+        if (!response.ok) throw new Error('Unable to load CSV');
+        return parseCsv(await response.text());
+      }
+
+      async function loadPredictions() {
+        setState('loading');
+        try {
+          const results = await Promise.all([
+            fetchCsvRows(PREDICTIONS_CSV_URL),
+            fetchCsvRows(LOOKUP_CSV_URL)
+          ]);
+          const predictionRows = results[0];
+          const lookupRows = results[1];
+          const lookup = buildLookup(lookupRows);
+
+          fixtures = buildFixtures(predictionRows);
+          players = buildPlayers(predictionRows, lookup);
+
+          if (!players.length) {
+            playerSelectEl.innerHTML = '<option>No players found</option>';
+            playerSelectEl.disabled = true;
+            setState('empty');
+            return;
+          }
+
+          renderPlayerOptions();
+          playerSelectEl.value = players[0].submissionId;
+          renderPredictions(players[0].submissionId);
+        } catch (error) {
+          playerSelectEl.innerHTML = '<option>Unable to load players</option>';
+          playerSelectEl.disabled = true;
+          setState('error');
+        }
+      }
+
+      playerSelectEl.addEventListener('change', function () {
+        renderPredictions(playerSelectEl.value);
+      });
+
+      loadPredictions();
+    })();
+  </script>
+
+  <script src="/menu-config.js"></script>
+  <script src="/site.js"></script>
+</body>
+</html>
