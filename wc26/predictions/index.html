@@ -257,6 +257,7 @@
       const LOOKUP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnj0ijqFw0UVhYOounuFrNdreTFovKqTTbYnnVvq_12RRwYxN8atQE3PkQJJSbPaBiM9JQyCSCioiZ/pub?gid=729356436&single=true&output=csv';
       const FIRST_SUBMISSION_COLUMN_INDEX = 5;
       const LOOKUP_START_ROW_INDEX = 15;
+      const LAST_FIXTURE_ROW_EXCLUSIVE_INDEX = 73;
 
       const playerSelectEl = document.getElementById('playerSelect');
       const loadingEl = document.getElementById('predictionsLoading');
@@ -363,7 +364,7 @@
       }
 
       function buildFixtures(rows) {
-        return rows.slice(1)
+        return rows.slice(1, LAST_FIXTURE_ROW_EXCLUSIVE_INDEX)
           .filter(function (row) {
             return row.slice(0, 5).some(function (cell) { return cleanCell(cell) !== ''; });
           })
