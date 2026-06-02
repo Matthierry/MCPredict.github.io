@@ -281,6 +281,24 @@
         return String(value || '').replace(/^\uFEFF/, '').trim();
       }
 
+      function isSpreadsheetError(value) {
+        const cleaned = cleanCell(value).toUpperCase();
+        return [
+          '#REF!',
+          '#N/A',
+          '#VALUE!',
+          '#ERROR!',
+          '#DIV/0!',
+          '#NAME?',
+          '#NUM!'
+        ].includes(cleaned);
+      }
+
+      function isValidSheetValue(value) {
+        const cleaned = cleanCell(value);
+        return cleaned !== '' && !isSpreadsheetError(cleaned);
+      }
+
       function parseCsv(text) {
         const rows = [];
         let row = [];
@@ -323,6 +341,7 @@
 
       function buildLookup(rows) {
         const lookup = new Map();
+        const invalidNameSubmissionIds = new Set();
         const participantCount = Number.parseInt(cleanCell(rows[0] && rows[0][1]), 10);
         const scanLimit = Number.isFinite(participantCount) && participantCount > 0
           ? Math.max(rows.length, LOOKUP_START_ROW_INDEX + participantCount)
@@ -331,11 +350,16 @@
         for (let index = LOOKUP_START_ROW_INDEX; index < scanLimit; index += 1) {
           const row = rows[index] || [];
           const submissionId = cleanCell(row[2]);
-          if (!submissionId) continue;
-          lookup.set(submissionId, cleanCell(row[5]));
+          const playerName = cleanCell(row[5]);
+          if (!isValidSheetValue(submissionId)) continue;
+          if (isSpreadsheetError(playerName)) {
+            invalidNameSubmissionIds.add(submissionId);
+            continue;
+          }
+          lookup.set(submissionId, playerName);
         }
 
-        return lookup;
+        return { lookup, invalidNameSubmissionIds };
       }
 
       function buildFixtures(rows) {
@@ -355,14 +379,17 @@
           });
       }
 
-      function buildPlayers(predictionRows, lookup) {
+      function buildPlayers(predictionRows, lookupData) {
+        const lookup = lookupData.lookup;
+        const invalidNameSubmissionIds = lookupData.invalidNameSubmissionIds;
         const headerRow = predictionRows[0] || [];
         const nameCounts = new Map();
         const playerList = [];
 
         for (let columnIndex = FIRST_SUBMISSION_COLUMN_INDEX; columnIndex < headerRow.length; columnIndex += 1) {
           const submissionId = cleanCell(headerRow[columnIndex]);
-          if (!submissionId) continue;
+          if (!isValidSheetValue(submissionId)) continue;
+          if (invalidNameSubmissionIds.has(submissionId)) continue;
           const lookupName = cleanCell(lookup.get(submissionId));
           const name = lookupName || 'Unknown Player';
           nameCounts.set(name, (nameCounts.get(name) || 0) + 1);
@@ -445,10 +472,10 @@
           ]);
           const predictionRows = results[0];
           const lookupRows = results[1];
-          const lookup = buildLookup(lookupRows);
+          const lookupData = buildLookup(lookupRows);
 
           fixtures = buildFixtures(predictionRows);
-          players = buildPlayers(predictionRows, lookup);
+          players = buildPlayers(predictionRows, lookupData);
 
           if (!players.length) {
             playerSelectEl.innerHTML = '<option>No players found</option>';
