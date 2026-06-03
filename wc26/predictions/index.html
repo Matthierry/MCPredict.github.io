@@ -133,6 +133,9 @@
       font-weight: 800;
       padding: 4px 9px;
     }
+    .wc26-predictions-card-list {
+      display: none;
+    }
 
     .wc26-table-state {
       margin: 12px;
@@ -153,46 +156,89 @@
     .wc26-table-state strong { color: #f4b244; }
     .is-hidden { display: none !important; }
 
-    @media (max-width: 680px) {
+    @media (max-width: 700px) {
       .wrap { padding: 14px 10px 58px; }
       .wc26-predictions-section { padding: 14px; }
       .wc26-predictions-section h1 { font-size: 1.28rem; }
       .wc26-prediction-card { background: transparent; border: 0; overflow: visible; }
-      .wc26-predictions-table,
-      .wc26-predictions-table tbody,
-      .wc26-predictions-table tr,
-      .wc26-predictions-table td { display: block; width: 100%; }
-      .wc26-predictions-table thead { display: none; }
-      .wc26-predictions-table tbody tr {
-        margin: 0 0 10px;
-        border: 1px solid rgba(242,152,12,.22);
-        border-radius: 13px;
-        background: linear-gradient(155deg, rgba(43,44,50,.92), rgba(31,32,36,.92));
-        box-shadow: 0 8px 20px rgba(0,0,0,.22);
-        overflow: hidden;
-      }
-      .wc26-predictions-table tbody td {
+      .wc26-predictions-table-wrapper { display: none; }
+      .wc26-predictions-card-list {
         display: grid;
-        grid-template-columns: minmax(76px, 33%) minmax(0, 1fr);
-        gap: 8px;
-        align-items: center;
-        border-bottom: 1px solid rgba(255,255,255,.07);
-        padding: 8px 10px;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .wc26-mobile-prediction-card {
+        border: 1px solid rgba(240,147,0,.28);
+        border-radius: 16px;
+        background: rgba(34,34,36,.92);
+        padding: 14px;
+        box-shadow: 0 10px 24px rgba(0,0,0,.22);
+      }
+      .wc26-prediction-card-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: #bdbdbd;
         font-size: .82rem;
+        line-height: 1.25;
+        margin-bottom: 10px;
       }
-      .wc26-predictions-table tbody td::before {
-        content: attr(data-label);
-        color: #f2980c;
-        font-size: .72rem;
+      .wc26-prediction-date,
+      .wc26-prediction-time {
+        min-width: 0;
+        overflow-wrap: normal;
+        word-break: normal;
+        hyphens: none;
+      }
+      .wc26-prediction-time { flex: 0 0 auto; }
+      .wc26-prediction-group {
+        display: inline-flex;
+        width: fit-content;
+        border: 1px solid rgba(240,147,0,.35);
+        border-radius: 999px;
+        color: #f09300;
+        font-size: .75rem;
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 12px;
+        padding: 4px 9px;
+      }
+      .wc26-prediction-fixture {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .wc26-prediction-team {
+        min-width: 0;
+        color: #fff;
+        font-weight: 700;
+        line-height: 1.2;
+        overflow-wrap: normal;
+        word-break: normal;
+        hyphens: none;
+      }
+      .wc26-prediction-team:first-child { text-align: right; }
+      .wc26-prediction-team:last-child { text-align: left; }
+      .wc26-prediction-vs {
+        color: #f09300;
         font-weight: 800;
-        letter-spacing: .03em;
-        text-transform: uppercase;
       }
-      .wc26-predictions-table tbody td:nth-child(4),
-      .wc26-predictions-table tbody td:nth-child(5) { font-weight: 700; color: #ededee; }
-      .wc26-predictions-table tbody td:nth-child(6) { text-align: left; }
-      .wc26-predictions-table tbody td:last-child { border-bottom: 0; }
-      .wc26-score-pill { min-width: 50px; justify-self: start; }
+      .wc26-prediction-score {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-top: 1px solid rgba(255,255,255,.08);
+        color: #bdbdbd;
+        font-size: .8rem;
+        padding-top: 10px;
+      }
+      .wc26-prediction-score strong {
+        color: #f09300;
+        font-size: 1rem;
+      }
       .wc26-table-state { margin: 0; padding: 12px; font-size: .88rem; }
     }
   </style>
@@ -234,19 +280,22 @@
         <div id="fixturesEmpty" class="wc26-table-state is-hidden">No fixture data is available for the selected player yet.</div>
         <div id="predictionsError" class="wc26-table-state error is-hidden">Unable to load predictions right now. Please refresh the page or check again later.</div>
 
-        <table class="wc26-predictions-table is-hidden" id="predictionsTable">
-          <thead>
-            <tr>
-              <th scope="col">Date</th>
-              <th scope="col">Time</th>
-              <th scope="col">Group</th>
-              <th scope="col">Team 1</th>
-              <th scope="col">Team 2</th>
-              <th scope="col">Score</th>
-            </tr>
-          </thead>
-          <tbody id="predictionsBody"></tbody>
-        </table>
+        <div class="wc26-predictions-table-wrapper is-hidden" id="predictionsTableWrapper">
+          <table class="wc26-predictions-table" id="predictionsTable">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Time</th>
+                <th scope="col">Group</th>
+                <th scope="col">Team 1</th>
+                <th scope="col">Team 2</th>
+                <th scope="col">Score</th>
+              </tr>
+            </thead>
+            <tbody id="predictionsBody"></tbody>
+          </table>
+        </div>
+        <div class="wc26-predictions-card-list is-hidden" id="predictionsCardList" aria-label="Prediction fixtures"></div>
       </div>
     </section>
   </main>
@@ -264,8 +313,9 @@
       const emptyEl = document.getElementById('predictionsEmpty');
       const fixturesEmptyEl = document.getElementById('fixturesEmpty');
       const errorEl = document.getElementById('predictionsError');
-      const tableEl = document.getElementById('predictionsTable');
+      const tableWrapperEl = document.getElementById('predictionsTableWrapper');
       const bodyEl = document.getElementById('predictionsBody');
+      const cardListEl = document.getElementById('predictionsCardList');
 
       let players = [];
       let fixtures = [];
@@ -275,7 +325,8 @@
         emptyEl.classList.toggle('is-hidden', state !== 'empty');
         fixturesEmptyEl.classList.toggle('is-hidden', state !== 'fixtures-empty');
         errorEl.classList.toggle('is-hidden', state !== 'error');
-        tableEl.classList.toggle('is-hidden', state !== 'table');
+        tableWrapperEl.classList.toggle('is-hidden', state !== 'table');
+        cardListEl.classList.toggle('is-hidden', state !== 'table');
       }
 
       function cleanCell(value) {
@@ -420,9 +471,67 @@
         playerSelectEl.disabled = players.length === 0;
       }
 
+      function createTextElement(tagName, className, text) {
+        const el = document.createElement(tagName);
+        if (className) el.className = className;
+        el.textContent = text;
+        return el;
+      }
+
+      function renderPredictionTableRow(fixture, score) {
+        const tr = document.createElement('tr');
+        [
+          ['Date', fixture.date],
+          ['Time', fixture.time],
+          ['Group', fixture.group],
+          ['Team 1', fixture.team1],
+          ['Team 2', fixture.team2],
+          ['Score', score]
+        ].forEach(function (entry) {
+          const td = document.createElement('td');
+          td.setAttribute('data-label', entry[0]);
+          if (entry[0] === 'Score') {
+            const scorePill = createTextElement('span', 'wc26-score-pill', entry[1]);
+            td.appendChild(scorePill);
+          } else {
+            td.textContent = entry[1];
+          }
+          tr.appendChild(td);
+        });
+        bodyEl.appendChild(tr);
+      }
+
+      function renderPredictionCard(fixture, score) {
+        const card = document.createElement('div');
+        card.className = 'wc26-mobile-prediction-card';
+
+        const top = document.createElement('div');
+        top.className = 'wc26-prediction-card-top';
+        top.appendChild(createTextElement('span', 'wc26-prediction-date', fixture.date));
+        top.appendChild(createTextElement('span', 'wc26-prediction-time', fixture.time));
+
+        const fixtureRow = document.createElement('div');
+        fixtureRow.className = 'wc26-prediction-fixture';
+        fixtureRow.appendChild(createTextElement('span', 'wc26-prediction-team', fixture.team1));
+        fixtureRow.appendChild(createTextElement('span', 'wc26-prediction-vs', 'v'));
+        fixtureRow.appendChild(createTextElement('span', 'wc26-prediction-team', fixture.team2));
+
+        const scoreRow = document.createElement('div');
+        scoreRow.className = 'wc26-prediction-score';
+        scoreRow.appendChild(createTextElement('span', '', 'Prediction'));
+        scoreRow.appendChild(createTextElement('strong', '', score));
+
+        card.appendChild(top);
+        card.appendChild(createTextElement('div', 'wc26-prediction-group', fixture.group));
+        card.appendChild(fixtureRow);
+        card.appendChild(scoreRow);
+        cardListEl.appendChild(card);
+      }
+
       function renderPredictions(submissionId) {
         const selectedPlayer = players.find(function (player) { return player.submissionId === submissionId; });
         bodyEl.innerHTML = '';
+        cardListEl.innerHTML = '';
 
         if (!selectedPlayer || fixtures.length === 0) {
           setState('fixtures-empty');
@@ -431,28 +540,8 @@
 
         fixtures.forEach(function (fixture) {
           const score = cleanCell(fixture.scores[selectedPlayer.columnIndex]) || 'No prediction';
-          const tr = document.createElement('tr');
-          [
-            ['Date', fixture.date],
-            ['Time', fixture.time],
-            ['Group', fixture.group],
-            ['Team 1', fixture.team1],
-            ['Team 2', fixture.team2],
-            ['Score', score]
-          ].forEach(function (entry) {
-            const td = document.createElement('td');
-            td.setAttribute('data-label', entry[0]);
-            if (entry[0] === 'Score') {
-              const scorePill = document.createElement('span');
-              scorePill.className = 'wc26-score-pill';
-              scorePill.textContent = entry[1];
-              td.appendChild(scorePill);
-            } else {
-              td.textContent = entry[1];
-            }
-            tr.appendChild(td);
-          });
-          bodyEl.appendChild(tr);
+          renderPredictionTableRow(fixture, score);
+          renderPredictionCard(fixture, score);
         });
 
         setState('table');
