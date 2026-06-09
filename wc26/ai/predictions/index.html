@@ -4,9 +4,279 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MC Predict | AI Predictions</title>
-  <meta name="description" content="Placeholder page for the full World Cup 2026 AI prediction set." />
+  <meta name="description" content="Explore every World Cup 2026 AI score prediction by fixture or by AI competitor." />
   <link rel="stylesheet" href="/style.css" />
   <link rel="stylesheet" href="/wc26/ai/ai.css" />
+  <style>
+    .wc26-ai-page .predictions-panel {
+      display: grid;
+      gap: 16px;
+    }
+
+    .wc26-ai-page .predictions-card {
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .wc26-ai-page .predictions-card::before {
+      content: "";
+      display: block;
+      height: 3px;
+      margin: -18px -18px 16px;
+      background: linear-gradient(90deg, #f7931a, rgba(244,178,68,.25));
+    }
+
+    .wc26-ai-page .prediction-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+      padding: 6px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px;
+      background: rgba(255,255,255,.035);
+    }
+
+    .wc26-ai-page .prediction-tab {
+      min-height: 48px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: transparent;
+      color: #d7d9de;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
+    }
+
+    .wc26-ai-page .prediction-tab[aria-selected="true"] {
+      color: #111;
+      background: linear-gradient(135deg, #f7931a, var(--wc26-gold, #f4b244));
+      border-color: rgba(247,147,26,.75);
+      box-shadow: 0 0 16px rgba(244,178,68,.18);
+    }
+
+    .wc26-ai-page .prediction-tab:focus-visible,
+    .wc26-ai-page .prediction-select:focus-visible {
+      outline: 3px solid rgba(244,178,68,.45);
+      outline-offset: 2px;
+    }
+
+    .wc26-ai-page .prediction-controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .wc26-ai-page .prediction-field {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .wc26-ai-page .prediction-field label {
+      color: #f4b244;
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .wc26-ai-page .prediction-select {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 12px;
+      color: #f3f4f6;
+      background: #1d1f24;
+      padding: 10px 40px 10px 12px;
+      font: inherit;
+      font-size: .96rem;
+    }
+
+    .wc26-ai-page .prediction-select option {
+      color: #111;
+      background: #fff;
+    }
+
+    .wc26-ai-page .prediction-state {
+      border: 1px solid rgba(242,152,12,.22);
+      border-radius: 14px;
+      background: rgba(242,152,12,.07);
+      color: #d8dadd;
+      padding: 16px;
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    .wc26-ai-page .prediction-state.error {
+      border-color: rgba(255,102,102,.45);
+      background: rgba(255,102,102,.08);
+      color: #ffcece;
+    }
+
+    .wc26-ai-page .fixture-summary {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 16px;
+      border: 1px solid rgba(242,152,12,.26);
+      border-radius: 15px;
+      background: linear-gradient(145deg, rgba(242,152,12,.12), rgba(255,255,255,.035));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.035);
+    }
+
+    .wc26-ai-page .fixture-meta,
+    .wc26-ai-page .prediction-card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: #c7c9ce;
+      font-size: .84rem;
+    }
+
+    .wc26-ai-page .fixture-pill,
+    .wc26-ai-page .prediction-pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      background: rgba(255,255,255,.045);
+      padding: 5px 9px;
+    }
+
+    .wc26-ai-page .fixture-title {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(1.28rem, 5vw, 1.85rem);
+      line-height: 1.15;
+    }
+
+    .wc26-ai-page .prediction-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .wc26-ai-page .ai-prediction-card,
+    .wc26-ai-page .fixture-prediction-card {
+      display: grid;
+      gap: 9px;
+      min-width: 0;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 14px;
+      background: rgba(255,255,255,.035);
+      padding: 13px;
+    }
+
+    .wc26-ai-page .ai-prediction-card {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+
+    .wc26-ai-page .ai-name,
+    .wc26-ai-page .fixture-name {
+      color: #f3f4f6;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .wc26-ai-page .score-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 62px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #f7931a, var(--wc26-gold, #f4b244));
+      color: #141008;
+      padding: 7px 11px;
+      font-weight: 900;
+      letter-spacing: .02em;
+      box-shadow: 0 7px 18px rgba(0,0,0,.25);
+    }
+
+    .wc26-ai-page .ai-predictions-heading {
+      margin: 0 0 12px;
+      color: #fff;
+      font-size: 1.25rem;
+    }
+
+    .wc26-ai-page .fixture-prediction-card .score-badge {
+      width: fit-content;
+      min-width: 0;
+    }
+
+    .wc26-ai-page .prediction-table-wrap {
+      display: none;
+      border: 1px solid rgba(242,152,12,.22);
+      border-radius: 14px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #2c2c2e 0%, #222224 100%);
+    }
+
+    .wc26-ai-page .prediction-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: .9rem;
+    }
+
+    .wc26-ai-page .prediction-table th {
+      color: #f2980c;
+      background: rgba(255,255,255,.03);
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      padding: 10px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .wc26-ai-page .prediction-table td {
+      color: #d5d5d7;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 10px;
+      vertical-align: middle;
+      overflow-wrap: anywhere;
+    }
+
+    .wc26-ai-page .prediction-table tr:last-child td { border-bottom: 0; }
+    .wc26-ai-page .prediction-table tbody tr:hover { background: rgba(242,152,12,.06); }
+    .wc26-ai-page .prediction-table .score-cell { width: 130px; text-align: center; }
+    .wc26-ai-page .prediction-table .compact-cell { width: 118px; }
+
+    .wc26-ai-page .is-hidden { display: none !important; }
+
+    @media (min-width: 680px) {
+      .wc26-ai-page .prediction-controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .wc26-ai-page .prediction-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 820px) {
+      .wc26-ai-page .fixture-ai-cards,
+      .wc26-ai-page .ai-fixture-cards {
+        display: none;
+      }
+
+      .wc26-ai-page .prediction-table-wrap {
+        display: block;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .wc26-ai-page .predictions-card { padding: 14px; }
+      .wc26-ai-page .predictions-card::before { margin: -14px -14px 14px; }
+      .wc26-ai-page .prediction-tabs { gap: 7px; }
+      .wc26-ai-page .prediction-tab { min-height: 50px; font-size: .94rem; }
+      .wc26-ai-page .fixture-summary { padding: 13px; }
+      .wc26-ai-page .ai-prediction-card { grid-template-columns: 1fr; }
+      .wc26-ai-page .score-badge { width: fit-content; }
+    }
+  </style>
 </head>
 <body class="wc26-theme wc26-ai-body">
   <header class="standard-header">
@@ -31,15 +301,83 @@
     </nav>
 
     <section class="hero">
-      <p class="eyebrow">Coming soon</p>
+      <p class="eyebrow">Prediction explorer</p>
       <h1>AI Predictions</h1>
-      <p class="subtitle">The full AI prediction set will be available here soon.</p>
+      <p class="subtitle">Explore every AI prediction for the World Cup 2026 group stage. View predictions by fixture to compare all AI entrants side by side, or view by AI to see one competitor’s full set of score predictions.</p>
     </section>
 
-    <section class="card" aria-labelledby="predictions-placeholder-heading">
-      <div class="coming-soon-card">
-        <h2 id="predictions-placeholder-heading">Prediction set in preparation</h2>
-        <p>The AI entries have been submitted. This page is ready for the full fixture-by-fixture prediction view when that feature is added.</p>
+    <section class="card predictions-card" aria-labelledby="predictions-heading">
+      <div class="section-heading">
+        <h2 id="predictions-heading">Prediction views</h2>
+        <p>Switch between fixture-by-fixture comparisons and a full prediction list for a selected AI entrant.</p>
+      </div>
+
+      <div class="prediction-tabs" role="tablist" aria-label="AI prediction views">
+        <button class="prediction-tab" type="button" id="tab-by-fixture" role="tab" aria-selected="true" aria-controls="panel-by-fixture" data-tab="fixture">By Fixture</button>
+        <button class="prediction-tab" type="button" id="tab-by-ai" role="tab" aria-selected="false" aria-controls="panel-by-ai" data-tab="ai">By AI</button>
+      </div>
+
+      <div id="predictionsLoading" class="prediction-state">Loading AI predictions…</div>
+      <div id="predictionsError" class="prediction-state error is-hidden">AI predictions are currently unavailable. Please try again later.</div>
+
+      <div id="predictionsContent" class="predictions-panel is-hidden">
+        <div id="panel-by-fixture" role="tabpanel" aria-labelledby="tab-by-fixture">
+          <div class="prediction-controls" aria-label="Fixture prediction controls">
+            <div class="prediction-field">
+              <label for="fixtureGroupSelect">Group filter</label>
+              <select class="prediction-select" id="fixtureGroupSelect"></select>
+            </div>
+            <div class="prediction-field">
+              <label for="fixtureSelect">Fixture</label>
+              <select class="prediction-select" id="fixtureSelect"></select>
+            </div>
+          </div>
+
+          <article class="fixture-summary" id="fixtureSummary" aria-live="polite"></article>
+
+          <div class="prediction-grid fixture-ai-cards" id="fixturePredictionCards"></div>
+          <div class="prediction-table-wrap" aria-hidden="false">
+            <table class="prediction-table">
+              <thead>
+                <tr>
+                  <th scope="col">AI</th>
+                  <th scope="col" class="score-cell">Prediction</th>
+                </tr>
+              </thead>
+              <tbody id="fixturePredictionRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="panel-by-ai" class="is-hidden" role="tabpanel" aria-labelledby="tab-by-ai" hidden>
+          <div class="prediction-controls" aria-label="AI prediction controls">
+            <div class="prediction-field">
+              <label for="aiSelect">AI competitor</label>
+              <select class="prediction-select" id="aiSelect"></select>
+            </div>
+            <div class="prediction-field">
+              <label for="aiGroupSelect">Group filter</label>
+              <select class="prediction-select" id="aiGroupSelect"></select>
+            </div>
+          </div>
+
+          <h2 class="ai-predictions-heading" id="aiPredictionsHeading">ChatGPT 5.5 Predictions</h2>
+          <div class="prediction-grid ai-fixture-cards" id="aiPredictionCards"></div>
+          <div class="prediction-table-wrap" aria-hidden="false">
+            <table class="prediction-table">
+              <thead>
+                <tr>
+                  <th scope="col" class="compact-cell">Date</th>
+                  <th scope="col" class="compact-cell">Time</th>
+                  <th scope="col" class="compact-cell">Group</th>
+                  <th scope="col">Fixture</th>
+                  <th scope="col" class="score-cell">Prediction</th>
+                </tr>
+              </thead>
+              <tbody id="aiPredictionRows"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -50,6 +388,328 @@
     <a class="mobile-bottom-nav__item" data-nav-path="/historical" href="/historical"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/></svg><span class="mobile-bottom-nav__label">Data</span></a>
     <a class="mobile-bottom-nav__item" data-nav-path="/faqs" href="/faqs"><svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24"><path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/><circle cx="12" cy="17" r=".8"/></svg><span class="mobile-bottom-nav__label">FAQs</span></a>
   </nav>
+
+  <script>
+    (function () {
+      const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnj0ijqFw0UVhYOounuFrNdreTFovKqTTbYnnVvq_12RRwYxN8atQE3PkQJJSbPaBiM9JQyCSCioiZ/pub?gid=1067085832&single=true&output=csv';
+      const AI_COLUMNS = [
+        { name: 'ChatGPT 5.5', index: 5 },
+        { name: 'ChatGPT 5.4', index: 6 },
+        { name: 'Claude Sonnet 4.6', index: 7 },
+        { name: 'Claude Haiku 4.5', index: 8 },
+        { name: 'Perplexity', index: 9 },
+        { name: 'Grok', index: 10 },
+        { name: 'Gemini 3.5 Flash', index: 11 },
+        { name: 'Microsoft Copilot', index: 12 }
+      ];
+      const spreadsheetErrorPattern = /#(?:REF!|N\/A|VALUE!|DIV\/0!|NAME\?|NUM!|NULL!|ERROR!|CALC!|SPILL!|FIELD!|GETTING_DATA|BLOCKED!|UNKNOWN!)/i;
+
+      const loadingEl = document.getElementById('predictionsLoading');
+      const errorEl = document.getElementById('predictionsError');
+      const contentEl = document.getElementById('predictionsContent');
+      const tabs = Array.from(document.querySelectorAll('.prediction-tab'));
+      const fixturePanel = document.getElementById('panel-by-fixture');
+      const aiPanel = document.getElementById('panel-by-ai');
+      const fixtureGroupSelect = document.getElementById('fixtureGroupSelect');
+      const fixtureSelect = document.getElementById('fixtureSelect');
+      const aiSelect = document.getElementById('aiSelect');
+      const aiGroupSelect = document.getElementById('aiGroupSelect');
+      const fixtureSummary = document.getElementById('fixtureSummary');
+      const fixturePredictionCards = document.getElementById('fixturePredictionCards');
+      const fixturePredictionRows = document.getElementById('fixturePredictionRows');
+      const aiPredictionsHeading = document.getElementById('aiPredictionsHeading');
+      const aiPredictionCards = document.getElementById('aiPredictionCards');
+      const aiPredictionRows = document.getElementById('aiPredictionRows');
+
+      let fixtures = [];
+      let groups = [];
+
+      function parseCsv(text) {
+        const rows = [];
+        let row = [];
+        let field = '';
+        let i = 0;
+        let inQuotes = false;
+
+        while (i < text.length) {
+          const char = text[i];
+          if (inQuotes) {
+            if (char === '"') {
+              if (text[i + 1] === '"') {
+                field += '"';
+                i += 2;
+                continue;
+              }
+              inQuotes = false;
+              i += 1;
+              continue;
+            }
+            field += char;
+            i += 1;
+            continue;
+          }
+
+          if (char === '"') { inQuotes = true; i += 1; continue; }
+          if (char === ',') { row.push(field); field = ''; i += 1; continue; }
+          if (char === '\n') { row.push(field); rows.push(row); row = []; field = ''; i += 1; continue; }
+          if (char === '\r') {
+            if (text[i + 1] === '\n') { i += 1; }
+            row.push(field); rows.push(row); row = []; field = ''; i += 1; continue;
+          }
+          field += char;
+          i += 1;
+        }
+
+        if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+        return rows;
+      }
+
+      function cleanCell(value) {
+        return typeof value === 'string' ? value.trim() : '';
+      }
+
+      function hasSpreadsheetError(row) {
+        return row.some(function (cell) { return spreadsheetErrorPattern.test(cleanCell(cell)); });
+      }
+
+      function hasVisibleContent(row) {
+        return row.some(function (cell) { return cleanCell(cell) !== ''; });
+      }
+
+      function isCompleteFixture(row) {
+        return [0, 1, 2, 3, 4].every(function (index) { return cleanCell(row[index]) !== ''; });
+      }
+
+      function fixtureLabel(fixture) {
+        return fixture.home + ' v ' + fixture.away;
+      }
+
+      function predictionFor(fixture, aiName) {
+        const found = fixture.predictions.find(function (prediction) { return prediction.name === aiName; });
+        return found ? found.score : '';
+      }
+
+      function createOption(value, label) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        return option;
+      }
+
+      function fillGroupSelect(selectEl) {
+        selectEl.innerHTML = '';
+        selectEl.appendChild(createOption('all', 'All Groups'));
+        groups.forEach(function (group) { selectEl.appendChild(createOption(group, group)); });
+      }
+
+      function fillAiSelect() {
+        aiSelect.innerHTML = '';
+        AI_COLUMNS.forEach(function (ai) { aiSelect.appendChild(createOption(ai.name, ai.name)); });
+      }
+
+      function filteredFixtures(groupValue) {
+        if (!groupValue || groupValue === 'all') return fixtures;
+        return fixtures.filter(function (fixture) { return fixture.group === groupValue; });
+      }
+
+      function fillFixtureSelect() {
+        const selectedGroup = fixtureGroupSelect.value;
+        const matchingFixtures = filteredFixtures(selectedGroup);
+        fixtureSelect.innerHTML = '';
+        matchingFixtures.forEach(function (fixture) {
+          fixtureSelect.appendChild(createOption(String(fixture.id), fixtureLabel(fixture)));
+        });
+        if (matchingFixtures.length) fixtureSelect.value = String(matchingFixtures[0].id);
+      }
+
+      function setDataState(state) {
+        loadingEl.classList.toggle('is-hidden', state !== 'loading');
+        errorEl.classList.toggle('is-hidden', state !== 'error');
+        contentEl.classList.toggle('is-hidden', state !== 'ready');
+      }
+
+      function renderFixtureView() {
+        const selectedId = Number(fixtureSelect.value);
+        const fixture = fixtures.find(function (item) { return item.id === selectedId; }) || filteredFixtures(fixtureGroupSelect.value)[0];
+        if (!fixture) {
+          fixtureSummary.innerHTML = '<p class="subtitle">No fixtures available for this group.</p>';
+          fixturePredictionCards.innerHTML = '';
+          fixturePredictionRows.innerHTML = '';
+          return;
+        }
+
+        fixtureSummary.innerHTML = '';
+        const meta = document.createElement('div');
+        meta.className = 'fixture-meta';
+        [fixture.date, fixture.time, fixture.group].forEach(function (text) {
+          const pill = document.createElement('span');
+          pill.className = 'fixture-pill';
+          pill.textContent = text;
+          meta.appendChild(pill);
+        });
+        const title = document.createElement('h2');
+        title.className = 'fixture-title';
+        title.textContent = fixtureLabel(fixture);
+        fixtureSummary.appendChild(meta);
+        fixtureSummary.appendChild(title);
+
+        fixturePredictionCards.innerHTML = '';
+        fixturePredictionRows.innerHTML = '';
+        fixture.predictions.forEach(function (prediction) {
+          const score = prediction.score || '—';
+          const card = document.createElement('article');
+          card.className = 'ai-prediction-card';
+          const name = document.createElement('span');
+          name.className = 'ai-name';
+          name.textContent = prediction.name;
+          const scoreBadge = document.createElement('span');
+          scoreBadge.className = 'score-badge';
+          scoreBadge.textContent = score;
+          card.appendChild(name);
+          card.appendChild(scoreBadge);
+          fixturePredictionCards.appendChild(card);
+
+          const row = document.createElement('tr');
+          const nameCell = document.createElement('td');
+          const scoreCell = document.createElement('td');
+          scoreCell.className = 'score-cell';
+          nameCell.textContent = prediction.name;
+          scoreCell.textContent = score;
+          row.appendChild(nameCell);
+          row.appendChild(scoreCell);
+          fixturePredictionRows.appendChild(row);
+        });
+      }
+
+      function renderAiView() {
+        const aiName = aiSelect.value || AI_COLUMNS[0].name;
+        const matchingFixtures = filteredFixtures(aiGroupSelect.value);
+        aiPredictionsHeading.textContent = aiName + ' Predictions';
+        aiPredictionCards.innerHTML = '';
+        aiPredictionRows.innerHTML = '';
+
+        matchingFixtures.forEach(function (fixture) {
+          const score = predictionFor(fixture, aiName) || '—';
+          const card = document.createElement('article');
+          card.className = 'fixture-prediction-card';
+
+          const meta = document.createElement('div');
+          meta.className = 'prediction-card-meta';
+          [fixture.date + ' ' + fixture.time, fixture.group].forEach(function (text) {
+            const pill = document.createElement('span');
+            pill.className = 'prediction-pill';
+            pill.textContent = text;
+            meta.appendChild(pill);
+          });
+          const fixtureName = document.createElement('div');
+          fixtureName.className = 'fixture-name';
+          fixtureName.textContent = fixtureLabel(fixture);
+          const prediction = document.createElement('span');
+          prediction.className = 'score-badge';
+          prediction.textContent = 'Prediction: ' + score;
+          card.appendChild(meta);
+          card.appendChild(fixtureName);
+          card.appendChild(prediction);
+          aiPredictionCards.appendChild(card);
+
+          const row = document.createElement('tr');
+          [fixture.date, fixture.time, fixture.group, fixtureLabel(fixture), score].forEach(function (text, index) {
+            const cell = document.createElement('td');
+            if (index === 4) cell.className = 'score-cell';
+            cell.textContent = text;
+            row.appendChild(cell);
+          });
+          aiPredictionRows.appendChild(row);
+        });
+      }
+
+      function switchTab(tabName) {
+        const isAi = tabName === 'ai';
+        tabs.forEach(function (tab) {
+          const selected = tab.dataset.tab === tabName;
+          tab.setAttribute('aria-selected', String(selected));
+        });
+        fixturePanel.classList.toggle('is-hidden', isAi);
+        fixturePanel.hidden = isAi;
+        aiPanel.classList.toggle('is-hidden', !isAi);
+        aiPanel.hidden = !isAi;
+
+        if (isAi) {
+          aiSelect.value = AI_COLUMNS[0].name;
+          aiGroupSelect.value = 'all';
+          renderAiView();
+        } else {
+          renderFixtureView();
+        }
+      }
+
+      function initialiseControls() {
+        fillGroupSelect(fixtureGroupSelect);
+        fillGroupSelect(aiGroupSelect);
+        fillAiSelect();
+        fixtureGroupSelect.value = 'all';
+        aiGroupSelect.value = 'all';
+        aiSelect.value = AI_COLUMNS[0].name;
+        fillFixtureSelect();
+        renderFixtureView();
+        renderAiView();
+      }
+
+      function normaliseRows(rows) {
+        return rows.slice(1)
+          .filter(function (row) { return hasVisibleContent(row) && !hasSpreadsheetError(row) && isCompleteFixture(row); })
+          .map(function (row, index) {
+            const fixture = {
+              id: index,
+              date: cleanCell(row[0]),
+              time: cleanCell(row[1]),
+              group: cleanCell(row[2]),
+              home: cleanCell(row[3]),
+              away: cleanCell(row[4]),
+              predictions: AI_COLUMNS.map(function (ai) {
+                return { name: ai.name, score: cleanCell(row[ai.index]) };
+              })
+            };
+            return fixture;
+          });
+      }
+
+      async function loadPredictions() {
+        setDataState('loading');
+        try {
+          const response = await fetch(CSV_URL + '&t=' + Date.now(), { cache: 'no-store' });
+          if (!response.ok) throw new Error('Network response was not ok');
+          const csvText = await response.text();
+          const rows = parseCsv(csvText);
+          fixtures = normaliseRows(rows);
+          groups = fixtures.reduce(function (list, fixture) {
+            if (fixture.group && !list.includes(fixture.group)) list.push(fixture.group);
+            return list;
+          }, []);
+
+          if (!fixtures.length) {
+            setDataState('error');
+            return;
+          }
+
+          initialiseControls();
+          setDataState('ready');
+        } catch (error) {
+          setDataState('error');
+        }
+      }
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () { switchTab(tab.dataset.tab); });
+      });
+      fixtureGroupSelect.addEventListener('change', function () { fillFixtureSelect(); renderFixtureView(); });
+      fixtureSelect.addEventListener('change', renderFixtureView);
+      aiSelect.addEventListener('change', renderAiView);
+      aiGroupSelect.addEventListener('change', renderAiView);
+
+      loadPredictions();
+    })();
+  </script>
 
   <script src="/menu-config.js"></script>
   <script src="/site.js"></script>
