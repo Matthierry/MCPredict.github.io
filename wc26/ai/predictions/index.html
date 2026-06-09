@@ -8,6 +8,10 @@
   <link rel="stylesheet" href="/style.css" />
   <link rel="stylesheet" href="/wc26/ai/ai.css" />
   <style>
+    .wc26-ai-page {
+      padding-bottom: 110px;
+    }
+
     .wc26-ai-page .predictions-panel {
       display: grid;
       gap: 16px;
@@ -116,7 +120,8 @@
       color: #ffcece;
     }
 
-    .wc26-ai-page .fixture-summary {
+    .wc26-ai-page .fixture-summary,
+    .wc26-ai-page .ai-summary {
       display: grid;
       gap: 10px;
       margin-bottom: 14px;
@@ -146,7 +151,8 @@
       padding: 5px 9px;
     }
 
-    .wc26-ai-page .fixture-title {
+    .wc26-ai-page .fixture-title,
+    .wc26-ai-page .ai-predictions-heading {
       margin: 0;
       color: #fff;
       font-size: clamp(1.28rem, 5vw, 1.85rem);
@@ -162,23 +168,25 @@
     .wc26-ai-page .ai-prediction-card,
     .wc26-ai-page .fixture-prediction-card {
       display: grid;
-      gap: 9px;
+      gap: 10px;
       min-width: 0;
       border: 1px solid rgba(255,255,255,.11);
       border-radius: 14px;
-      background: rgba(255,255,255,.035);
-      padding: 13px;
+      background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.18);
     }
 
     .wc26-ai-page .ai-prediction-card {
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: center;
+      align-content: space-between;
     }
 
     .wc26-ai-page .ai-name,
     .wc26-ai-page .fixture-name {
       color: #f3f4f6;
+      font-size: 1rem;
       font-weight: 800;
+      line-height: 1.25;
       overflow-wrap: anywhere;
     }
 
@@ -186,63 +194,17 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 62px;
+      width: fit-content;
+      max-width: 100%;
       border-radius: 999px;
       background: linear-gradient(135deg, #f7931a, var(--wc26-gold, #f4b244));
       color: #141008;
       padding: 7px 11px;
       font-weight: 900;
       letter-spacing: .02em;
+      line-height: 1.15;
       box-shadow: 0 7px 18px rgba(0,0,0,.25);
     }
-
-    .wc26-ai-page .ai-predictions-heading {
-      margin: 0 0 12px;
-      color: #fff;
-      font-size: 1.25rem;
-    }
-
-    .wc26-ai-page .fixture-prediction-card .score-badge {
-      width: fit-content;
-      min-width: 0;
-    }
-
-    .wc26-ai-page .prediction-table-wrap {
-      display: none;
-      border: 1px solid rgba(242,152,12,.22);
-      border-radius: 14px;
-      overflow: hidden;
-      background: linear-gradient(180deg, #2c2c2e 0%, #222224 100%);
-    }
-
-    .wc26-ai-page .prediction-table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-      font-size: .9rem;
-    }
-
-    .wc26-ai-page .prediction-table th {
-      color: #f2980c;
-      background: rgba(255,255,255,.03);
-      border-bottom: 1px solid rgba(255,255,255,.12);
-      padding: 10px;
-      text-align: left;
-      white-space: nowrap;
-    }
-
-    .wc26-ai-page .prediction-table td {
-      color: #d5d5d7;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      padding: 10px;
-      vertical-align: middle;
-      overflow-wrap: anywhere;
-    }
-
-    .wc26-ai-page .prediction-table tr:last-child td { border-bottom: 0; }
-    .wc26-ai-page .prediction-table tbody tr:hover { background: rgba(242,152,12,.06); }
-    .wc26-ai-page .prediction-table .score-cell { width: 130px; text-align: center; }
-    .wc26-ai-page .prediction-table .compact-cell { width: 118px; }
 
     .wc26-ai-page .is-hidden { display: none !important; }
 
@@ -256,14 +218,9 @@
       }
     }
 
-    @media (min-width: 820px) {
-      .wc26-ai-page .fixture-ai-cards,
-      .wc26-ai-page .ai-fixture-cards {
-        display: none;
-      }
-
-      .wc26-ai-page .prediction-table-wrap {
-        display: block;
+    @media (min-width: 980px) {
+      .wc26-ai-page .fixture-ai-cards {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
       }
     }
 
@@ -272,9 +229,10 @@
       .wc26-ai-page .predictions-card::before { margin: -14px -14px 14px; }
       .wc26-ai-page .prediction-tabs { gap: 7px; }
       .wc26-ai-page .prediction-tab { min-height: 50px; font-size: .94rem; }
-      .wc26-ai-page .fixture-summary { padding: 13px; }
-      .wc26-ai-page .ai-prediction-card { grid-template-columns: 1fr; }
-      .wc26-ai-page .score-badge { width: fit-content; }
+      .wc26-ai-page .fixture-summary,
+      .wc26-ai-page .ai-summary { padding: 13px; }
+      .wc26-ai-page .fixture-pill,
+      .wc26-ai-page .prediction-pill { font-size: .78rem; }
     }
   </style>
 </head>
@@ -336,17 +294,6 @@
           <article class="fixture-summary" id="fixtureSummary" aria-live="polite"></article>
 
           <div class="prediction-grid fixture-ai-cards" id="fixturePredictionCards"></div>
-          <div class="prediction-table-wrap" aria-hidden="false">
-            <table class="prediction-table">
-              <thead>
-                <tr>
-                  <th scope="col">AI</th>
-                  <th scope="col" class="score-cell">Prediction</th>
-                </tr>
-              </thead>
-              <tbody id="fixturePredictionRows"></tbody>
-            </table>
-          </div>
         </div>
 
         <div id="panel-by-ai" class="is-hidden" role="tabpanel" aria-labelledby="tab-by-ai" hidden>
@@ -361,22 +308,10 @@
             </div>
           </div>
 
-          <h2 class="ai-predictions-heading" id="aiPredictionsHeading">ChatGPT 5.5 Predictions</h2>
+          <article class="ai-summary" aria-live="polite">
+            <h2 class="ai-predictions-heading" id="aiPredictionsHeading">ChatGPT 5.5 Predictions</h2>
+          </article>
           <div class="prediction-grid ai-fixture-cards" id="aiPredictionCards"></div>
-          <div class="prediction-table-wrap" aria-hidden="false">
-            <table class="prediction-table">
-              <thead>
-                <tr>
-                  <th scope="col" class="compact-cell">Date</th>
-                  <th scope="col" class="compact-cell">Time</th>
-                  <th scope="col" class="compact-cell">Group</th>
-                  <th scope="col">Fixture</th>
-                  <th scope="col" class="score-cell">Prediction</th>
-                </tr>
-              </thead>
-              <tbody id="aiPredictionRows"></tbody>
-            </table>
-          </div>
         </div>
       </div>
     </section>
@@ -418,10 +353,8 @@
       const aiGroupSelect = document.getElementById('aiGroupSelect');
       const fixtureSummary = document.getElementById('fixtureSummary');
       const fixturePredictionCards = document.getElementById('fixturePredictionCards');
-      const fixturePredictionRows = document.getElementById('fixturePredictionRows');
       const aiPredictionsHeading = document.getElementById('aiPredictionsHeading');
       const aiPredictionCards = document.getElementById('aiPredictionCards');
-      const aiPredictionRows = document.getElementById('aiPredictionRows');
 
       let fixtures = [];
       let groups = [];
@@ -553,7 +486,6 @@
         if (!fixture) {
           fixtureSummary.innerHTML = '<p class="subtitle">No fixtures available for this group.</p>';
           fixturePredictionCards.innerHTML = '';
-          fixturePredictionRows.innerHTML = '';
           return;
         }
 
@@ -573,7 +505,6 @@
         fixtureSummary.appendChild(title);
 
         fixturePredictionCards.innerHTML = '';
-        fixturePredictionRows.innerHTML = '';
         fixture.predictions.forEach(function (prediction) {
           const score = prediction.score || '—';
           const card = document.createElement('article');
@@ -583,20 +514,11 @@
           name.textContent = prediction.name;
           const scoreBadge = document.createElement('span');
           scoreBadge.className = 'score-badge';
-          scoreBadge.textContent = score;
+          scoreBadge.textContent = 'Prediction: ' + score;
           card.appendChild(name);
           card.appendChild(scoreBadge);
           fixturePredictionCards.appendChild(card);
 
-          const row = document.createElement('tr');
-          const nameCell = document.createElement('td');
-          const scoreCell = document.createElement('td');
-          scoreCell.className = 'score-cell';
-          nameCell.textContent = prediction.name;
-          scoreCell.textContent = score;
-          row.appendChild(nameCell);
-          row.appendChild(scoreCell);
-          fixturePredictionRows.appendChild(row);
         });
       }
 
@@ -605,7 +527,6 @@
         const matchingFixtures = filteredFixtures(aiGroupSelect.value);
         aiPredictionsHeading.textContent = aiName + ' Predictions';
         aiPredictionCards.innerHTML = '';
-        aiPredictionRows.innerHTML = '';
 
         matchingFixtures.forEach(function (fixture) {
           const score = predictionFor(fixture, aiName) || '—';
@@ -630,15 +551,6 @@
           card.appendChild(fixtureName);
           card.appendChild(prediction);
           aiPredictionCards.appendChild(card);
-
-          const row = document.createElement('tr');
-          [fixture.date, fixture.time, fixture.group, fixtureLabel(fixture), score].forEach(function (text, index) {
-            const cell = document.createElement('td');
-            if (index === 4) cell.className = 'score-cell';
-            cell.textContent = text;
-            row.appendChild(cell);
-          });
-          aiPredictionRows.appendChild(row);
         });
       }
 
