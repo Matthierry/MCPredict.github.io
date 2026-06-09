@@ -392,6 +392,8 @@
   <script>
     (function () {
       const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnj0ijqFw0UVhYOounuFrNdreTFovKqTTbYnnVvq_12RRwYxN8atQE3PkQJJSbPaBiM9JQyCSCioiZ/pub?gid=1067085832&single=true&output=csv';
+      const CSV_ROW_LIMIT = 73;
+      const MAX_FIXTURES = CSV_ROW_LIMIT - 1;
       const AI_COLUMNS = [
         { name: 'ChatGPT 5.5', index: 5 },
         { name: 'ChatGPT 5.4', index: 6 },
@@ -424,7 +426,7 @@
       let fixtures = [];
       let groups = [];
 
-      function parseCsv(text) {
+      function parseCsv(text, maxRows) {
         const rows = [];
         let row = [];
         let field = '';
@@ -451,16 +453,33 @@
 
           if (char === '"') { inQuotes = true; i += 1; continue; }
           if (char === ',') { row.push(field); field = ''; i += 1; continue; }
-          if (char === '\n') { row.push(field); rows.push(row); row = []; field = ''; i += 1; continue; }
+          if (char === '\n') {
+            row.push(field);
+            rows.push(row);
+            if (maxRows && rows.length >= maxRows) return rows;
+            row = [];
+            field = '';
+            i += 1;
+            continue;
+          }
           if (char === '\r') {
             if (text[i + 1] === '\n') { i += 1; }
-            row.push(field); rows.push(row); row = []; field = ''; i += 1; continue;
+            row.push(field);
+            rows.push(row);
+            if (maxRows && rows.length >= maxRows) return rows;
+            row = [];
+            field = '';
+            i += 1;
+            continue;
           }
           field += char;
           i += 1;
         }
 
-        if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+        if (field.length > 0 || row.length > 0) {
+          row.push(field);
+          rows.push(row);
+        }
         return rows;
       }
 
@@ -656,7 +675,7 @@
       }
 
       function normaliseRows(rows) {
-        return rows.slice(1)
+        return rows.slice(1, CSV_ROW_LIMIT)
           .filter(function (row) { return hasVisibleContent(row) && !hasSpreadsheetError(row) && isCompleteFixture(row); })
           .map(function (row, index) {
             const fixture = {
@@ -671,7 +690,8 @@
               })
             };
             return fixture;
-          });
+          })
+          .slice(0, MAX_FIXTURES);
       }
 
       async function loadPredictions() {
@@ -680,7 +700,7 @@
           const response = await fetch(CSV_URL + '&t=' + Date.now(), { cache: 'no-store' });
           if (!response.ok) throw new Error('Network response was not ok');
           const csvText = await response.text();
-          const rows = parseCsv(csvText);
+          const rows = parseCsv(csvText, CSV_ROW_LIMIT);
           fixtures = normaliseRows(rows);
           groups = fixtures.reduce(function (list, fixture) {
             if (fixture.group && !list.includes(fixture.group)) list.push(fixture.group);
