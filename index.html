@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MC Predict</title>
   <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
   <style>
     :root {
       --bg: #111214;
@@ -190,6 +191,16 @@
         fill: none;
         stroke-width: 1.8;
       }
+      .mobile-bottom-nav__icon--world-cup {
+        color: #f09300;
+        filter: drop-shadow(0 0 4px rgba(240,147,0,.35));
+        font-size: 20px;
+        line-height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        stroke: none;
+      }
       .mobile-bottom-nav__label {
         font-size: .72rem;
         line-height: 1;
@@ -323,9 +334,9 @@
       <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>
       <span class="mobile-bottom-nav__label">Data</span>
     </a>
-    <a class="mobile-bottom-nav__item" data-nav-path="/faqs" href="/faqs" aria-label="FAQs">
-      <svg class="mobile-bottom-nav__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.8c-.9.9-1.8 1.3-1.8 2.7"/><circle cx="12" cy="17" r=".8"/></svg>
-      <span class="mobile-bottom-nav__label">FAQs</span>
+    <a class="mobile-bottom-nav__item" data-nav-path="/wc26" href="https://www.mcpredict.com/wc26/" aria-label="World Cup">
+      <i class="mobile-bottom-nav__icon mobile-bottom-nav__icon--world-cup fas fa-trophy" aria-hidden="true"></i>
+      <span class="mobile-bottom-nav__label">World Cup</span>
     </a>
   </nav>
 
