@@ -233,4 +233,6 @@
   }
   window.addEventListener('load', renderGlobalMenu);
   window.addEventListener('load', renderWc26SectionNav);
+  window.addEventListener('pageshow', renderGlobalMenu);
+  window.addEventListener('pageshow', renderWc26SectionNav);
 })();
