@@ -57,6 +57,7 @@
           </article>
         </div>
         <p class="wc26-scoring-note">All AI scores are derived from each model’s correct score prediction.</p>
+        <p id="tableLastUpdated" class="wc26-scoring-note is-hidden" style="color:#f2980c;">Table last updated: <span id="tableLastUpdatedValue"></span></p>
       </div>
 
       <div class="wc26-table-card">
@@ -84,12 +85,15 @@
   <script>
     (function () {
       const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnj0ijqFw0UVhYOounuFrNdreTFovKqTTbYnnVvq_12RRwYxN8atQE3PkQJJSbPaBiM9JQyCSCioiZ/pub?gid=434672966&single=true&output=csv';
+      const LAST_UPDATED_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnj0ijqFw0UVhYOounuFrNdreTFovKqTTbYnnVvq_12RRwYxN8atQE3PkQJJSbPaBiM9JQyCSCioiZ/pub?output=csv';
       const loadingEl = document.getElementById('leagueLoading');
       const emptyEl = document.getElementById('leagueEmpty');
       const errorEl = document.getElementById('leagueError');
       const tableWrapEl = document.getElementById('leagueTableWrap');
       const headerRowEl = document.getElementById('leagueHeaderRow');
       const bodyEl = document.getElementById('leagueBody');
+      const tableLastUpdatedEl = document.getElementById('tableLastUpdated');
+      const tableLastUpdatedValueEl = document.getElementById('tableLastUpdatedValue');
       const spreadsheetErrorPattern = /#(?:REF!|N\/A|VALUE!|DIV\/0!|NAME\?|NUM!|NULL!|ERROR!)/i;
 
       function setState(state) {
@@ -155,6 +159,24 @@
         return row.some(function (cell) { return cell.trim() !== ''; });
       }
 
+      async function loadLastUpdated() {
+        try {
+          const response = await fetch(LAST_UPDATED_URL + '&t=' + Date.now(), { cache: 'no-store' });
+          if (!response.ok) return;
+
+          const csvText = await response.text();
+          const rows = parseCsv(csvText);
+          const value = rows[0] && typeof rows[0][6] === 'string' ? rows[0][6].trim() : '';
+
+          if (!value) return;
+
+          tableLastUpdatedValueEl.textContent = value;
+          tableLastUpdatedEl.classList.remove('is-hidden');
+        } catch (error) {
+          // Leave the timestamp hidden if it cannot be loaded.
+        }
+      }
+
       async function loadLeagueTable() {
         setState('loading');
         try {
@@ -210,6 +232,7 @@
         }
       }
 
+      loadLastUpdated();
       loadLeagueTable();
     })();
   </script>
