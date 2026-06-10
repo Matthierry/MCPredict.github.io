@@ -11,6 +11,17 @@
     { label: 'FAQs', href: '/faqs' }
   ];
 
+  const WC26_NAV_ITEMS = [
+    { label: 'Menu', href: '/wc26/' },
+    { label: 'Submit Predictions', href: '/wc26/scores/' },
+    { label: 'Payment', href: '/wc26/payment/' },
+    { label: 'Rules', href: '/wc26/rules/' },
+    { label: 'League Table', href: '/wc26/table/' },
+    { label: 'Predictions', href: '/wc26/predictions/' },
+    { label: 'AI Hub', href: '/wc26/ai/' },
+    { label: 'Hall Of Fame', href: '/wc26/halloffame/' }
+  ];
+
   function normalize(path){
     const cleaned=((path||'/').split('?')[0].split('#')[0]||'/').replace(/\.html$/,'');
     if(cleaned==='/'||cleaned==='/index'||cleaned==='/index.html') return '/';
@@ -98,6 +109,36 @@
     return current===normalisedTarget;
   }
 
+  function isWc26SectionActive(current, target){
+    const normalisedTarget=normalize(target);
+    if(normalisedTarget==='/wc26') return current==='/wc26';
+    return current===normalisedTarget || current.startsWith(normalisedTarget + '/');
+  }
+
+  function renderWc26SectionNav(){
+    const current=normalize(window.location.pathname);
+    if(!document.body.classList.contains('wc26-theme')) return;
+    if(current==='/wc26/ai' || current.startsWith('/wc26/ai/')) return;
+
+    const navs=[...document.querySelectorAll('.section-nav')];
+    if(!navs.length) return;
+
+    navs.forEach((nav)=>{
+      if(!nav.getAttribute('aria-label')) nav.setAttribute('aria-label','World Cup section');
+      nav.innerHTML='';
+      WC26_NAV_ITEMS.forEach((item)=>{
+        const link=document.createElement('a');
+        link.href=item.href;
+        link.textContent=item.label;
+        if(isWc26SectionActive(current, item.href)){
+          link.classList.add('active');
+          link.setAttribute('aria-current','page');
+        }
+        nav.appendChild(link);
+      });
+    });
+  }
+
   function getMenuRoots(){
     const roots=[...document.querySelectorAll('.menu-links, .nav-menu-links, [data-menu-links]')];
     if(roots.length) return roots;
@@ -173,18 +214,23 @@
 
   function initSharedUi(){
     renderGlobalMenu();
+    renderWc26SectionNav();
     initMenu();
     initBottomNav();
     setTimeout(renderGlobalMenu, 100);
     setTimeout(renderGlobalMenu, 500);
+    setTimeout(renderWc26SectionNav, 100);
+    setTimeout(renderWc26SectionNav, 500);
   }
 
   window.MCPredictPrediction = { csvToRows, extractRowData, renderPredictionCard, renderPredictionTable, sanitize };
   window.MCPredictRenderGlobalMenu = renderGlobalMenu;
+  window.MCPredictRenderWc26SectionNav = renderWc26SectionNav;
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', initSharedUi);
   } else {
     initSharedUi();
   }
   window.addEventListener('load', renderGlobalMenu);
+  window.addEventListener('load', renderWc26SectionNav);
 })();
