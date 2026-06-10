@@ -12,6 +12,12 @@
     .nav-card p{margin:0;line-height:1.45}
     .subtitle,.note{color:var(--wc26-muted);line-height:1.5}
     .cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;margin-top:14px}
+    .nav-card--ai{position:relative;overflow:hidden;border-color:rgba(125,211,252,.38);background:linear-gradient(145deg,rgba(14,165,233,.14),rgba(124,58,237,.10) 42%,rgba(255,255,255,.025));box-shadow:0 10px 24px rgba(0,0,0,.22),inset 0 0 0 1px rgba(125,211,252,.10)}
+    .nav-card--ai::before{content:"";position:absolute;inset:-45% auto auto 45%;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(125,211,252,.22),rgba(125,211,252,0) 70%);pointer-events:none}
+    .nav-card--ai h3{display:flex;align-items:center;gap:8px;color:#d8f3ff}
+    .nav-card--ai h3 i{color:#7dd3fc;filter:drop-shadow(0 0 5px rgba(125,211,252,.35))}
+    .nav-card--ai .ai-kicker{display:inline-flex;align-items:center;gap:6px;margin-bottom:8px;padding:4px 8px;border:1px solid rgba(125,211,252,.32);border-radius:999px;color:#bae6fd;background:rgba(14,165,233,.08);font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .nav-card--ai:hover,.nav-card--ai:focus-visible{border-color:rgba(125,211,252,.68);box-shadow:0 0 20px rgba(125,211,252,.16),0 12px 26px rgba(0,0,0,.28)}
   </style>
 
 </head><body class="wc26-theme">
@@ -30,7 +36,7 @@
 
 <main class="wrap wc26-page">
   <nav class="section-nav" aria-label="World Cup section">
-    <a href="/wc26/" class="active" aria-current="page">Menu</a><a href="/wc26/scores/">Submit Predictions</a><a href="/wc26/payment/">Payment</a><a href="/wc26/rules/">Rules</a><a href="/wc26/table/">League Table</a><a href="/wc26/halloffame/">Hall Of Fame</a>
+    <a href="/wc26/" class="active" aria-current="page">Menu</a><a href="/wc26/scores/">Submit Predictions</a><a href="/wc26/payment/">Payment</a><a href="/wc26/rules/">Rules</a><a href="/wc26/table/">League Table</a><a href="/wc26/predictions/">Predictions</a><a href="/wc26/halloffame/">Hall Of Fame</a><a href="/wc26/ai/">AI</a>
   </nav>
   <section class="hero">
     <h1>MC Predict World Cup 2026 Game</h1>
@@ -45,7 +51,9 @@
       <a class="nav-card" href="/wc26/payment/"><h3>Make Payment</h3><p>Pay your entry fee to validate your entry.</p></a>
       <a class="nav-card" href="/wc26/rules/"><h3>Rules / FAQs</h3><p>View the scoring rules, deadline details, and common questions.</p></a>
       <a class="nav-card" href="/wc26/table/"><h3>League Table</h3><p>Follow the standings once the tournament begins.</p></a>
+      <a class="nav-card" href="/wc26/predictions/"><h3>Predictions</h3><p>View each entrant’s submitted score predictions for the 72 group-stage fixtures.</p></a>
       <a class="nav-card" href="/wc26/halloffame/"><h3>Hall Of Fame</h3><p>View previous winners and World Cup prediction game history.</p></a>
+      <a class="nav-card nav-card--ai" href="/wc26/ai/"><span class="ai-kicker">AI section</span><h3><i class="fa-solid fa-microchip" aria-hidden="true"></i>AI Prediction Game</h3><p>Follow the separate AI-only challenge where eight AI models compete across the same 72 fixtures.</p></a>
     </div>
   </section>
 </main>
