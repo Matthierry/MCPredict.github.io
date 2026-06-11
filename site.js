@@ -20,6 +20,8 @@
     { label: 'Hall Of Fame', href: '/wc26/halloffame/' }
   ];
 
+  const CLOSED_WC26_ACCESS_PATHS = ['/wc26/scores', '/wc26/payment'];
+
   function normalize(path){
     const cleaned=((path||'/').split('?')[0].split('#')[0]||'/').replace(/\.html$/,'');
     if(cleaned==='/'||cleaned==='/index'||cleaned==='/index.html') return '/';
@@ -113,6 +115,19 @@
     return current===normalisedTarget || current.startsWith(normalisedTarget + '/');
   }
 
+  function removeClosedWc26AccessLinks(){
+    if(!document.body.classList.contains('wc26-theme')) return;
+    document.querySelectorAll('a[href]').forEach((link)=>{
+      let path = '';
+      try {
+        path = normalize(new URL(link.getAttribute('href'), window.location.origin).pathname);
+      } catch (error) {
+        path = normalize(link.getAttribute('href'));
+      }
+      if(CLOSED_WC26_ACCESS_PATHS.includes(path)) link.remove();
+    });
+  }
+
   function renderWc26SectionNav(){
     const current=normalize(window.location.pathname);
     if(!document.body.classList.contains('wc26-theme')) return;
@@ -135,6 +150,7 @@
         nav.appendChild(link);
       });
     });
+    removeClosedWc26AccessLinks();
   }
 
   function getMenuRoots(){
@@ -171,6 +187,7 @@
         root.appendChild(link);
       });
     });
+    removeClosedWc26AccessLinks();
   }
 
   function initMenu(){
@@ -178,7 +195,7 @@
     const open=document.getElementById('openMenu');
     const close=document.getElementById('closeMenu');
     if(!overlay||!open||!close) return;
-    const openMenu=()=>{renderGlobalMenu();overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');};
+    const openMenu=()=>{renderGlobalMenu();removeClosedWc26AccessLinks();overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');};
     const closeMenu=()=>{overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');};
     open.addEventListener('click',openMenu);close.addEventListener('click',closeMenu);
     overlay.addEventListener('click',(e)=>{ if(e.target.closest('.menu-links a')) closeMenu(); });
@@ -213,12 +230,15 @@
   function initSharedUi(){
     renderGlobalMenu();
     renderWc26SectionNav();
+    removeClosedWc26AccessLinks();
     initMenu();
     initBottomNav();
     setTimeout(renderGlobalMenu, 100);
     setTimeout(renderGlobalMenu, 500);
     setTimeout(renderWc26SectionNav, 100);
     setTimeout(renderWc26SectionNav, 500);
+    setTimeout(removeClosedWc26AccessLinks, 100);
+    setTimeout(removeClosedWc26AccessLinks, 500);
   }
 
   window.MCPredictPrediction = { csvToRows, extractRowData, renderPredictionCard, renderPredictionTable, sanitize };
@@ -231,6 +251,8 @@
   }
   window.addEventListener('load', renderGlobalMenu);
   window.addEventListener('load', renderWc26SectionNav);
+  window.addEventListener('load', removeClosedWc26AccessLinks);
   window.addEventListener('pageshow', renderGlobalMenu);
   window.addEventListener('pageshow', renderWc26SectionNav);
+  window.addEventListener('pageshow', removeClosedWc26AccessLinks);
 })();
