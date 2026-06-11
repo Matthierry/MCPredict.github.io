@@ -13,8 +13,6 @@
 
   const WC26_NAV_ITEMS = [
     { label: 'Menu', href: '/wc26/' },
-    { label: 'Submit Predictions', href: '/wc26/scores/' },
-    { label: 'Payment', href: '/wc26/payment/' },
     { label: 'Rules', href: '/wc26/rules/' },
     { label: 'League Table', href: '/wc26/table/' },
     { label: 'Predictions', href: '/wc26/predictions/' },
