@@ -11,7 +11,7 @@
     .nav-card h3{margin:0 0 8px}
     .nav-card p{margin:0;line-height:1.45}
     .subtitle,.note{color:var(--wc26-muted);line-height:1.5}
-    .cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;margin-top:14px}
+    .entry-closed{display:inline-flex;align-items:center;justify-content:center;margin-top:14px;padding:8px 12px;border:1px solid rgba(242,152,12,.35);border-radius:999px;color:#f7d394;background:rgba(242,152,12,.1);font-weight:800;font-size:.82rem;letter-spacing:.03em;text-transform:uppercase}
     .nav-card--ai{position:relative;overflow:hidden;border-color:rgba(125,211,252,.38);background:linear-gradient(145deg,rgba(14,165,233,.14),rgba(124,58,237,.10) 42%,rgba(255,255,255,.025));box-shadow:0 10px 24px rgba(0,0,0,.22),inset 0 0 0 1px rgba(125,211,252,.10)}
     .nav-card--ai::before{content:"";position:absolute;inset:-45% auto auto 45%;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(125,211,252,.22),rgba(125,211,252,0) 70%);pointer-events:none}
     .nav-card--ai h3{display:flex;align-items:center;gap:8px;color:#d8f3ff}
@@ -36,19 +36,17 @@
 
 <main class="wrap wc26-page">
   <nav class="section-nav" aria-label="World Cup section">
-    <a href="/wc26/" class="active" aria-current="page">Menu</a><a href="/wc26/scores/">Submit Predictions</a><a href="/wc26/payment/">Payment</a><a href="/wc26/rules/">Rules</a><a href="/wc26/table/">League Table</a><a href="/wc26/predictions/">Predictions</a><a href="/wc26/ai/">AI Hub</a><a href="/wc26/halloffame/">Hall Of Fame</a>
+    <a href="/wc26/" class="active" aria-current="page">Menu</a><a href="/wc26/rules/">Rules</a><a href="/wc26/table/">League Table</a><a href="/wc26/predictions/">Predictions</a><a href="/wc26/ai/">AI Hub</a><a href="/wc26/halloffame/">Hall Of Fame</a>
   </nav>
   <section class="hero">
     <h1>MC Predict World Cup 2026 Game</h1>
-    <p class="subtitle">Predict every group-stage score, pay your entry fee, track the league table, and compete for bragging rights.</p>
-    <p class="subtitle">Submit your predictions before the deadline. Only your latest valid submission before entries close will count.</p>
-    <div class="cta"><a class="btn btn-primary" href="/wc26/scores/">Submit Predictions</a><a class="btn btn-secondary" href="/wc26/payment/">Make Payment</a></div>
-    <p class="note">Entries close at 11:59pm UK time on Wednesday 10th June 2026.</p>
+    <p class="subtitle">Entries for the World Cup 2026 prediction game have now closed.</p>
+    <p class="subtitle">You can still view the rules, follow the league table, check submitted predictions, and explore the AI challenge.</p>
+    <span class="entry-closed">Entries closed</span>
+    <p class="note">Entries closed at 11:59pm UK time on Wednesday 10th June 2026.</p>
   </section>
   <section class="card" style="padding:16px">
     <div class="grid">
-      <a class="nav-card" href="/wc26/scores/"><h3>Submit Predictions</h3><p>Enter or update your correct score predictions for all 72 group-stage fixtures.</p></a>
-      <a class="nav-card" href="/wc26/payment/"><h3>Make Payment</h3><p>Pay your entry fee to validate your entry.</p></a>
       <a class="nav-card" href="/wc26/rules/"><h3>Rules / FAQs</h3><p>View the scoring rules, deadline details, and common questions.</p></a>
       <a class="nav-card" href="/wc26/table/"><h3>League Table</h3><p>Follow the standings once the tournament begins.</p></a>
       <a class="nav-card" href="/wc26/predictions/"><h3>Predictions</h3><p>View each entrant’s submitted score predictions for the 72 group-stage fixtures.</p></a>
