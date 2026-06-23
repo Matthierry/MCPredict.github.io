@@ -74,6 +74,43 @@
       outline-offset: 3px;
     }
     .wc26-player-select:disabled { cursor: wait; opacity: .72; }
+    .wc26-filter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 12px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 12px;
+      background: rgba(255,255,255,.04);
+      padding: 10px 12px;
+    }
+    .wc26-toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #ececed;
+      cursor: pointer;
+      font-size: .88rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .wc26-toggle-label input {
+      accent-color: #f09300;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    .wc26-toggle-help {
+      color: #9f9f9f;
+      font-size: .78rem;
+      line-height: 1.3;
+    }
+    .wc26-toggle-label input:disabled,
+    .wc26-toggle-label input:disabled + span {
+      cursor: not-allowed;
+      opacity: .65;
+    }
 
     .wc26-prediction-card {
       background: linear-gradient(180deg, #2c2c2e 0%, #222224 100%);
@@ -239,6 +276,11 @@
         color: #f09300;
         font-size: 1rem;
       }
+      .wc26-filter-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+      }
       .wc26-table-state { margin: 0; padding: 12px; font-size: .88rem; }
     }
   </style>
@@ -272,12 +314,20 @@
             <option>Loading players…</option>
           </select>
         </div>
+        <div class="wc26-filter-row is-hidden" id="completedFilterWrap">
+          <label class="wc26-toggle-label" for="showCompletedFixtures">
+            <input type="checkbox" id="showCompletedFixtures" checked>
+            <span>Show completed fixtures</span>
+          </label>
+          <span class="wc26-toggle-help">Switch off to show upcoming fixtures only.</span>
+        </div>
       </div>
 
       <div class="wc26-prediction-card">
         <div id="predictionsLoading" class="wc26-table-state">Loading predictions…</div>
         <div id="predictionsEmpty" class="wc26-table-state is-hidden">No players were found. Please check again later.</div>
         <div id="fixturesEmpty" class="wc26-table-state is-hidden">No fixture data is available for the selected player yet.</div>
+        <div id="fixturesFilteredEmpty" class="wc26-table-state is-hidden">No upcoming fixtures are available with completed fixtures hidden.</div>
         <div id="predictionsError" class="wc26-table-state error is-hidden">Unable to load predictions right now. Please refresh the page or check again later.</div>
 
         <div class="wc26-predictions-table-wrapper is-hidden" id="predictionsTableWrapper">
@@ -304,6 +354,7 @@
     (function () {
       const PREDICTIONS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnj0ijqFw0UVhYOounuFrNdreTFovKqTTbYnnVvq_12RRwYxN8atQE3PkQJJSbPaBiM9JQyCSCioiZ/pub?gid=1173183870&single=true&output=csv';
       const LOOKUP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnj0ijqFw0UVhYOounuFrNdreTFovKqTTbYnnVvq_12RRwYxN8atQE3PkQJJSbPaBiM9JQyCSCioiZ/pub?gid=729356436&single=true&output=csv';
+      const COMPLETION_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnj0ijqFw0UVhYOounuFrNdreTFovKqTTbYnnVvq_12RRwYxN8atQE3PkQJJSbPaBiM9JQyCSCioiZ/pub?gid=767478415&single=true&output=csv';
       const FIRST_SUBMISSION_COLUMN_INDEX = 5;
       const LOOKUP_START_ROW_INDEX = 15;
       const LAST_FIXTURE_ROW_EXCLUSIVE_INDEX = 73;
@@ -312,18 +363,24 @@
       const loadingEl = document.getElementById('predictionsLoading');
       const emptyEl = document.getElementById('predictionsEmpty');
       const fixturesEmptyEl = document.getElementById('fixturesEmpty');
+      const filteredEmptyEl = document.getElementById('fixturesFilteredEmpty');
       const errorEl = document.getElementById('predictionsError');
       const tableWrapperEl = document.getElementById('predictionsTableWrapper');
       const bodyEl = document.getElementById('predictionsBody');
       const cardListEl = document.getElementById('predictionsCardList');
+      const completedFilterWrapEl = document.getElementById('completedFilterWrap');
+      const showCompletedFixturesEl = document.getElementById('showCompletedFixtures');
 
       let players = [];
       let fixtures = [];
+      let completionStatuses = [];
+      let showCompletedFixtures = true;
 
       function setState(state) {
         loadingEl.classList.toggle('is-hidden', state !== 'loading');
         emptyEl.classList.toggle('is-hidden', state !== 'empty');
         fixturesEmptyEl.classList.toggle('is-hidden', state !== 'fixtures-empty');
+        filteredEmptyEl.classList.toggle('is-hidden', state !== 'filtered-empty');
         errorEl.classList.toggle('is-hidden', state !== 'error');
         tableWrapperEl.classList.toggle('is-hidden', state !== 'table');
         cardListEl.classList.toggle('is-hidden', state !== 'table');
@@ -416,18 +473,29 @@
 
       function buildFixtures(rows) {
         return rows.slice(1, LAST_FIXTURE_ROW_EXCLUSIVE_INDEX)
-          .filter(function (row) {
-            return row.slice(0, 5).some(function (cell) { return cleanCell(cell) !== ''; });
+          .map(function (row, fixtureIndex) {
+            return { row, fixtureIndex };
           })
-          .map(function (row) {
+          .filter(function (entry) {
+            return entry.row.slice(0, 5).some(function (cell) { return cleanCell(cell) !== ''; });
+          })
+          .map(function (entry) {
             return {
-              date: cleanCell(row[0]),
-              time: cleanCell(row[1]),
-              group: cleanCell(row[2]),
-              team1: cleanCell(row[3]),
-              team2: cleanCell(row[4]),
-              scores: row
+              date: cleanCell(entry.row[0]),
+              time: cleanCell(entry.row[1]),
+              group: cleanCell(entry.row[2]),
+              team1: cleanCell(entry.row[3]),
+              team2: cleanCell(entry.row[4]),
+              fixtureIndex: entry.fixtureIndex,
+              scores: entry.row
             };
+          });
+      }
+
+      function buildCompletionStatuses(rows) {
+        return rows.slice(1, LAST_FIXTURE_ROW_EXCLUSIVE_INDEX)
+          .map(function (row) {
+            return cleanCell(row[10]) === '1';
           });
       }
 
@@ -528,6 +596,16 @@
         cardListEl.appendChild(card);
       }
 
+      function setCompletionFilterAvailable(isAvailable) {
+        completedFilterWrapEl.classList.toggle('is-hidden', !isAvailable);
+        showCompletedFixturesEl.disabled = !isAvailable;
+
+        if (!isAvailable) {
+          showCompletedFixtures = true;
+          showCompletedFixturesEl.checked = true;
+        }
+      }
+
       function renderPredictions(submissionId) {
         const selectedPlayer = players.find(function (player) { return player.submissionId === submissionId; });
         bodyEl.innerHTML = '';
@@ -538,7 +616,16 @@
           return;
         }
 
-        fixtures.forEach(function (fixture) {
+        const visibleFixtures = fixtures.filter(function (fixture) {
+          return showCompletedFixtures || completionStatuses[fixture.fixtureIndex] !== true;
+        });
+
+        if (visibleFixtures.length === 0) {
+          setState('filtered-empty');
+          return;
+        }
+
+        visibleFixtures.forEach(function (fixture) {
           const score = cleanCell(fixture.scores[selectedPlayer.columnIndex]) || 'No prediction';
           renderPredictionTableRow(fixture, score);
           renderPredictionCard(fixture, score);
@@ -555,17 +642,32 @@
 
       async function loadPredictions() {
         setState('loading');
+        setCompletionFilterAvailable(false);
         try {
+          const completionRowsPromise = fetchCsvRows(COMPLETION_CSV_URL)
+            .catch(function () {
+              return null;
+            });
           const results = await Promise.all([
             fetchCsvRows(PREDICTIONS_CSV_URL),
-            fetchCsvRows(LOOKUP_CSV_URL)
+            fetchCsvRows(LOOKUP_CSV_URL),
+            completionRowsPromise
           ]);
           const predictionRows = results[0];
           const lookupRows = results[1];
+          const completionRows = results[2];
           const lookupData = buildLookup(lookupRows);
 
           fixtures = buildFixtures(predictionRows);
           players = buildPlayers(predictionRows, lookupData);
+
+          if (completionRows) {
+            completionStatuses = buildCompletionStatuses(completionRows);
+            setCompletionFilterAvailable(completionStatuses.length > 0);
+          } else {
+            completionStatuses = [];
+            setCompletionFilterAvailable(false);
+          }
 
           if (!players.length) {
             playerSelectEl.innerHTML = '<option>No players found</option>';
@@ -585,6 +687,11 @@
       }
 
       playerSelectEl.addEventListener('change', function () {
+        renderPredictions(playerSelectEl.value);
+      });
+
+      showCompletedFixturesEl.addEventListener('change', function () {
+        showCompletedFixtures = showCompletedFixturesEl.checked;
         renderPredictions(playerSelectEl.value);
       });
 
