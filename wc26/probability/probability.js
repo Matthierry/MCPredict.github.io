@@ -22,8 +22,9 @@
     return rows;
   }
 
-  const clean = (v) => String(v == null ? '' : v).trim();
+  const clean = (v) => String(v == null ? '' : v).replace(/\u00a0/g, ' ').trim();
   const normHeader = (v) => clean(v).toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const normName = (v) => clean(v).replace(/\s+/g, ' ').toLowerCase();
   const fixtureKey = (home, away) => `${clean(home).toLowerCase().replace(/[^a-z0-9]+/g, '')}|${clean(away).toLowerCase().replace(/[^a-z0-9]+/g, '')}`;
 
   function hashString(text) {
@@ -112,8 +113,87 @@
     return map;
   }
 
-  function buildLeague(rows) {
-    const out = new Map(); rows.slice(8, 51).forEach((r) => { const name = clean(r[0]); const pts = Number(clean(r[5])) || 0; if (name && normHeader(name) !== 'name') out.set(name, pts); }); return out;
+  const POINT_HEADER_NAMES = new Set(['points', 'pts', 'total', 'totalpoints', 'score', 'currentpoints']);
+  const NAME_HEADER_NAMES = new Set(['name', 'player', 'playername', 'manualname', 'entrant', 'entry', 'participant']);
+  const EXACT_HEADER_NAMES = new Set(['correctscores', 'correctscore', 'exact', 'exactscores', 'cs']);
+  const RESULT_HEADER_NAMES = new Set(['correctresults', 'correctresult', 'results', 'result', 'cr']);
+  const UNDER_OVER_HEADER_NAMES = new Set(['correctunderover25goals', 'correctunderover25', 'underover25', 'uo25', 'correctuo25', 'correctuo', 'correctuogoals', 'correctunderovers', 'underover']);
+
+  function parseNumber(value) {
+    const v = clean(value).replace(/,/g, '');
+    if (v === '') return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  function firstHeaderIndex(header, names) { return header.findIndex((h) => names.has(normHeader(h))); }
+  function findLeagueHeaderRow(rows) {
+    let nameOnly = -1;
+    for (let i = 0; i < rows.length; i += 1) {
+      const header = rows[i] || [];
+      const hasName = firstHeaderIndex(header, NAME_HEADER_NAMES) >= 0;
+      const hasPoints = firstHeaderIndex(header, POINT_HEADER_NAMES) >= 0;
+      if (hasName && hasPoints) return i;
+      if (hasName && nameOnly < 0) nameOnly = i;
+    }
+    return nameOnly;
+  }
+  function buildLeague(rows, options) {
+    const opts = options || {};
+    const warnings = opts.warnings || [];
+    const headerRow = findLeagueHeaderRow(rows);
+    if (headerRow < 0) {
+      const message = 'Live league table header row not found.';
+      warnings.push(message);
+      throw new Error(message);
+    }
+    const header = rows[headerRow] || [];
+    const nameIdx = firstHeaderIndex(header, NAME_HEADER_NAMES);
+    const pointsIdx = firstHeaderIndex(header, POINT_HEADER_NAMES);
+    if (pointsIdx < 0) {
+      const message = 'Live league table points column not found.';
+      warnings.push(message);
+      throw new Error(message);
+    }
+    if (nameIdx < 0) {
+      const message = 'Live league table player-name column not found.';
+      warnings.push(message);
+      throw new Error(message);
+    }
+    const exactIdx = firstHeaderIndex(header, EXACT_HEADER_NAMES);
+    const resultIdx = firstHeaderIndex(header, RESULT_HEADER_NAMES);
+    const underOverIdx = firstHeaderIndex(header, UNDER_OVER_HEADER_NAMES);
+    if (exactIdx < 0) warnings.push('Live league table correct-scores column not found; starting that tie-breaker from 0.');
+    if (resultIdx < 0) warnings.push('Live league table correct-results column not found; starting that tie-breaker from 0.');
+    if (underOverIdx < 0) warnings.push('Live league table under/over 2.5 column not found; starting that tie-breaker from 0.');
+
+    const entries = [];
+    for (let i = headerRow + 1; i < rows.length; i += 1) {
+      const r = rows[i] || [];
+      const name = clean(r[nameIdx]);
+      const points = parseNumber(r[pointsIdx]);
+      const empty = r.every((c) => clean(c) === '');
+      if (empty) {
+        if (entries.length) break;
+        continue;
+      }
+      if (!name) continue;
+      if (points == null) {
+        if (entries.length && normHeader(name) !== 'total') break;
+        continue;
+      }
+      entries.push({
+        name,
+        key: normName(name),
+        points,
+        exact: exactIdx >= 0 ? (parseNumber(r[exactIdx]) || 0) : 0,
+        result: resultIdx >= 0 ? (parseNumber(r[resultIdx]) || 0) : 0,
+        underOver: underOverIdx >= 0 ? (parseNumber(r[underOverIdx]) || 0) : 0,
+        rowNumber: i + 1
+      });
+    }
+    const byName = new Map();
+    entries.forEach((e) => byName.set(e.key, e));
+    return { headerRow, header: header.map(clean), indexes: { name: nameIdx, points: pointsIdx, exact: exactIdx, result: resultIdx, underOver: underOverIdx }, entries, byName };
   }
   function buildResults(rows) {
     return rows.slice(1).filter((r) => clean(r[3]) && clean(r[4])).map((r) => ({ key: fixtureKey(r[3], r[4]), home: clean(r[3]), away: clean(r[4]), completed: clean(r[10]) === '1' }));
@@ -126,7 +206,7 @@
     const rnd = mulberry32(seed); const counts = new Map();
     model.players.forEach((p) => counts.set(p.id, { id: p.id, name: p.name, currentPoints: p.currentPoints, winner: 0, top2: 0, top3: 0, top4: 0 }));
     for (let s = 0; s < simulations; s += 1) {
-      const totals = model.players.map((p) => ({ id: p.id, name: p.name, points: p.currentPoints, exact: 0, result: 0, underOver: 0 }));
+      const totals = model.players.map((p) => ({ id: p.id, name: p.name, points: p.currentPoints, exact: p.currentExact || 0, result: p.currentResult || 0, underOver: p.currentUnderOver || 0 }));
       model.fixtures.forEach((f) => { const actual = sampleScore(f.grid, rnd); totals.forEach((t) => { const sc = scorePrediction(f.predictions.get(t.id), actual); t.points += sc.points; t.exact += sc.exact; t.result += sc.result; t.underOver += sc.underOver; }); });
       const ranked = rankPlayers(totals); allocateCutoff(ranked, 1, 'winner'); allocateCutoff(ranked, 2, 'top2'); allocateCutoff(ranked, 3, 'top3'); allocateCutoff(ranked, 4, 'top4');
       ranked.forEach((r) => { const c = counts.get(r.id); c.winner += r.winner || 0; c.top2 += r.top2 || 0; c.top3 += r.top3 || 0; c.top4 += r.top4 || 0; });
@@ -135,7 +215,7 @@
       .sort((a, b) => (b.winnerPct - a.winnerPct) || (b.top2Pct - a.top2Pct) || (b.top3Pct - a.top3Pct) || (b.top4Pct - a.top4Pct) || (b.currentPoints - a.currentPoints));
   }
 
-  function api() { return { CONFIG, parseCsv, hashString, mulberry32, parseScoreline, resultFromScore, underOverFromScore, normalizeResult, normalizeUnderOver, normaliseOdds, scoreGrid, gridMarkets, fitPoisson, scorePrediction, allocateCutoff, rankPlayers, buildNameLookup, buildLeague, buildResults, buildOdds, fixtureKey, clean, normHeader, simulate }; }
+  function api() { return { CONFIG, parseCsv, hashString, mulberry32, parseScoreline, resultFromScore, underOverFromScore, normalizeResult, normalizeUnderOver, normaliseOdds, scoreGrid, gridMarkets, fitPoisson, scorePrediction, allocateCutoff, rankPlayers, buildNameLookup, buildLeague, buildResults, buildOdds, fixtureKey, clean, normHeader, normName, parseNumber, findLeagueHeaderRow, simulate }; }
   const exported = api();
   if (typeof module !== 'undefined') module.exports = exported;
   global.MCPredictProbability = exported;
