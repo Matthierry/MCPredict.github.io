@@ -24,7 +24,13 @@
 
   const clean = (v) => String(v == null ? '' : v).replace(/\u00a0/g, ' ').trim();
   const normHeader = (v) => clean(v).toLowerCase().replace(/[^a-z0-9]+/g, '');
-  const normName = (v) => clean(v).replace(/\s+/g, ' ').toLowerCase();
+  const normName = (v) => clean(v)
+    .normalize('NFKC')
+    .replace(/[\u2018\u2019\u201B\u2032]/g, "'")
+    .replace(/[\u201C\u201D\u2033]/g, '"')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s.,;:!?'"()[\]{}<>-]+|[\s.,;:!?'"()[\]{}<>-]+$/g, '')
+    .toLowerCase();
   const fixtureKey = (home, away) => `${clean(home).toLowerCase().replace(/[^a-z0-9]+/g, '')}|${clean(away).toLowerCase().replace(/[^a-z0-9]+/g, '')}`;
 
   function hashString(text) {
@@ -113,7 +119,7 @@
     return map;
   }
 
-  const POINT_HEADER_NAMES = new Set(['points', 'pts', 'total', 'totalpoints', 'score', 'currentpoints']);
+  const POINT_HEADER_NAMES = new Set(['points', 'pts', 'total', 'totalpoints', 'score', 'currentscore', 'currentpoints']);
   const NAME_HEADER_NAMES = new Set(['name', 'player', 'playername', 'manualname', 'entrant', 'entry', 'participant']);
   const EXACT_HEADER_NAMES = new Set(['correctscores', 'correctscore', 'exact', 'exactscores', 'cs']);
   const RESULT_HEADER_NAMES = new Set(['correctresults', 'correctresult', 'results', 'result', 'cr']);
@@ -126,6 +132,7 @@
     return Number.isFinite(n) ? n : null;
   }
   function firstHeaderIndex(header, names) { return header.findIndex((h) => names.has(normHeader(h))); }
+  function rowHasData(row) { return (row || []).some((c) => clean(c) !== ''); }
   function findLeagueHeaderRow(rows) {
     let nameOnly = -1;
     for (let i = 0; i < rows.length; i += 1) {
@@ -137,25 +144,52 @@
     }
     return nameOnly;
   }
+  function findPointsColumnByPosition(dataRows, nameIdx, warnings) {
+    const numeric = [];
+    const maxCols = dataRows.reduce((m, r) => Math.max(m, (r || []).length), 0);
+    for (let c = 0; c < maxCols; c += 1) {
+      if (c === nameIdx) continue;
+      const values = dataRows.map((r) => parseNumber((r || [])[c])).filter((n) => n != null);
+      if (values.length >= Math.max(3, Math.floor(dataRows.length * 0.6))) {
+        const max = Math.max(...values);
+        const min = Math.min(...values);
+        numeric.push({ index: c, values, max, min, integerish: values.every((n) => Math.abs(n - Math.round(n)) < 1e-9) });
+      }
+    }
+    const candidates = numeric.filter((c) => c.integerish && c.min >= 0).sort((a, b) => (b.index - a.index) || (b.max - a.max));
+    if (!candidates.length) return -1;
+    const picked = candidates[0];
+    warnings.push(`Current points column could not be identified by header; using numeric positional fallback column ${picked.index + 1}.`);
+    return picked.index;
+  }
   function buildLeague(rows, options) {
     const opts = options || {};
     const warnings = opts.warnings || [];
-    const headerRow = findLeagueHeaderRow(rows);
+    let headerRow = findLeagueHeaderRow(rows);
+    let usedRangeFallback = false;
     if (headerRow < 0) {
-      const message = 'Live league table header row not found.';
+      headerRow = 8;
+      usedRangeFallback = true;
+      warnings.push('Live table header row could not be found dynamically; using A9:F51 fallback.');
+    }
+    if (!rows[headerRow] || !rowHasData(rows[headerRow])) {
+      const message = 'Live table header row could not be found';
       warnings.push(message);
       throw new Error(message);
     }
     const header = rows[headerRow] || [];
     const nameIdx = firstHeaderIndex(header, NAME_HEADER_NAMES);
-    const pointsIdx = firstHeaderIndex(header, POINT_HEADER_NAMES);
-    if (pointsIdx < 0) {
-      const message = 'Live league table points column not found.';
+    if (nameIdx < 0) {
+      const message = 'Live table player/name column could not be identified';
       warnings.push(message);
       throw new Error(message);
     }
-    if (nameIdx < 0) {
-      const message = 'Live league table player-name column not found.';
+    const dataEnd = usedRangeFallback || headerRow === 8 ? Math.min(rows.length, 51) : rows.length;
+    const candidateRows = rows.slice(headerRow + 1, dataEnd).filter(rowHasData);
+    let pointsIdx = firstHeaderIndex(header, POINT_HEADER_NAMES);
+    if (pointsIdx < 0 && (usedRangeFallback || headerRow === 8)) pointsIdx = findPointsColumnByPosition(candidateRows, nameIdx, warnings);
+    if (pointsIdx < 0) {
+      const message = 'Current points column could not be identified (points column not found)';
       warnings.push(message);
       throw new Error(message);
     }
@@ -167,7 +201,7 @@
     if (underOverIdx < 0) warnings.push('Live league table under/over 2.5 column not found; starting that tie-breaker from 0.');
 
     const entries = [];
-    for (let i = headerRow + 1; i < rows.length; i += 1) {
+    for (let i = headerRow + 1; i < dataEnd; i += 1) {
       const r = rows[i] || [];
       const name = clean(r[nameIdx]);
       const points = parseNumber(r[pointsIdx]);
@@ -193,7 +227,7 @@
     }
     const byName = new Map();
     entries.forEach((e) => byName.set(e.key, e));
-    return { headerRow, header: header.map(clean), indexes: { name: nameIdx, points: pointsIdx, exact: exactIdx, result: resultIdx, underOver: underOverIdx }, entries, byName };
+    return { headerRow, header: header.map(clean), usedRangeFallback, dataRange: { startRow: headerRow + 2, endRow: dataEnd }, indexes: { name: nameIdx, points: pointsIdx, exact: exactIdx, result: resultIdx, underOver: underOverIdx }, entries, byName };
   }
   function buildResults(rows) {
     return rows.slice(1).filter((r) => clean(r[3]) && clean(r[4])).map((r) => ({ key: fixtureKey(r[3], r[4]), home: clean(r[3]), away: clean(r[4]), completed: clean(r[10]) === '1' }));
