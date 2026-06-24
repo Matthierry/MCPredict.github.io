@@ -112,6 +112,73 @@
   }
   function rankPlayers(players) { return players.slice().sort((a, b) => (b.points - a.points) || (b.exact - a.exact) || (b.result - a.result) || (b.underOver - a.underOver) || a.name.localeCompare(b.name)); }
 
+
+  const CANONICAL_HEADERS = ['Sub-Code', 'Manual Name', 'CS', 'MR', 'U/O', 'Total Score'];
+  function intPart(value) {
+    const n = parseNumber(value);
+    return n == null ? 0 : Math.floor(n + 0.000001);
+  }
+  function findCanonicalHeaderRow(rows) {
+    for (let i = 14; i < rows.length; i += 1) {
+      const headerKeys = new Set((rows[i] || []).map(normHeader));
+      if (CANONICAL_HEADERS.every((h) => headerKeys.has(normHeader(h)))) return i;
+    }
+    return 14;
+  }
+  function requireColumn(header, label) {
+    const idx = (header || []).findIndex((h) => normHeader(h) === normHeader(label));
+    if (idx < 0) throw new Error(label + ' column cannot be found');
+    return idx;
+  }
+  function optionalColumn(header, label) {
+    return (header || []).findIndex((h) => normHeader(h) === normHeader(label));
+  }
+  function buildCanonicalPlayers(rows, options) {
+    const opts = options || {};
+    const warnings = opts.warnings || [];
+    const headerRow = findCanonicalHeaderRow(rows);
+    const header = rows[headerRow] || [];
+    const detected = CANONICAL_HEADERS.every((h) => header.some((c) => normHeader(c) === normHeader(h)));
+    if (!rowHasData(header)) throw new Error('Canonical player table cannot be found');
+    const subCodeIdx = requireColumn(header, 'Sub-Code');
+    const manualNameIdx = requireColumn(header, 'Manual Name');
+    const totalScoreIdx = requireColumn(header, 'Total Score');
+    const rankIdx = optionalColumn(header, 'Rank');
+    const subNameIdx = optionalColumn(header, 'Sub Name');
+    const csIdx = optionalColumn(header, 'CS');
+    const mrIdx = optionalColumn(header, 'MR');
+    const uoIdx = optionalColumn(header, 'U/O');
+    const players = [];
+    const byId = new Map();
+    for (let i = headerRow + 1; i < rows.length; i += 1) {
+      const r = rows[i] || [];
+      if (!rowHasData(r)) { if (players.length) break; continue; }
+      const submissionId = clean(r[subCodeIdx]);
+      if (!submissionId) continue;
+      let displayName = clean(r[manualNameIdx]);
+      if (!displayName) {
+        displayName = clean(r[subNameIdx]) || submissionId;
+        warnings.push('Missing manual name for submission_id ' + submissionId + '; using fallback display name.');
+      }
+      const player = {
+        id: submissionId,
+        submissionId,
+        name: displayName,
+        displayName,
+        rank: rankIdx >= 0 ? clean(r[rankIdx]) : '',
+        currentPoints: intPart(r[totalScoreIdx]),
+        currentExact: csIdx >= 0 ? intPart(r[csIdx]) : 0,
+        currentResult: mrIdx >= 0 ? intPart(r[mrIdx]) : 0,
+        currentUnderOver: uoIdx >= 0 ? intPart(r[uoIdx]) : 0,
+        rowNumber: i + 1
+      };
+      players.push(player);
+      byId.set(submissionId, player);
+    }
+    if (!players.length) throw new Error('Zero valid players parsed');
+    return { headerRow, header: header.map(clean), detected, indexes: { subCode: subCodeIdx, manualName: manualNameIdx, totalScore: totalScoreIdx, rank: rankIdx, subName: subNameIdx, cs: csIdx, mr: mrIdx, uo: uoIdx }, players, byId };
+  }
+
   function buildNameLookup(rows, warnings) {
     const slice = rows.slice(14, 57); const header = slice[0] || []; const idIdx = header.findIndex((h) => normHeader(h) === 'submissionid'); const nameIdx = header.findIndex((h) => normHeader(h) === 'manualname');
     const map = new Map(); slice.slice(1).forEach((r) => { const id = clean(r[idIdx >= 0 ? idIdx : 0]); const nm = clean(r[nameIdx >= 0 ? nameIdx : 8]); if (id) map.set(id, nm); });
@@ -249,7 +316,7 @@
       .sort((a, b) => (b.winnerPct - a.winnerPct) || (b.top2Pct - a.top2Pct) || (b.top3Pct - a.top3Pct) || (b.top4Pct - a.top4Pct) || (b.currentPoints - a.currentPoints));
   }
 
-  function api() { return { CONFIG, parseCsv, hashString, mulberry32, parseScoreline, resultFromScore, underOverFromScore, normalizeResult, normalizeUnderOver, normaliseOdds, scoreGrid, gridMarkets, fitPoisson, scorePrediction, allocateCutoff, rankPlayers, buildNameLookup, buildLeague, buildResults, buildOdds, fixtureKey, clean, normHeader, normName, parseNumber, findLeagueHeaderRow, simulate }; }
+  function api() { return { CONFIG, parseCsv, hashString, mulberry32, parseScoreline, resultFromScore, underOverFromScore, normalizeResult, normalizeUnderOver, normaliseOdds, scoreGrid, gridMarkets, fitPoisson, scorePrediction, allocateCutoff, rankPlayers, buildCanonicalPlayers, findCanonicalHeaderRow, intPart, buildNameLookup, buildLeague, buildResults, buildOdds, fixtureKey, clean, normHeader, normName, parseNumber, findLeagueHeaderRow, simulate }; }
   const exported = api();
   if (typeof module !== 'undefined') module.exports = exported;
   global.MCPredictProbability = exported;
