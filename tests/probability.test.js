@@ -75,3 +75,21 @@ assert(fallbackWarnings.some((w) => /numeric positional fallback column 6/i.test
 
 assert.throws(() => P.buildLeague([['Name', 'Something'], ['Alice', '1']], { warnings: [] }), /points column not found/i);
 console.log('league parser tests passed');
+
+const canonicalRows = Array.from({ length: 18 }, () => []);
+canonicalRows[14] = ['A', 'B', 'Sub-Code', 'Sub Name', 'E', 'Manual Name', 'CS', 'MR', 'U/O', 'J', 'Total Score'];
+canonicalRows[15] = ['', '', 'ABC123', 'Fallback Name', '', 'Manual Player', '8.0004', '31.00031', '29.000029', '', '78.000931'];
+canonicalRows[16] = ['', '', 'DEF456', 'Sub Player', '', '', '1.9', '2.1', '3.999999', '', '10.75'];
+const canonicalWarnings = [];
+const canonical = P.buildCanonicalPlayers(canonicalRows, { warnings: canonicalWarnings });
+assert.strictEqual(canonical.headerRow, 14);
+assert.strictEqual(canonical.players.length, 2);
+assert.strictEqual(canonical.byId.get('ABC123').displayName, 'Manual Player');
+assert.strictEqual(canonical.byId.get('ABC123').currentPoints, 78);
+assert.strictEqual(canonical.byId.get('ABC123').currentCorrectScores, 8);
+assert.strictEqual(canonical.byId.get('ABC123').currentCorrectResults, 31);
+assert.strictEqual(canonical.byId.get('ABC123').currentUnderOvers, 29);
+assert.strictEqual(canonical.byId.get('DEF456').displayName, 'Sub Player');
+assert.strictEqual(canonical.byId.get('DEF456').currentPoints, 10);
+assert(canonicalWarnings.some((w) => /Missing manual name/i.test(w)));
+console.log('canonical lookup parser tests passed');
