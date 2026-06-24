@@ -167,6 +167,9 @@
         displayName,
         rank: rankIdx >= 0 ? clean(r[rankIdx]) : '',
         currentPoints: intPart(r[totalScoreIdx]),
+        currentCorrectScores: csIdx >= 0 ? intPart(r[csIdx]) : 0,
+        currentCorrectResults: mrIdx >= 0 ? intPart(r[mrIdx]) : 0,
+        currentUnderOvers: uoIdx >= 0 ? intPart(r[uoIdx]) : 0,
         currentExact: csIdx >= 0 ? intPart(r[csIdx]) : 0,
         currentResult: mrIdx >= 0 ? intPart(r[mrIdx]) : 0,
         currentUnderOver: uoIdx >= 0 ? intPart(r[uoIdx]) : 0,
@@ -307,7 +310,7 @@
     const rnd = mulberry32(seed); const counts = new Map();
     model.players.forEach((p) => counts.set(p.id, { id: p.id, name: p.name, currentPoints: p.currentPoints, winner: 0, top2: 0, top3: 0, top4: 0 }));
     for (let s = 0; s < simulations; s += 1) {
-      const totals = model.players.map((p) => ({ id: p.id, name: p.name, points: p.currentPoints, exact: p.currentExact || 0, result: p.currentResult || 0, underOver: p.currentUnderOver || 0 }));
+      const totals = model.players.map((p) => ({ id: p.id, name: p.name, points: p.currentPoints, exact: p.currentCorrectScores || p.currentExact || 0, result: p.currentCorrectResults || p.currentResult || 0, underOver: p.currentUnderOvers || p.currentUnderOver || 0 }));
       model.fixtures.forEach((f) => { const actual = sampleScore(f.grid, rnd); totals.forEach((t) => { const sc = scorePrediction(f.predictions.get(t.id), actual); t.points += sc.points; t.exact += sc.exact; t.result += sc.result; t.underOver += sc.underOver; }); });
       const ranked = rankPlayers(totals); allocateCutoff(ranked, 1, 'winner'); allocateCutoff(ranked, 2, 'top2'); allocateCutoff(ranked, 3, 'top3'); allocateCutoff(ranked, 4, 'top4');
       ranked.forEach((r) => { const c = counts.get(r.id); c.winner += r.winner || 0; c.top2 += r.top2 || 0; c.top3 += r.top3 || 0; c.top4 += r.top4 || 0; });
