@@ -40,3 +40,24 @@ assert.deepStrictEqual(a, b);
 assert(Math.abs(a.reduce((s,r)=>s+r.winnerPct,0)-100) < 1e-9);
 assert(Math.abs(a.reduce((s,r)=>s+r.top2Pct,0)-200) < 1e-9);
 console.log('probability tests passed');
+
+const leagueRows = [
+  ['Title'],
+  ['Updated'],
+  ['', '', '', '', '', ''],
+  ['Rank', 'Player', 'Correct Scores', 'Correct Results', 'Correct U/O 2.5', 'Pts'],
+  ['1', ' Alice\u00a0 Smith ', '3', '5', '7', '18'],
+  ['2', 'BOB JONES', '1', '2', '3', '9'],
+  ['', '', '', '', '', '']
+];
+const leagueWarnings = [];
+const league = P.buildLeague(leagueRows, { warnings: leagueWarnings });
+assert.strictEqual(league.headerRow, 3);
+assert.strictEqual(league.indexes.name, 1);
+assert.strictEqual(league.indexes.points, 5);
+assert.strictEqual(league.byName.get(P.normName('alice smith')).points, 18);
+assert.strictEqual(league.byName.get(P.normName(' alice   smith ')).exact, 3);
+assert.strictEqual(league.byName.get(P.normName('bob jones')).underOver, 3);
+
+assert.throws(() => P.buildLeague([['Name', 'Something'], ['Alice', '1']], { warnings: [] }), /points column not found/i);
+console.log('league parser tests passed');
