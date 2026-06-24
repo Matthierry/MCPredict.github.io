@@ -59,5 +59,19 @@ assert.strictEqual(league.byName.get(P.normName('alice smith')).points, 18);
 assert.strictEqual(league.byName.get(P.normName(' alice   smith ')).exact, 3);
 assert.strictEqual(league.byName.get(P.normName('bob jones')).underOver, 3);
 
+const rangeFallbackRows = Array.from({ length: 55 }, () => ['', '', '', '', '', '']);
+rangeFallbackRows[8] = ['Rank', 'Player', 'Correct Scores', 'Correct Results', 'Correct U/O 2.5', 'Live Total'];
+rangeFallbackRows[9] = ['1', ' Charlie O\u2019Neil ', '2', '4', '5', '15'];
+rangeFallbackRows[10] = ['2', ' Dana Smith ', '1', '3', '4', '11'];
+rangeFallbackRows[50] = ['43', ' Last Player ', '0', '1', '2', '3'];
+rangeFallbackRows[51] = ['44', ' Outside Range ', '9', '9', '9', '99'];
+const fallbackWarnings = [];
+const fallbackLeague = P.buildLeague(rangeFallbackRows, { warnings: fallbackWarnings });
+assert.strictEqual(fallbackLeague.headerRow, 8);
+assert.strictEqual(fallbackLeague.indexes.points, 5);
+assert.strictEqual(fallbackLeague.byName.get(P.normName("charlie o'neil")).points, 15);
+assert.strictEqual(fallbackLeague.byName.has(P.normName('Outside Range')), false);
+assert(fallbackWarnings.some((w) => /numeric positional fallback column 6/i.test(w)));
+
 assert.throws(() => P.buildLeague([['Name', 'Something'], ['Alice', '1']], { warnings: [] }), /points column not found/i);
 console.log('league parser tests passed');
