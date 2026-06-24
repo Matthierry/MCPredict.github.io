@@ -16,6 +16,7 @@
     { label: 'Rules', href: '/wc26/rules/' },
     { label: 'League Table', href: '/wc26/table/' },
     { label: 'Predictions', href: '/wc26/predictions/' },
+    { label: 'Probability', href: '/wc26/probability/' },
     { label: 'AI Hub', href: '/wc26/ai/' },
     { label: 'Hall Of Fame', href: '/wc26/halloffame/' }
   ];
