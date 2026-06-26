@@ -178,75 +178,6 @@
     }
     .is-hidden { display: none !important; }
 
-    .wc26-probability-popup-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      background: rgba(6,7,9,.72);
-      backdrop-filter: blur(3px);
-    }
-    .wc26-probability-popup {
-      width: min(100%, 390px);
-      border: 1px solid rgba(242,152,12,.38);
-      border-radius: 18px;
-      background: linear-gradient(145deg, rgba(48,49,56,.98), rgba(22,23,27,.98));
-      box-shadow: 0 22px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.04) inset;
-      padding: 20px;
-      text-align: center;
-    }
-    .wc26-probability-popup-accent {
-      width: 54px;
-      height: 4px;
-      margin: 0 auto 14px;
-      border-radius: 999px;
-      background: linear-gradient(135deg,#f7931a,var(--wc26-gold));
-    }
-    .wc26-probability-popup p {
-      margin: 0;
-      color: #f3f3f4;
-      font-size: 1.02rem;
-      font-weight: 700;
-      line-height: 1.42;
-    }
-    .wc26-probability-popup-actions {
-      display: grid;
-      gap: 10px;
-      margin-top: 18px;
-    }
-    .wc26-probability-popup-button {
-      min-height: 46px;
-      border: 1px solid rgba(255,255,255,.14);
-      border-radius: 999px;
-      cursor: pointer;
-      font: inherit;
-      font-weight: 800;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 11px 16px;
-      transition: transform .15s ease, border-color .15s ease, background .15s ease;
-    }
-    .wc26-probability-popup-button:focus-visible {
-      outline: 3px solid rgba(242,152,12,.48);
-      outline-offset: 3px;
-    }
-    .wc26-probability-popup-button:hover { transform: translateY(-1px); }
-    .wc26-probability-popup-button.primary {
-      color: #17110a;
-      background: linear-gradient(135deg,#f7931a,var(--wc26-gold));
-      border-color: rgba(247,147,26,.75);
-      box-shadow: 0 10px 24px rgba(247,147,26,.18);
-    }
-    .wc26-probability-popup-button.secondary {
-      color: #d6d8dd;
-      background: rgba(255,255,255,.05);
-    }
-
     @media (min-width: 780px) {
       .wc26-scoring-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .wc26-scoring-item.featured { grid-column: auto; }
@@ -326,18 +257,6 @@
       </div>
     </section>
   </main>
-
-  <div id="wc26ProbabilityPopupBackdrop" class="wc26-probability-popup-backdrop is-hidden" aria-hidden="true">
-    <div class="wc26-probability-popup" role="dialog" aria-modal="true" aria-labelledby="wc26ProbabilityPopupTitle">
-      <div class="wc26-probability-popup-accent" aria-hidden="true"></div>
-      <p id="wc26ProbabilityPopupTitle">Every time the table updates I run 25,000 simulations of how the league table could finish</p>
-      <div class="wc26-probability-popup-actions">
-        <a class="wc26-probability-popup-button primary" id="wc26ProbabilityPopupCheck" href="/wc26/probability/">Check it out</a>
-        <button class="wc26-probability-popup-button secondary" id="wc26ProbabilityPopupLater" type="button">Maybe later</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     (function () {
       const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnj0ijqFw0UVhYOounuFrNdreTFovKqTTbYnnVvq_12RRwYxN8atQE3PkQJJSbPaBiM9JQyCSCioiZ/pub?gid=1983601487&single=true&output=csv';
@@ -479,46 +398,6 @@
       loadLeagueTable();
     })();
   </script>
-
-  <script>
-    (function () {
-      const POPUP_SEEN_KEY = 'mcpredict_wc26_probability_popup_seen';
-      const backdropEl = document.getElementById('wc26ProbabilityPopupBackdrop');
-      const checkItOutEl = document.getElementById('wc26ProbabilityPopupCheck');
-      const maybeLaterEl = document.getElementById('wc26ProbabilityPopupLater');
-      const popupEl = backdropEl ? backdropEl.querySelector('.wc26-probability-popup') : null;
-
-      if (!backdropEl || !checkItOutEl || !maybeLaterEl || !popupEl) return;
-
-      function markSeen() {
-        try { window.localStorage.setItem(POPUP_SEEN_KEY, 'true'); } catch (error) {}
-      }
-
-      function closePopup() {
-        markSeen();
-        backdropEl.classList.add('is-hidden');
-        backdropEl.setAttribute('aria-hidden', 'true');
-      }
-
-      try {
-        if (window.localStorage.getItem(POPUP_SEEN_KEY) === 'true') return;
-      } catch (error) {}
-
-      backdropEl.classList.remove('is-hidden');
-      backdropEl.setAttribute('aria-hidden', 'false');
-      window.setTimeout(function () { checkItOutEl.focus(); }, 0);
-
-      maybeLaterEl.addEventListener('click', closePopup);
-      checkItOutEl.addEventListener('click', markSeen);
-      backdropEl.addEventListener('click', function (event) {
-        if (event.target === backdropEl) closePopup();
-      });
-      document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape' && !backdropEl.classList.contains('is-hidden')) closePopup();
-      });
-    })();
-  </script>
-
   <script src="/menu-config.js"></script>
   <script src="/site.js"></script>
 </body>
