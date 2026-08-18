@@ -52,12 +52,15 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
     const count = await cards.count();
     if (count > 0) {
       const firstTrigger = page.locator(".prediction-card__trigger").first();
+      await expect(firstTrigger.locator(".prediction-card__summary > div")).toHaveCount(4);
       await firstTrigger.click();
       await expect(firstTrigger).toHaveAttribute("aria-expanded", "true");
-      await expect(page.getByRole("button", { name: "↑ Close analysis" })).toBeVisible();
-      await expect(page.locator(".probability-panel")).toHaveCount(2);
+      await expect(firstTrigger.getByText("Analysis open")).toBeVisible();
+      await expect(page.locator(".probability-comparison")).toHaveCount(1);
+      await expect(page.getByText("Bookmaker (pre-overround)", { exact: true })).toBeVisible();
+      await expect(page.locator(".metric-compare")).toHaveCount(3);
       await expectNoHorizontalOverflow(page, 390);
-      await page.getByRole("button", { name: "↑ Close analysis" }).click();
+      await firstTrigger.click();
       await expect(firstTrigger).toHaveAttribute("aria-expanded", "false");
     } else {
       await expect(page.locator(".filter-empty, .availability-note")).toBeVisible();
