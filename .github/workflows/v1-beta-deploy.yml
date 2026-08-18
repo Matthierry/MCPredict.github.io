@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: mcpredict-v1-beta
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy-beta:
@@ -183,10 +183,6 @@ jobs:
           RUN_BETA_LIVE_QA: "1"
         run: npx vitest run tests/beta-live.integration.test.ts
 
-      - name: Install beta QA browser
-        if: steps.credentials.outputs.available == 'true'
-        run: npx playwright install --with-deps chromium
-
       - name: Deployed responsive and interaction QA
         if: steps.credentials.outputs.available == 'true'
         run: npx playwright test --config=playwright.live.config.ts
@@ -196,9 +192,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          chrome_path="$(command -v google-chrome || command -v chromium || find "$HOME/.cache/ms-playwright" -type f -name chrome | head -n 1)"
+          chrome_path="$(command -v google-chrome || command -v chromium)"
           if [[ -z "$chrome_path" ]]; then
-            echo "No Chrome/Chromium executable found for Lighthouse." >&2
+            echo "No hosted Chrome/Chromium executable found for Lighthouse." >&2
             exit 1
           fi
           export CHROME_PATH="$chrome_path"
