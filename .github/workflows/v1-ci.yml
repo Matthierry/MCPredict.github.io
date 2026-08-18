@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: mcpredict-v1-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -70,8 +74,6 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Install browser
-        run: npx playwright install --with-deps chromium
       - name: Build application
         run: npm run build
       - name: Responsive and interaction QA
@@ -97,9 +99,9 @@ jobs:
             exit 1
           fi
 
-          chrome_path="$(command -v google-chrome || command -v chromium || find "$HOME/.cache/ms-playwright" -type f -name chrome | head -n 1)"
+          chrome_path="$(command -v google-chrome || command -v chromium)"
           if [[ -z "$chrome_path" ]]; then
-            echo "No Chrome/Chromium executable found for Lighthouse." >&2
+            echo "No hosted Chrome/Chromium executable found for Lighthouse." >&2
             exit 1
           fi
           export CHROME_PATH="$chrome_path"
