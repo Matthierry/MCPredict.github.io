@@ -20,7 +20,7 @@
     {
       "binding": "DB",
       "database_name": "mcpredict-beta-db",
-      "database_id": "REPLACE_WITH_BETA_D1_DATABASE_ID",
+      "database_id": "8573cc1a-5660-4b3b-8c77-6f805ec36aff",
       "migrations_dir": "migrations"
     }
   ],
