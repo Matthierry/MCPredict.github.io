@@ -40,3 +40,75 @@ jobs:
           PY
           trap 'rm -f wrangler.ci.jsonc' EXIT
           npx wrangler deploy --dry-run --outdir /tmp/mcpredict-worker-dryrun --config wrangler.ci.jsonc
+
+  ui-qa:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Build application
+        run: npm run build
+      - name: Responsive and interaction QA
+        run: npm run test:ui
+      - name: Lighthouse quality gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/mock-server.mjs > /tmp/mcpredict-qa-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+          ready=false
+          for _ in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/api/v1/health > /dev/null; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          if [[ "$ready" != "true" ]]; then
+            cat /tmp/mcpredict-qa-server.log
+            exit 1
+          fi
+
+          chrome_path="$(command -v google-chrome || command -v chromium || find "$HOME/.cache/ms-playwright" -type f -name chrome | head -n 1)"
+          if [[ -z "$chrome_path" ]]; then
+            echo "No Chrome/Chromium executable found for Lighthouse." >&2
+            exit 1
+          fi
+          export CHROME_PATH="$chrome_path"
+
+          npx lighthouse http://127.0.0.1:4173/ \
+            --quiet \
+            --output=json \
+            --output-path=/tmp/lighthouse.json \
+            --only-categories=performance,accessibility,best-practices \
+            --chrome-flags="--headless --no-sandbox --disable-gpu"
+
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(fs.readFileSync('/tmp/lighthouse.json', 'utf8'));
+          const scores = {
+            performance: report.categories.performance.score,
+            accessibility: report.categories.accessibility.score,
+            bestPractices: report.categories['best-practices'].score
+          };
+          console.log('Lighthouse scores', Object.fromEntries(Object.entries(scores).map(([key, value]) => [key, Math.round(value * 100)])));
+          const failures = [];
+          if (scores.performance < 0.90) failures.push(`Performance ${Math.round(scores.performance * 100)} < 90`);
+          if (scores.accessibility < 0.95) failures.push(`Accessibility ${Math.round(scores.accessibility * 100)} < 95`);
+          if (scores.bestPractices < 0.95) failures.push(`Best Practices ${Math.round(scores.bestPractices * 100)} < 95`);
+          if (failures.length) {
+            console.error(failures.join('\n'));
+            process.exit(1);
+          }
+          NODE
