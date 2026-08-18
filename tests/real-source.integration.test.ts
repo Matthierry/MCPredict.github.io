@@ -1,8 +1,9 @@
 import Papa from "papaparse";
 import { describe, expect, it } from "vitest";
-import { normalizeSourceRows } from "../worker/normalize";
+import { normalizeSourceRows, selectedOuProbability } from "../worker/normalize";
 import {
   cleanCell,
+  impliedProbabilityFromDecimalOdds,
   normalizeKickoff,
   parseDecimal,
   parseEdgePercentagePoints,
@@ -24,10 +25,10 @@ function parseCsv(text: string): string[][] {
 }
 
 function normalizeMatchSelection(value: unknown) {
-  const raw = cleanCell(value).toLowerCase();
-  if (raw === "home") return "Home";
+  const raw = cleanCell(value).toLowerCase().replace(/\s+/g, " ");
+  if (raw === "home" || raw === "home win" || raw === "homewin") return "Home";
   if (raw === "draw") return "Draw";
-  if (raw === "away") return "Away";
+  if (raw === "away" || raw === "away win" || raw === "awaywin") return "Away";
   return null;
 }
 
@@ -67,6 +68,10 @@ realQa("current published Google CSV sources", () => {
       expect(normalized.validFixtureCount).toBeGreaterThan(0);
     }
 
+    // Match Result is a required V1 market. If live AQ values change format again,
+    // this assertion must fail loudly rather than allowing the site to ship empty.
+    expect(normalized.validMatchResultCount).toBeGreaterThan(0);
+
     console.log("REAL_SOURCE_SUMMARY", {
       rows: rows.length,
       maxWidth,
@@ -79,58 +84,7 @@ realQa("current published Google CSV sources", () => {
       diagnostics: normalized.diagnostics.length
     });
 
-    const matchRawCounts = new Map<string, number>();
-    const matchExamples: Array<Record<string, string>> = [];
-    for (const row of rows) {
-      const marketId = cleanCell(getCell(row, "marketId"));
-      const edge = cleanCell(getCell(row, "matchEdge"));
-      const rawPrediction = cleanCell(getCell(row, "matchPrediction"));
-      if (!marketId || !edge) continue;
-      matchRawCounts.set(rawPrediction || "<blank>", (matchRawCounts.get(rawPrediction || "<blank>") ?? 0) + 1);
-      if (matchExamples.length < 12) {
-        matchExamples.push({
-          marketId,
-          home: cleanCell(getCell(row, "homeTeam")),
-          away: cleanCell(getCell(row, "awayTeam")),
-          aq: rawPrediction,
-          ag: edge,
-          ai: cleanCell(getCell(row, "matchBookmakerPrice")),
-          ak: cleanCell(getCell(row, "matchModelPrice")),
-          as: cleanCell(getCell(row, "matchModelHomeProbability")),
-          at: cleanCell(getCell(row, "matchModelDrawProbability")),
-          au: cleanCell(getCell(row, "matchModelAwayProbability")),
-          bd: cleanCell(getCell(row, "matchValueClassification")),
-          s: cleanCell(getCell(row, "matchBookmakerHomeProbability")),
-          t: cleanCell(getCell(row, "matchBookmakerDrawProbability")),
-          u: cleanCell(getCell(row, "matchBookmakerAwayProbability"))
-        });
-      }
-    }
-    console.log("MATCH_SOURCE_DIAGNOSTIC", {
-      distinctAQ: Array.from(matchRawCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 20),
-      examples: matchExamples
-    });
-
-    const norwichRow = rows.find((row) => {
-      return cleanCell(getCell(row, "homeTeam")).toLowerCase() === "norwich" &&
-        cleanCell(getCell(row, "awayTeam")).toLowerCase() === "west brom";
-    });
-    if (norwichRow) {
-      console.log("NORWICH_WEST_BROM_SOURCE_DIAGNOSTIC", {
-        marketId: cleanCell(getCell(norwichRow, "marketId")),
-        ar: cleanCell(getCell(norwichRow, "ouPrediction")),
-        v: cleanCell(getCell(norwichRow, "ouBookmakerOverProbability")),
-        w: cleanCell(getCell(norwichRow, "ouBookmakerUnderProbability")),
-        am: cleanCell(getCell(norwichRow, "ouBookmakerPrice")),
-        ao: cleanCell(getCell(norwichRow, "ouModelPrice")),
-        bj: cleanCell(getCell(norwichRow, "ouModelUnderProbability")),
-        bk: cleanCell(getCell(norwichRow, "ouModelOverProbability")),
-        ah: cleanCell(getCell(norwichRow, "ouEdge")),
-        bg: cleanCell(getCell(norwichRow, "ouValueClassification"))
-      });
-    }
-
-    const auditPredictions = normalized.predictions.slice(0, 5);
+    const auditPredictions = normalized.predictions.filter((prediction) => prediction.matchValid || prediction.ouValid).slice(0, 8);
     const rawByMarketId = new Map<string, string[]>();
     for (const row of rows) {
       const id = cleanCell(getCell(row, "marketId"));
@@ -155,9 +109,9 @@ realQa("current published Google CSV sources", () => {
         expect(parsePercentage(getCell(raw, "matchModelHomeProbability"))).toBe(prediction.matchModelHomeProbability);
         expect(parsePercentage(getCell(raw, "matchModelDrawProbability"))).toBe(prediction.matchModelDrawProbability);
         expect(parsePercentage(getCell(raw, "matchModelAwayProbability"))).toBe(prediction.matchModelAwayProbability);
-        expect(parsePercentage(getCell(raw, "matchBookmakerHomeProbability"))).toBe(prediction.matchBookmakerHomeProbability);
-        expect(parsePercentage(getCell(raw, "matchBookmakerDrawProbability"))).toBe(prediction.matchBookmakerDrawProbability);
-        expect(parsePercentage(getCell(raw, "matchBookmakerAwayProbability"))).toBe(prediction.matchBookmakerAwayProbability);
+        expect(impliedProbabilityFromDecimalOdds(getCell(raw, "matchBookmakerHomeProbability"))).toBe(prediction.matchBookmakerHomeProbability);
+        expect(impliedProbabilityFromDecimalOdds(getCell(raw, "matchBookmakerDrawProbability"))).toBe(prediction.matchBookmakerDrawProbability);
+        expect(impliedProbabilityFromDecimalOdds(getCell(raw, "matchBookmakerAwayProbability"))).toBe(prediction.matchBookmakerAwayProbability);
         expect(parseDecimal(getCell(raw, "matchBookmakerPrice"))).toBe(prediction.matchBookmakerPrice);
         expect(parseDecimal(getCell(raw, "matchModelPrice"))).toBe(prediction.matchModelPrice);
         expect(parseEdgePercentagePoints(getCell(raw, "matchEdge"))).toBe(prediction.matchEdge);
@@ -168,8 +122,8 @@ realQa("current published Google CSV sources", () => {
         expect(normalizeOuSelection(getCell(raw, "ouPrediction"))).toBe(prediction.ouPrediction);
         expect(parsePercentage(getCell(raw, "ouModelUnderProbability"))).toBe(prediction.ouModelUnderProbability);
         expect(parsePercentage(getCell(raw, "ouModelOverProbability"))).toBe(prediction.ouModelOverProbability);
-        expect(parsePercentage(getCell(raw, "ouBookmakerOverProbability"))).toBe(prediction.ouBookmakerOverProbability);
-        expect(parsePercentage(getCell(raw, "ouBookmakerUnderProbability"))).toBe(prediction.ouBookmakerUnderProbability);
+        expect(impliedProbabilityFromDecimalOdds(getCell(raw, "ouBookmakerOverProbability"))).toBe(prediction.ouBookmakerOverProbability);
+        expect(impliedProbabilityFromDecimalOdds(getCell(raw, "ouBookmakerUnderProbability"))).toBe(prediction.ouBookmakerUnderProbability);
         expect(parseDecimal(getCell(raw, "ouBookmakerPrice"))).toBe(prediction.ouBookmakerPrice);
         expect(parseDecimal(getCell(raw, "ouModelPrice"))).toBe(prediction.ouModelPrice);
         expect(parseEdgePercentagePoints(getCell(raw, "ouEdge"))).toBe(prediction.ouEdge);
@@ -195,6 +149,31 @@ realQa("current published Google CSV sources", () => {
         matchEdge: prediction.matchEdge,
         ouPrediction: prediction.ouPrediction,
         ouEdge: prediction.ouEdge
+      });
+    }
+
+    const norwich = normalized.predictions.find(
+      (prediction) => prediction.homeTeam === "Norwich" && prediction.awayTeam === "West Brom"
+    );
+    expect(norwich, "Norwich v West Brom live regression fixture is missing").toBeTruthy();
+    if (norwich) {
+      expect(norwich.matchPrediction).toBe("Home");
+      expect(norwich.matchValid).toBe(true);
+      expect(norwich.ouPrediction).toBe("Under 2.5");
+      expect(norwich.ouValid).toBe(true);
+      expect(norwich.ouModelPrice).toBeCloseTo(1.42);
+      expect(selectedOuProbability(norwich)).toBeCloseTo(1 / 1.42);
+      expect(norwich.ouBookmakerOverProbability).toBeCloseTo(1 / 1.88);
+      expect(norwich.ouBookmakerUnderProbability).toBeCloseTo(1 / 1.84);
+      expect(norwich.ouBookmakerPrice).toBeCloseTo(1.84);
+      expect(norwich.ouEdge).toBeCloseTo(16.07);
+      console.log("NORWICH_WEST_BROM_REGRESSION", {
+        modelPrice: norwich.ouModelPrice,
+        modelSelectedProbability: selectedOuProbability(norwich),
+        bookmakerPrice: norwich.ouBookmakerPrice,
+        bookmakerOverProbability: norwich.ouBookmakerOverProbability,
+        bookmakerUnderProbability: norwich.ouBookmakerUnderProbability,
+        edge: norwich.ouEdge
       });
     }
   }, 30_000);
