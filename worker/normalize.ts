@@ -1,6 +1,7 @@
 import { getCell } from "./source-columns";
 import {
   cleanCell,
+  impliedProbabilityFromDecimalOdds,
   isSpreadsheetError,
   normalizeKickoff,
   parseDecimal,
@@ -17,10 +18,10 @@ import type {
 } from "./types";
 
 function normalizeMatchSelection(value: unknown): MatchSelection | null {
-  const raw = cleanCell(value).toLowerCase();
-  if (raw === "home") return "Home";
+  const raw = cleanCell(value).toLowerCase().replace(/\s+/g, " ");
+  if (raw === "home" || raw === "home win" || raw === "homewin") return "Home";
   if (raw === "draw") return "Draw";
-  if (raw === "away") return "Away";
+  if (raw === "away" || raw === "away win" || raw === "awaywin") return "Away";
   return null;
 }
 
@@ -89,9 +90,12 @@ function isHeaderLike(row: string[]): boolean {
   return (
     id === "market id" ||
     id === "marketid" ||
+    id === "market identifier" ||
     home === "home team" ||
+    home === "hometeam" ||
     home === "home" ||
     away === "away team" ||
+    away === "awayteam" ||
     away === "away"
   );
 }
@@ -161,13 +165,13 @@ function normalizeRow(
   const matchModelDrawProbability = parsePercentage(getCell(row, "matchModelDrawProbability"));
   const matchModelAwayProbability = parsePercentage(getCell(row, "matchModelAwayProbability"));
   const matchModelPrice = parseDecimal(getCell(row, "matchModelPrice"));
-  const matchBookmakerHomeProbability = parsePercentage(
+  const matchBookmakerHomeProbability = impliedProbabilityFromDecimalOdds(
     getCell(row, "matchBookmakerHomeProbability")
   );
-  const matchBookmakerDrawProbability = parsePercentage(
+  const matchBookmakerDrawProbability = impliedProbabilityFromDecimalOdds(
     getCell(row, "matchBookmakerDrawProbability")
   );
-  const matchBookmakerAwayProbability = parsePercentage(
+  const matchBookmakerAwayProbability = impliedProbabilityFromDecimalOdds(
     getCell(row, "matchBookmakerAwayProbability")
   );
   const matchBookmakerPrice = parseDecimal(getCell(row, "matchBookmakerPrice"));
@@ -213,10 +217,10 @@ function normalizeRow(
   const ouModelOverProbability = parsePercentage(getCell(row, "ouModelOverProbability"));
   const ouModelUnderProbability = parsePercentage(getCell(row, "ouModelUnderProbability"));
   const ouModelPrice = parseDecimal(getCell(row, "ouModelPrice"));
-  const ouBookmakerOverProbability = parsePercentage(
+  const ouBookmakerOverProbability = impliedProbabilityFromDecimalOdds(
     getCell(row, "ouBookmakerOverProbability")
   );
-  const ouBookmakerUnderProbability = parsePercentage(
+  const ouBookmakerUnderProbability = impliedProbabilityFromDecimalOdds(
     getCell(row, "ouBookmakerUnderProbability")
   );
   const ouBookmakerPrice = parseDecimal(getCell(row, "ouBookmakerPrice"));
@@ -367,14 +371,10 @@ export async function canonicalDatasetHash(
 
 export function selectedMatchProbability(prediction: NormalizedPrediction): number | null {
   if (!prediction.matchPrediction) return null;
-  if (prediction.matchPrediction === "Home") return prediction.matchModelHomeProbability;
-  if (prediction.matchPrediction === "Draw") return prediction.matchModelDrawProbability;
-  return prediction.matchModelAwayProbability;
+  return impliedProbabilityFromDecimalOdds(prediction.matchModelPrice);
 }
 
 export function selectedOuProbability(prediction: NormalizedPrediction): number | null {
   if (!prediction.ouPrediction) return null;
-  return prediction.ouPrediction === "Over 2.5"
-    ? prediction.ouModelOverProbability
-    : prediction.ouModelUnderProbability;
+  return impliedProbabilityFromDecimalOdds(prediction.ouModelPrice);
 }
