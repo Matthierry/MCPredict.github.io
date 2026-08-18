@@ -45,8 +45,8 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
     await page.goto(route, { waitUntil: "networkidle" });
     await expect(page.getByRole("button", { name: "VALUE", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toBeVisible();
-    await expect(page.getByLabel("Date")).toBeVisible();
-    await expect(page.getByLabel("Prediction")).toBeVisible();
+    await expect(page.getByLabel("Date", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Prediction", { exact: true })).toBeVisible();
 
     const cards = page.locator(".prediction-card");
     const count = await cards.count();
