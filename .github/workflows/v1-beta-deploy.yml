@@ -174,17 +174,80 @@ jobs:
           health="$(curl --fail-with-body --retry 36 --retry-delay 5 --retry-all-errors https://beta.mcpredict.com/api/v1/health)"
           home="$(curl --fail-with-body --retry 36 --retry-delay 5 --retry-all-errors https://beta.mcpredict.com/api/v1/home)"
 
-          echo "$health" | jq -e '.status == "ok" and .database == "ok"' > /dev/null
+          echo "$health" | jq -e '.status == "ok" and .database == "ok" and .activeDataset == true' > /dev/null
           echo "$home" | jq -e 'has("fixturesProcessed") and has("topMatchResult") and has("topOverUnder25") and has("hasPredictions")' > /dev/null
 
+      - name: Reconcile deployed beta with published sources
+        if: steps.credentials.outputs.available == 'true'
+        env:
+          RUN_BETA_LIVE_QA: "1"
+        run: npx vitest run tests/beta-live.integration.test.ts
+
+      - name: Install beta QA browser
+        if: steps.credentials.outputs.available == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Deployed responsive and interaction QA
+        if: steps.credentials.outputs.available == 'true'
+        run: npx playwright test --config=playwright.live.config.ts
+
+      - name: Lighthouse beta quality gates
+        if: steps.credentials.outputs.available == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          chrome_path="$(command -v google-chrome || command -v chromium || find "$HOME/.cache/ms-playwright" -type f -name chrome | head -n 1)"
+          if [[ -z "$chrome_path" ]]; then
+            echo "No Chrome/Chromium executable found for Lighthouse." >&2
+            exit 1
+          fi
+          export CHROME_PATH="$chrome_path"
+
+          npx lighthouse https://beta.mcpredict.com/ \
+            --quiet \
+            --output=json \
+            --output-path=/tmp/lighthouse-beta.json \
+            --only-categories=performance,accessibility,best-practices \
+            --chrome-flags="--headless --no-sandbox --disable-gpu"
+
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(fs.readFileSync('/tmp/lighthouse-beta.json', 'utf8'));
+          const scores = {
+            performance: report.categories.performance.score,
+            accessibility: report.categories.accessibility.score,
+            bestPractices: report.categories['best-practices'].score
+          };
+          const rounded = Object.fromEntries(Object.entries(scores).map(([key, value]) => [key, Math.round(value * 100)]));
+          console.log('BETA_LIGHTHOUSE', rounded);
+          const failures = [];
+          if (scores.performance < 0.90) failures.push(`Performance ${rounded.performance} < 90`);
+          if (scores.accessibility < 0.95) failures.push(`Accessibility ${rounded.accessibility} < 95`);
+          if (scores.bestPractices < 0.95) failures.push(`Best Practices ${rounded.bestPractices} < 95`);
+          if (failures.length) {
+            console.error(failures.join('\n'));
+            process.exit(1);
+          }
+          NODE
+
+      - name: Beta verification summary
+        if: steps.credentials.outputs.available == 'true'
+        shell: bash
+        run: |
           {
             echo "## MC Predict beta deployment"
             echo
-            echo "Deployment and real-data ingestion completed successfully."
+            echo "Deployment, real-data ingestion and beta QA completed successfully."
             echo
             echo "- Worker: mcpredict-beta"
             echo "- D1: mcpredict-beta-db"
+            echo "- D1 ID: ${{ steps.d1.outputs.database_id }}"
             echo "- Domain: https://beta.mcpredict.com"
-            echo "- Health endpoint: passed"
-            echo "- Home API endpoint: passed"
+            echo "- Health API: passed"
+            echo "- Home API: passed"
+            echo "- Source-to-beta Market ID reconciliation: passed"
+            echo "- Responsive deployed UI QA: passed"
+            echo "- Lighthouse gates: passed"
+            echo
+            echo "Production/root/www were not modified."
           } >> "$GITHUB_STEP_SUMMARY"
