@@ -130,7 +130,7 @@ test("direct SPA navigation and refresh work for public routes", async ({ page }
   await expect(page.getByRole("button", { name: "PROBABILITY" })).toHaveAttribute("aria-pressed", "true");
 });
 
-test("filter-empty and API-failure states are distinct and calm", async ({ page }) => {
+test("filter-empty and API-failure states are distinct and calm", async ({ page, browser }) => {
   await page.route("**/api/v1/predictions/match-result", async (route) => {
     await route.fulfill({
       status: 200,
@@ -142,13 +142,14 @@ test("filter-empty and API-failure states are distinct and calm", async ({ page 
   await expect(page.getByText(/No predictions are available right now/i)).toBeVisible();
   await expect(page.getByRole("button", { name: "Try again" })).toHaveCount(0);
 
-  const secondPage = await page.context().newPage();
+  const secondContext = await browser.newContext();
+  const secondPage = await secondContext.newPage();
   await secondPage.route("**/api/v1/predictions/match-result", async (route) => {
     await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "internal detail" }) });
   });
-  await secondPage.goto("/match-result");
+  await secondPage.goto("http://127.0.0.1:4173/match-result");
   await expect(secondPage.getByText("Predictions could not be loaded right now.")).toBeVisible();
   await expect(secondPage.getByRole("button", { name: "Try again" })).toBeVisible();
   await expect(secondPage.getByText("internal detail")).toHaveCount(0);
-  await secondPage.close();
+  await secondContext.close();
 });
