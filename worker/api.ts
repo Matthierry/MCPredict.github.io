@@ -54,17 +54,80 @@ const SELECT_COLUMNS = `
   home_xshots_on_target, away_xshots_on_target
 `;
 
-function selectedMatchProbability(row: DbPrediction): number | null {
+function impliedProbability(odds: number | null): number | null {
+  if (odds === null || odds < 1) return null;
+  const probability = 1 / odds;
+  return Number.isFinite(probability) && probability >= 0 && probability <= 1
+    ? probability
+    : null;
+}
+
+function rawSelectedMatchProbability(row: DbPrediction): number | null {
   if (row.match_prediction === "Home") return row.match_model_home_probability;
   if (row.match_prediction === "Draw") return row.match_model_draw_probability;
   if (row.match_prediction === "Away") return row.match_model_away_probability;
   return null;
 }
 
-function selectedOuProbability(row: DbPrediction): number | null {
+function selectedMatchProbability(row: DbPrediction): number | null {
+  if (!row.match_prediction) return null;
+  return impliedProbability(row.match_model_price) ?? rawSelectedMatchProbability(row);
+}
+
+function rawSelectedOuProbability(row: DbPrediction): number | null {
   if (row.ou_prediction === "Over 2.5") return row.ou_model_over_probability;
   if (row.ou_prediction === "Under 2.5") return row.ou_model_under_probability;
   return null;
+}
+
+function selectedOuProbability(row: DbPrediction): number | null {
+  if (!row.ou_prediction) return null;
+  return impliedProbability(row.ou_model_price) ?? rawSelectedOuProbability(row);
+}
+
+function matchModelDisplayProbabilities(row: DbPrediction) {
+  const raw = {
+    home: row.match_model_home_probability,
+    draw: row.match_model_draw_probability,
+    away: row.match_model_away_probability
+  };
+  const selected = selectedMatchProbability(row);
+  if (!row.match_prediction || selected === null || raw.home === null || raw.draw === null || raw.away === null) {
+    return raw;
+  }
+
+  const selectedKey = row.match_prediction === "Home" ? "home" : row.match_prediction === "Draw" ? "draw" : "away";
+  const otherKeys = (["home", "draw", "away"] as const).filter((key) => key !== selectedKey);
+  const otherRawTotal = otherKeys.reduce((sum, key) => sum + raw[key], 0);
+  const remaining = Math.max(0, 1 - selected);
+
+  if (otherRawTotal <= 0) {
+    return {
+      home: selectedKey === "home" ? selected : remaining / 2,
+      draw: selectedKey === "draw" ? selected : remaining / 2,
+      away: selectedKey === "away" ? selected : remaining / 2
+    };
+  }
+
+  const scale = remaining / otherRawTotal;
+  return {
+    home: selectedKey === "home" ? selected : raw.home * scale,
+    draw: selectedKey === "draw" ? selected : raw.draw * scale,
+    away: selectedKey === "away" ? selected : raw.away * scale
+  };
+}
+
+function ouModelDisplayProbabilities(row: DbPrediction) {
+  const selected = selectedOuProbability(row);
+  if (!row.ou_prediction || selected === null) {
+    return {
+      over: row.ou_model_over_probability,
+      under: row.ou_model_under_probability
+    };
+  }
+  return row.ou_prediction === "Over 2.5"
+    ? { over: selected, under: 1 - selected }
+    : { over: 1 - selected, under: selected };
 }
 
 function analysis(row: DbPrediction) {
@@ -102,11 +165,7 @@ function toMatchApi(row: DbPrediction) {
       classification: row.match_value_classification
     },
     probabilities: {
-      model: {
-        home: row.match_model_home_probability,
-        draw: row.match_model_draw_probability,
-        away: row.match_model_away_probability
-      },
+      model: matchModelDisplayProbabilities(row),
       bookmaker: {
         home: row.match_bookmaker_home_probability,
         draw: row.match_bookmaker_draw_probability,
@@ -130,10 +189,7 @@ function toOuApi(row: DbPrediction) {
       classification: row.ou_value_classification
     },
     probabilities: {
-      model: {
-        over: row.ou_model_over_probability,
-        under: row.ou_model_under_probability
-      },
+      model: ouModelDisplayProbabilities(row),
       bookmaker: {
         over: row.ou_bookmaker_over_probability,
         under: row.ou_bookmaker_under_probability
