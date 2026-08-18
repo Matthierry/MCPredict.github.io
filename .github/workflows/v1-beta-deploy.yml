@@ -216,6 +216,39 @@ jobs:
           };
           const rounded = Object.fromEntries(Object.entries(scores).map(([key, value]) => [key, Math.round(value * 100)]));
           console.log('BETA_LIGHTHOUSE', rounded);
+
+          const performanceIds = [
+            'first-contentful-paint',
+            'largest-contentful-paint',
+            'speed-index',
+            'total-blocking-time',
+            'cumulative-layout-shift'
+          ];
+          for (const id of performanceIds) {
+            const audit = report.audits[id];
+            if (audit) console.log('PERF_AUDIT', id, audit.displayValue || audit.numericValue || audit.score);
+          }
+
+          for (const ref of report.categories.accessibility.auditRefs || []) {
+            const audit = report.audits[ref.id];
+            if (!audit || audit.score === null || audit.score >= 1) continue;
+            console.log('A11Y_FAIL', {
+              id: ref.id,
+              score: audit.score,
+              weight: ref.weight,
+              title: audit.title
+            });
+            const items = audit.details?.items || [];
+            for (const item of items.slice(0, 20)) {
+              const node = item.node || item;
+              console.log('A11Y_NODE', {
+                selector: node.selector || null,
+                snippet: node.snippet || null,
+                failureSummary: node.failureSummary || null
+              });
+            }
+          }
+
           const failures = [];
           if (scores.performance < 0.90) failures.push(`Performance ${rounded.performance} < 90`);
           if (scores.accessibility < 0.95) failures.push(`Accessibility ${rounded.accessibility} < 95`);
