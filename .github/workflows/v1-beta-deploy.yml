@@ -119,10 +119,16 @@ jobs:
 
           path = Path("wrangler.jsonc")
           text = path.read_text()
+          db_id = os.environ["DB_ID"]
           placeholder = "REPLACE_WITH_BETA_D1_DATABASE_ID"
-          if placeholder not in text:
-              raise SystemExit("Expected D1 database placeholder was not found in wrangler.jsonc")
-          path.write_text(text.replace(placeholder, os.environ["DB_ID"]))
+          resolved = f'"database_id": "{db_id}"'
+
+          if placeholder in text:
+              path.write_text(text.replace(placeholder, db_id))
+          elif resolved in text:
+              print("wrangler.jsonc already contains the resolved beta D1 database ID.")
+          else:
+              raise SystemExit("wrangler.jsonc is bound to a different D1 database ID")
           PY
 
       - name: Apply D1 migrations
