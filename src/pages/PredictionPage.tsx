@@ -207,14 +207,14 @@ export function PredictionPage({ market }: { market: Market }) {
         <div className="filter-row">
           <label>
             <span>Date</span>
-            <select value={date} onChange={(event) => { setDate(event.target.value); setExpandedId(null); }}>
+            <select aria-label="Date" value={date} onChange={(event) => { setDate(event.target.value); setExpandedId(null); }}>
               <option value="all">All dates</option>
               {dates.map((availableDate) => <option key={availableDate} value={availableDate}>{formatDateLabel(availableDate)}</option>)}
             </select>
           </label>
           <label>
             <span>Prediction</span>
-            <select value={selection} onChange={(event) => { setSelection(event.target.value); setExpandedId(null); }}>
+            <select aria-label="Prediction" value={selection} onChange={(event) => { setSelection(event.target.value); setExpandedId(null); }}>
               <option value="all">All</option>
               {selectionOptions.map((option) => <option key={option} value={option}>{option}</option>)}
             </select>
