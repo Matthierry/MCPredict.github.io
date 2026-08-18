@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  impliedProbabilityFromDecimalOdds,
   isSpreadsheetError,
   normalizeKickoff,
   parseDecimal,
@@ -17,6 +18,20 @@ describe("percentage parser", () => {
 
   it.each(["", "#REF!", "#N/A", "abc", "120%", -0.1])("rejects %s", (input) => {
     expect(parsePercentage(input)).toBeNull();
+  });
+});
+
+describe("decimal odds implied probability", () => {
+  it.each([
+    ["1.42", 1 / 1.42],
+    [1.84, 1 / 1.84],
+    ["2.26", 1 / 2.26]
+  ])("converts %s", (input, expected) => {
+    expect(impliedProbabilityFromDecimalOdds(input)).toBeCloseTo(expected);
+  });
+
+  it.each(["", "#REF!", "abc", 0, 0.5])("rejects invalid odds %s", (input) => {
+    expect(impliedProbabilityFromDecimalOdds(input)).toBeNull();
   });
 });
 
