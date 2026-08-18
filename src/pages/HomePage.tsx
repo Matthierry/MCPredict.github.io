@@ -7,6 +7,42 @@ function FixtureCount({ value }: { value: number | null }) {
   return <strong className="hero-stat__value">{value === null ? "—" : value.toLocaleString("en-GB")}</strong>;
 }
 
+function TopSectionSkeleton({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return (
+    <section className="home-section" aria-hidden="true">
+      <div className="section-heading">
+        <div>
+          <span className="eyebrow">{eyebrow}</span>
+          <h2>{title}</h2>
+        </div>
+        <span className="text-link">View all</span>
+      </div>
+      <div className="top-selection-grid">
+        {[0, 1, 2].map((index) => (
+          <article className="top-selection-card top-selection-card--loading" key={index}>
+            <div className="top-selection-card__placeholder">
+              <div className="top-selection-card__meta">
+                <span>England · Championship</span>
+                <span>15:00</span>
+              </div>
+              <div className="top-selection-card__fixture">
+                <strong>Loading fixture</strong>
+                <span>v</span>
+                <strong>Loading team</strong>
+              </div>
+              <div className="top-selection-card__result">
+                <div><small>Model</small><strong>Under 2.5</strong></div>
+                <div><small>Bookmaker</small><strong>1.00</strong></div>
+                <div><small>Edge</small><strong>+0.0%</strong></div>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function HomePage() {
   const { data, loading, error, retry, refreshing } = useCachedApi<HomeResponse>(
     "/api/v1/home",
@@ -29,10 +65,10 @@ export function HomePage() {
       </section>
 
       {loading && !data ? (
-        <section className="surface status-panel" aria-live="polite">
-          <div className="loading-line" />
-          <div className="loading-line loading-line--short" />
-        </section>
+        <>
+          <TopSectionSkeleton eyebrow="VALUE · MATCH RESULT" title="Top 3 model edges" />
+          <TopSectionSkeleton eyebrow="VALUE · O/U 2.5" title="Top 3 goal-market edges" />
+        </>
       ) : null}
 
       {error && !data ? (
