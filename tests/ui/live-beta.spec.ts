@@ -43,8 +43,8 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
 
   for (const route of ["/match-result", "/over-under-25"]) {
     await page.goto(route, { waitUntil: "networkidle" });
-    await expect(page.getByRole("button", { name: "VALUE" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "PROBABILITY" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "VALUE", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toBeVisible();
     await expect(page.getByLabel("Date")).toBeVisible();
     await expect(page.getByLabel("Prediction")).toBeVisible();
 
@@ -63,8 +63,8 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
       await expect(page.locator(".filter-empty, .availability-note")).toBeVisible();
     }
 
-    await page.getByRole("button", { name: "PROBABILITY" }).click();
-    await expect(page.getByRole("button", { name: "PROBABILITY" })).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("button", { name: "PROBABILITY", exact: true }).click();
+    await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator(".no-value-divider")).toHaveCount(0);
   }
 });
@@ -75,5 +75,5 @@ test("deployed beta supports direct route refresh", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Match Result Predictions" })).toBeVisible();
   await page.reload({ waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Match Result Predictions" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "PROBABILITY" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toHaveAttribute("aria-pressed", "true");
 });
