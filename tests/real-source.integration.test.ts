@@ -79,6 +79,57 @@ realQa("current published Google CSV sources", () => {
       diagnostics: normalized.diagnostics.length
     });
 
+    const matchRawCounts = new Map<string, number>();
+    const matchExamples: Array<Record<string, string>> = [];
+    for (const row of rows) {
+      const marketId = cleanCell(getCell(row, "marketId"));
+      const edge = cleanCell(getCell(row, "matchEdge"));
+      const rawPrediction = cleanCell(getCell(row, "matchPrediction"));
+      if (!marketId || !edge) continue;
+      matchRawCounts.set(rawPrediction || "<blank>", (matchRawCounts.get(rawPrediction || "<blank>") ?? 0) + 1);
+      if (matchExamples.length < 12) {
+        matchExamples.push({
+          marketId,
+          home: cleanCell(getCell(row, "homeTeam")),
+          away: cleanCell(getCell(row, "awayTeam")),
+          aq: rawPrediction,
+          ag: edge,
+          ai: cleanCell(getCell(row, "matchBookmakerPrice")),
+          ak: cleanCell(getCell(row, "matchModelPrice")),
+          as: cleanCell(getCell(row, "matchModelHomeProbability")),
+          at: cleanCell(getCell(row, "matchModelDrawProbability")),
+          au: cleanCell(getCell(row, "matchModelAwayProbability")),
+          bd: cleanCell(getCell(row, "matchValueClassification")),
+          s: cleanCell(getCell(row, "matchBookmakerHomeProbability")),
+          t: cleanCell(getCell(row, "matchBookmakerDrawProbability")),
+          u: cleanCell(getCell(row, "matchBookmakerAwayProbability"))
+        });
+      }
+    }
+    console.log("MATCH_SOURCE_DIAGNOSTIC", {
+      distinctAQ: Array.from(matchRawCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 20),
+      examples: matchExamples
+    });
+
+    const norwichRow = rows.find((row) => {
+      return cleanCell(getCell(row, "homeTeam")).toLowerCase() === "norwich" &&
+        cleanCell(getCell(row, "awayTeam")).toLowerCase() === "west brom";
+    });
+    if (norwichRow) {
+      console.log("NORWICH_WEST_BROM_SOURCE_DIAGNOSTIC", {
+        marketId: cleanCell(getCell(norwichRow, "marketId")),
+        ar: cleanCell(getCell(norwichRow, "ouPrediction")),
+        v: cleanCell(getCell(norwichRow, "ouBookmakerOverProbability")),
+        w: cleanCell(getCell(norwichRow, "ouBookmakerUnderProbability")),
+        am: cleanCell(getCell(norwichRow, "ouBookmakerPrice")),
+        ao: cleanCell(getCell(norwichRow, "ouModelPrice")),
+        bj: cleanCell(getCell(norwichRow, "ouModelUnderProbability")),
+        bk: cleanCell(getCell(norwichRow, "ouModelOverProbability")),
+        ah: cleanCell(getCell(norwichRow, "ouEdge")),
+        bg: cleanCell(getCell(norwichRow, "ouValueClassification"))
+      });
+    }
+
     const auditPredictions = normalized.predictions.slice(0, 5);
     const rawByMarketId = new Map<string, string[]>();
     for (const row of rows) {
