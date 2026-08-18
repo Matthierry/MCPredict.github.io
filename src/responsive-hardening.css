@@ -1,8 +1,10 @@
 /* Responsive, accessibility and layout-stability hardening for the supported V1 viewports.
-   Kept separate from the core design sheet so these constraints stay easy to audit. */
+   This file also contains the owner-approved expanded prediction-card presentation. */
 :root {
-  /* Clears WCAG AA 4.5:1 even on the elevated #2c2c2e surface while remaining visually muted. */
   --text-muted: #94949a;
+  --analysis-surface: #121417;
+  --analysis-border: #34363a;
+  --analysis-bookmaker: #8f9296;
 }
 
 html,
@@ -21,12 +23,11 @@ body,
 .prediction-card,
 .prediction-card__trigger,
 .prediction-card__fixture,
-.prediction-card__numbers,
-.prediction-card__foot,
+.prediction-card__summary,
 .prediction-card__expand,
 .prediction-card__expand-inner,
 .analysis-body,
-.probability-panel,
+.probability-comparison,
 .analysis-metrics,
 .metric-compare {
   min-width: 0;
@@ -54,13 +55,383 @@ body,
   visibility: hidden;
 }
 
-.prediction-card__meta > *,
-.prediction-card__fixture > *,
-.prediction-card__numbers > *,
-.prediction-card__foot > *,
-.probability-panel__head > *,
-.metric-compare__teams > * {
+/* --------------------------------------------------------------------------
+   Approved prediction card
+   -------------------------------------------------------------------------- */
+.prediction-card.surface {
+  overflow: hidden;
+  border: 1px solid var(--analysis-border);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #15171a 0%, #101214 100%);
+  box-shadow: none;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.prediction-card.is-expanded {
+  border-color: rgba(240, 147, 0, 0.38);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
+}
+
+.prediction-card__trigger {
+  display: block;
+  width: 100%;
+  padding: 20px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.prediction-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+
+.prediction-card__meta > * {
   min-width: 0;
+}
+
+.prediction-card__meta span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prediction-card__fixture {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.prediction-card__team {
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: clamp(1.08rem, 4vw, 1.5rem);
+  font-weight: 720;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.prediction-card__team--away {
+  text-align: right;
+}
+
+.prediction-card__versus {
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.prediction-card__summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--analysis-border);
+}
+
+.prediction-card__summary > div {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 0 14px;
+  text-align: center;
+}
+
+.prediction-card__summary > div:first-child {
+  padding-left: 8px;
+  text-align: left;
+}
+
+.prediction-card__summary > div:last-child {
+  padding-right: 8px;
+  text-align: right;
+}
+
+.prediction-card__summary > div + div {
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.prediction-card__summary small {
+  color: var(--text-muted);
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.prediction-card__summary strong {
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: 1.12rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.prediction-card__summary .prediction-card__prediction {
+  color: var(--accent);
+}
+
+.analysis-toggle {
+  display: flex;
+  width: max-content;
+  min-height: 44px;
+  margin: 8px auto -5px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.analysis-toggle__icon {
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+  transition: transform var(--transition);
+}
+
+.prediction-card__expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition);
+}
+
+.prediction-card.is-expanded .prediction-card__expand {
+  grid-template-rows: 1fr;
+}
+
+.prediction-card__expand-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.analysis-body {
+  display: block;
+  padding: 8px 20px 24px;
+}
+
+/* Probability comparison: one shared visual for Match Result and O/U 2.5. */
+.probability-comparison {
+  padding-top: 10px;
+}
+
+.probability-comparison__title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.94rem;
+  font-weight: 650;
+  letter-spacing: 0.025em;
+}
+
+.probability-comparison__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 15px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.probability-comparison__legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.probability-key {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+}
+
+.probability-key--model {
+  background: var(--accent);
+}
+
+.probability-key--bookmaker {
+  background: var(--analysis-bookmaker);
+}
+
+.probability-comparison__rows {
+  margin-top: 15px;
+}
+
+.probability-outcome {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 18px 0;
+}
+
+.probability-outcome + .probability-outcome {
+  border-top: 1px dotted rgba(255, 255, 255, 0.1);
+}
+
+.probability-outcome__label {
+  padding-top: 1px;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
+.probability-outcome__pair {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.probability-outcome__line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 50px;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.probability-outcome__line strong {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.probability-track {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.probability-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  min-width: 0;
+  border-radius: 3px;
+  transition: width 210ms ease-out;
+}
+
+.probability-fill--model {
+  background: var(--accent);
+}
+
+.probability-fill--bookmaker {
+  background: var(--analysis-bookmaker);
+}
+
+/* Supporting metrics are deliberately part of the same card, not nested cards. */
+.analysis-metrics {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin-top: 14px;
+}
+
+.metric-compare {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 15px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.metric-compare__icon {
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--accent);
+}
+
+.metric-compare__icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+.metric-compare__content {
+  min-width: 0;
+}
+
+.metric-compare__label {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 650;
+  letter-spacing: 0.055em;
+}
+
+.metric-compare__teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.metric-compare__team {
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.metric-compare__team--home {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.metric-compare__team--away {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  text-align: right;
+}
+
+.metric-compare__teams small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric-compare__teams strong {
+  color: var(--text-primary);
+  font-size: 1.08rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.metric-compare__vs {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+
+/* Legacy analysis structures are no longer rendered; neutralise desktop rules
+   from the base sheet so the approved card remains a single continuous layout. */
+.close-analysis,
+.classification-chip,
+.prediction-card__foot,
+.prediction-card__numbers,
+.prediction-card__selection {
+  display: none !important;
 }
 
 @media (max-width: 599px) {
@@ -92,15 +463,98 @@ body,
     white-space: normal;
     overflow-wrap: anywhere;
   }
+}
 
-  .prediction-card__foot,
-  .probability-panel__head {
-    flex-wrap: wrap;
+@media (min-width: 600px) {
+  .prediction-card__trigger {
+    padding: 24px 26px 20px;
   }
 
-  .probability-panel__head small {
-    max-width: 100%;
-    text-align: left;
+  .analysis-body {
+    padding: 10px 26px 28px;
+  }
+
+  .prediction-card__summary > div {
+    padding-inline: 20px;
+  }
+
+  .prediction-card__summary small {
+    font-size: 0.7rem;
+  }
+
+  .prediction-card__summary strong {
+    font-size: 1.22rem;
+  }
+
+  .probability-outcome {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .probability-outcome__line {
+    grid-template-columns: minmax(0, 1fr) 58px;
+  }
+
+  .metric-compare {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .metric-compare__icon {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (min-width: 768px) {
+  .prediction-card__trigger {
+    display: block;
+  }
+
+  .prediction-card__fixture {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .analysis-body {
+    display: block;
+  }
+
+  .analysis-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .metric-compare__teams {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .metric-compare__team--home {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .metric-compare__team--away {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    text-align: right;
+  }
+
+  .metric-compare__vs {
+    display: inline;
+  }
+}
+
+@media (min-width: 1024px) {
+  .prediction-card__trigger {
+    display: block;
+  }
+
+  .prediction-card__meta,
+  .prediction-card__fixture,
+  .prediction-card__summary,
+  .analysis-toggle {
+    grid-column: auto;
+    grid-row: auto;
   }
 }
 
@@ -109,15 +563,91 @@ body,
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
+  .prediction-card__trigger {
+    padding: 16px 13px;
+  }
+
+  .analysis-body {
+    padding: 6px 13px 20px;
+  }
+
   .prediction-card__fixture {
     gap: 8px;
   }
 
-  .prediction-card__numbers--value {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .prediction-card__team {
+    font-size: 0.98rem;
   }
 
-  .prediction-card__numbers--probability {
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  .prediction-card__summary > div {
+    padding-inline: 6px;
+  }
+
+  .prediction-card__summary > div:first-child {
+    padding-left: 2px;
+  }
+
+  .prediction-card__summary > div:last-child {
+    padding-right: 2px;
+  }
+
+  .prediction-card__summary small {
+    font-size: 0.54rem;
+    letter-spacing: 0.035em;
+  }
+
+  .prediction-card__summary strong {
+    font-size: 0.9rem;
+  }
+
+  .probability-outcome {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .probability-outcome__line {
+    grid-template-columns: minmax(0, 1fr) 44px;
+    gap: 7px;
+  }
+
+  .probability-outcome__line strong {
+    font-size: 0.72rem;
+  }
+
+  .metric-compare {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .metric-compare__icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .metric-compare__icon svg {
+    width: 23px;
+    height: 23px;
+  }
+
+  .metric-compare__teams {
+    gap: 7px;
+  }
+
+  .metric-compare__team {
+    gap: 6px;
+  }
+
+  .metric-compare__teams small {
+    font-size: 0.7rem;
+  }
+
+  .metric-compare__teams strong {
+    font-size: 0.94rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .probability-fill {
+    transition-duration: 0.01ms !important;
   }
 }
