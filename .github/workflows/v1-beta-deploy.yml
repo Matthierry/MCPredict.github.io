@@ -1,0 +1,166 @@
+name: MC Predict V1 Beta Deploy
+
+on:
+  push:
+    branches:
+      - agent/mcpredict-v1-rebuild
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mcpredict-v1-beta
+  cancel-in-progress: false
+
+jobs:
+  deploy-beta:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check Cloudflare credentials
+        id: credentials
+        shell: bash
+        run: |
+          if [[ -n "$CLOUDFLARE_API_TOKEN" && -n "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare deployment credentials are available."
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare deployment credentials are not configured on this repository."
+            {
+              echo "## MC Predict beta deployment"
+              echo
+              echo "Deployment was safely skipped because CLOUDFLARE_API_TOKEN and/or CLOUDFLARE_ACCOUNT_ID are not configured as GitHub Actions secrets."
+              echo
+              echo "No production resources were changed."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Install dependencies
+        if: steps.credentials.outputs.available == 'true'
+        run: npm install --no-audit --no-fund
+
+      - name: Run tests
+        if: steps.credentials.outputs.available == 'true'
+        run: npm test
+
+      - name: Build application
+        if: steps.credentials.outputs.available == 'true'
+        run: npm run build
+
+      - name: Create or locate beta D1 database
+        if: steps.credentials.outputs.available == 'true'
+        id: d1
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cat > /tmp/mcpredict-bootstrap.jsonc <<'EOF'
+          {
+            "name": "mcpredict-bootstrap",
+            "compatibility_date": "2026-08-18"
+          }
+          EOF
+
+          list_databases() {
+            npx wrangler d1 list --json --config /tmp/mcpredict-bootstrap.jsonc
+          }
+
+          database_id="$(list_databases | jq -r '.[] | select(.name == "mcpredict-beta-db") | (.uuid // .id // .database_id // empty)' | head -n 1)"
+
+          if [[ -z "$database_id" ]]; then
+            echo "Creating mcpredict-beta-db..."
+            npx wrangler d1 create mcpredict-beta-db --location=weur --config /tmp/mcpredict-bootstrap.jsonc
+            database_id="$(list_databases | jq -r '.[] | select(.name == "mcpredict-beta-db") | (.uuid // .id // .database_id // empty)' | head -n 1)"
+          else
+            echo "Reusing existing mcpredict-beta-db."
+          fi
+
+          if [[ -z "$database_id" ]]; then
+            echo "Unable to resolve the beta D1 database ID." >&2
+            exit 1
+          fi
+
+          echo "database_id=$database_id" >> "$GITHUB_OUTPUT"
+
+          DB_ID="$database_id" python - <<'PY'
+          import os
+          from pathlib import Path
+
+          path = Path("wrangler.jsonc")
+          text = path.read_text()
+          placeholder = "REPLACE_WITH_BETA_D1_DATABASE_ID"
+          if placeholder not in text:
+              raise SystemExit("Expected D1 database placeholder was not found in wrangler.jsonc")
+          path.write_text(text.replace(placeholder, os.environ["DB_ID"]))
+          PY
+
+      - name: Apply D1 migrations
+        if: steps.credentials.outputs.available == 'true'
+        run: npm run db:migrate:beta
+
+      - name: Deploy beta Worker and static assets
+        if: steps.credentials.outputs.available == 'true'
+        run: npm run deploy:beta
+
+      - name: Configure protected manual-sync token
+        if: steps.credentials.outputs.available == 'true'
+        id: sync-token
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(openssl rand -hex 32)"
+          printf '%s' "$token" | npx wrangler secret put SYNC_TOKEN
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger genuine prediction ingestion
+        if: steps.credentials.outputs.available == 'true'
+        shell: bash
+        env:
+          SYNC_TOKEN: ${{ steps.sync-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          curl \
+            --fail-with-body \
+            --retry 12 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            -X POST \
+            -H "Authorization: Bearer $SYNC_TOKEN" \
+            https://beta.mcpredict.com/api/internal/sync
+
+      - name: Smoke-test beta API
+        if: steps.credentials.outputs.available == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          health="$(curl --fail-with-body --retry 12 --retry-delay 5 --retry-all-errors https://beta.mcpredict.com/api/v1/health)"
+          home="$(curl --fail-with-body --retry 12 --retry-delay 5 --retry-all-errors https://beta.mcpredict.com/api/v1/home)"
+
+          echo "$health" | jq -e '.status == "ok" and .database == "ok"' > /dev/null
+          echo "$home" | jq -e 'has("fixturesProcessed") and has("matchResultTop") and has("overUnderTop")' > /dev/null
+
+          {
+            echo "## MC Predict beta deployment"
+            echo
+            echo "Deployment and real-data ingestion completed successfully."
+            echo
+            echo "- Worker: mcpredict-beta"
+            echo "- D1: mcpredict-beta-db"
+            echo "- D1 ID: ${{ steps.d1.outputs.database_id }}"
+            echo "- Domain: https://beta.mcpredict.com"
+            echo "- Health endpoint: passed"
+            echo "- Home API endpoint: passed"
+          } >> "$GITHUB_STEP_SUMMARY"
