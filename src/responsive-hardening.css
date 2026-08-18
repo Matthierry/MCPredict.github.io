@@ -1,5 +1,10 @@
-/* Responsive hardening for the narrowest supported V1 viewports.
+/* Responsive and accessibility hardening for the supported V1 viewports.
    Kept separate from the core design sheet so these constraints stay easy to audit. */
+:root {
+  /* Clears WCAG AA 4.5:1 even on the elevated #2c2c2e surface while remaining visually muted. */
+  --text-muted: #94949a;
+}
+
 html,
 body,
 #root,
