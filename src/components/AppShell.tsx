@@ -4,9 +4,9 @@ import { FaqIcon, GoalsIcon, HomeIcon, ResultIcon } from "./icons";
 
 const NAV_ITEMS = [
   { to: "/", label: "Home", Icon: HomeIcon, end: true },
-  { to: "/match-result", label: "Match Result", Icon: ResultIcon },
-  { to: "/over-under-25", label: "O/U 2.5", Icon: GoalsIcon },
-  { to: "/faqs", label: "FAQs", Icon: FaqIcon }
+  { to: "/match-result", label: "Match Result", Icon: ResultIcon, end: false },
+  { to: "/over-under-25", label: "O/U 2.5", Icon: GoalsIcon, end: false },
+  { to: "/faqs", label: "FAQs", Icon: FaqIcon, end: false }
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
