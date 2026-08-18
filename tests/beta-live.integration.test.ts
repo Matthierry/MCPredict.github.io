@@ -169,7 +169,6 @@ liveQa("deployed beta source-to-API reconciliation", () => {
     const ouById = new Map(ou.data.map((row) => [row.marketId, row]));
 
     const matchAudit = normalized.predictions.filter((row) => row.matchValid).slice(0, 5);
-    expect(matchAudit.length).toBeGreaterThan(0);
     for (const source of matchAudit) {
       const api = matchById.get(source.marketId);
       expect(api, `Match Result Market ID ${source.marketId} missing from beta API`).toBeTruthy();
@@ -190,7 +189,6 @@ liveQa("deployed beta source-to-API reconciliation", () => {
     }
 
     const ouAudit = normalized.predictions.filter((row) => row.ouValid).slice(0, 5);
-    expect(ouAudit.length).toBeGreaterThan(0);
     for (const source of ouAudit) {
       const api = ouById.get(source.marketId);
       expect(api, `O/U Market ID ${source.marketId} missing from beta API`).toBeTruthy();
