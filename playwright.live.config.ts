@@ -10,6 +10,7 @@ export default defineConfig({
   use: {
     baseURL: "https://beta.mcpredict.com",
     headless: true,
+    channel: "chrome",
     trace: "retain-on-failure",
     screenshot: "only-on-failure"
   }
