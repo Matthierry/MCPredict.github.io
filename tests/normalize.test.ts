@@ -6,10 +6,10 @@ function row(overrides: Partial<Record<keyof typeof SOURCE_INDEXES, string>> = {
   const cells = Array.from({ length: 63 }, () => "");
   const values: Record<string, string> = {
     marketId: "001234567890", fixtureDate: "22/08/2026", kickoffTime: "15:00", homeTeam: "Arsenal", awayTeam: "Leeds",
-    matchBookmakerHomeProbability: "58%", matchBookmakerDrawProbability: "25%", matchBookmakerAwayProbability: "21%",
-    ouBookmakerOverProbability: "64%", ouBookmakerUnderProbability: "43%", matchEdge: "10.3%", ouEdge: "10.2%",
+    matchBookmakerHomeProbability: "1.72", matchBookmakerDrawProbability: "4.00", matchBookmakerAwayProbability: "4.76",
+    ouBookmakerOverProbability: "1.62", ouBookmakerUnderProbability: "2.33", matchEdge: "10.3%", ouEdge: "10.2%",
     matchBookmakerPrice: "1.72", matchModelPrice: "1.56", ouBookmakerPrice: "1.62", ouModelPrice: "1.47",
-    matchPrediction: "Home", ouPrediction: "Over", matchModelHomeProbability: "64%", matchModelDrawProbability: "22%",
+    matchPrediction: "HOME WIN", ouPrediction: "Over", matchModelHomeProbability: "64%", matchModelDrawProbability: "22%",
     matchModelAwayProbability: "14%", homeXGoals: "1.91", awayXGoals: "0.86", homeXShots: "15.4", awayXShots: "8.8",
     homeXShotsOnTarget: "5.7", awayXShotsOnTarget: "2.9", matchValueClassification: "High Value",
     ouValueClassification: "High Value", country: "England", league: "Premier League", ouModelUnderProbability: "32%", ouModelOverProbability: "68%",
@@ -25,16 +25,32 @@ describe("normalization", () => {
     expect(result.predictions[0].marketId).toBe("001234567890");
   });
 
-  it("uses the selected AQ/AR probability", () => {
-    const prediction = normalizeSourceRows([row()]).predictions[0];
-    expect(selectedMatchProbability(prediction)).toBeCloseTo(0.64);
-    expect(selectedOuProbability(prediction)).toBeCloseTo(0.68);
+  it("accepts live AQ HOME WIN and AWAY WIN labels", () => {
+    const home = normalizeSourceRows([row({ matchPrediction: "HOME WIN" })]).predictions[0];
+    const away = normalizeSourceRows([row({ matchPrediction: "AWAY WIN", matchModelHomeProbability: "20%", matchModelDrawProbability: "25%", matchModelAwayProbability: "55%" })]).predictions[0];
+    expect(home.matchPrediction).toBe("Home");
+    expect(home.matchValid).toBe(true);
+    expect(away.matchPrediction).toBe("Away");
+    expect(away.matchValid).toBe(true);
   });
 
-  it("maps bookmaker O/U Over from V and Under from W", () => {
-    const prediction = normalizeSourceRows([row({ ouBookmakerOverProbability: "61%", ouBookmakerUnderProbability: "44%" })]).predictions[0];
-    expect(prediction.ouBookmakerOverProbability).toBeCloseTo(0.61);
-    expect(prediction.ouBookmakerUnderProbability).toBeCloseTo(0.44);
+  it("derives selected display probability from selected model price", () => {
+    const prediction = normalizeSourceRows([row()]).predictions[0];
+    expect(selectedMatchProbability(prediction)).toBeCloseTo(1 / 1.56);
+    expect(selectedOuProbability(prediction)).toBeCloseTo(1 / 1.47);
+  });
+
+  it("maps bookmaker O/U Over from V and Under from W as decimal odds", () => {
+    const prediction = normalizeSourceRows([row({ ouBookmakerOverProbability: "1.88", ouBookmakerUnderProbability: "1.84" })]).predictions[0];
+    expect(prediction.ouBookmakerOverProbability).toBeCloseTo(1 / 1.88);
+    expect(prediction.ouBookmakerUnderProbability).toBeCloseTo(1 / 1.84);
+  });
+
+  it("maps bookmaker 1X2 S/T/U decimal odds to implied probabilities", () => {
+    const prediction = normalizeSourceRows([row({ matchBookmakerHomeProbability: "2.26", matchBookmakerDrawProbability: "3.39", matchBookmakerAwayProbability: "2.92" })]).predictions[0];
+    expect(prediction.matchBookmakerHomeProbability).toBeCloseTo(1 / 2.26);
+    expect(prediction.matchBookmakerDrawProbability).toBeCloseTo(1 / 3.39);
+    expect(prediction.matchBookmakerAwayProbability).toBeCloseTo(1 / 2.92);
   });
 
   it("deduplicates semantically identical Market IDs", () => {
