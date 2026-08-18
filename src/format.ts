@@ -10,7 +10,7 @@ export function formatEdge(value: number | null | undefined): string {
 
 export function formatProbability(value: number | null | undefined): string {
   if (typeof value !== "number" || !Number.isFinite(value)) return "—";
-  return `${Math.round(value * 100)}%`;
+  return `${(value * 100).toFixed(1)}%`;
 }
 
 export function formatMetric(value: number | null | undefined, decimals: number): string {
