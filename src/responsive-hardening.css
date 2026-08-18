@@ -1,4 +1,4 @@
-/* Responsive and accessibility hardening for the supported V1 viewports.
+/* Responsive, accessibility and layout-stability hardening for the supported V1 viewports.
    Kept separate from the core design sheet so these constraints stay easy to audit. */
 :root {
   /* Clears WCAG AA 4.5:1 even on the elevated #2c2c2e surface while remaining visually muted. */
@@ -38,6 +38,20 @@ body,
 #root,
 .app-shell {
   overflow-x: clip;
+}
+
+/* Home data arrives asynchronously. Keep the same card geometry in the initial
+   render so the sections below do not jump when the real Top 3 rows arrive. */
+.top-selection-card {
+  min-height: 132px;
+}
+
+.top-selection-card--loading {
+  pointer-events: none;
+}
+
+.top-selection-card__placeholder {
+  visibility: hidden;
 }
 
 .prediction-card__meta > *,
