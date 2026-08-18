@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useCachedApi } from "../api";
-import { formatDateLabel, formatEdge, formatOdds, formatProbability } from "../format";
+import { formatDateLabel, formatEdge, formatOdds } from "../format";
 import { MetricCompare } from "../components/MetricCompare";
-import { ProbabilityBar } from "../components/ProbabilityBar";
+import { ProbabilityComparison } from "../components/ProbabilityComparison";
+import { ChevronIcon } from "../components/icons";
 import type { MatchPrediction, Mode, OuPrediction, PredictionResponse } from "../types";
 
 type Market = "match" | "ou";
@@ -26,23 +27,21 @@ function valueTone(edge: number) {
   return "value-neutral";
 }
 
-function countryLeague(item: Prediction) {
-  return [item.fixture.country, item.fixture.league].filter(Boolean).join(" · ") || "Football";
+function fixtureCompetition(item: Prediction) {
+  return item.fixture.league || item.fixture.country || "Football";
 }
 
 function MatchAnalysis({ item }: { item: MatchPrediction }) {
   return (
     <div className="analysis-body">
-      <ProbabilityBar title="MODEL · 1X2 PROBABILITY" segments={[
-        { key: "home", label: "Home", value: item.probabilities.model.home },
-        { key: "draw", label: "Draw", value: item.probabilities.model.draw },
-        { key: "away", label: "Away", value: item.probabilities.model.away }
-      ]} />
-      <ProbabilityBar title="BOOKMAKER · 1X2" rawImplied segments={[
-        { key: "home", label: "Home", value: item.probabilities.bookmaker.home },
-        { key: "draw", label: "Draw", value: item.probabilities.bookmaker.draw },
-        { key: "away", label: "Away", value: item.probabilities.bookmaker.away }
-      ]} />
+      <ProbabilityComparison
+        title="1X2 PROBABILITY COMPARISON"
+        outcomes={[
+          { key: "home", label: "Home", model: item.probabilities.model.home, bookmaker: item.probabilities.bookmaker.home },
+          { key: "draw", label: "Draw", model: item.probabilities.model.draw, bookmaker: item.probabilities.bookmaker.draw },
+          { key: "away", label: "Away", model: item.probabilities.model.away, bookmaker: item.probabilities.bookmaker.away }
+        ]}
+      />
       <Metrics item={item} />
     </div>
   );
@@ -51,14 +50,13 @@ function MatchAnalysis({ item }: { item: MatchPrediction }) {
 function OuAnalysis({ item }: { item: OuPrediction }) {
   return (
     <div className="analysis-body">
-      <ProbabilityBar title="MODEL · O/U 2.5 PROBABILITY" segments={[
-        { key: "over", label: "Over", value: item.probabilities.model.over },
-        { key: "under", label: "Under", value: item.probabilities.model.under }
-      ]} />
-      <ProbabilityBar title="BOOKMAKER · O/U 2.5" rawImplied segments={[
-        { key: "over", label: "Over", value: item.probabilities.bookmaker.over },
-        { key: "under", label: "Under", value: item.probabilities.bookmaker.under }
-      ]} />
+      <ProbabilityComparison
+        title="O/U 2.5 PROBABILITY COMPARISON"
+        outcomes={[
+          { key: "over", label: "Over", model: item.probabilities.model.over, bookmaker: item.probabilities.bookmaker.over },
+          { key: "under", label: "Under", model: item.probabilities.model.under, bookmaker: item.probabilities.bookmaker.under }
+        ]}
+      />
       <Metrics item={item} />
     </div>
   );
@@ -67,16 +65,15 @@ function OuAnalysis({ item }: { item: OuPrediction }) {
 function Metrics({ item }: { item: Prediction }) {
   return (
     <section className="analysis-metrics" aria-label="Expected performance metrics">
-      <MetricCompare label="EXPECTED GOALS" homeTeam={item.fixture.homeTeam} awayTeam={item.fixture.awayTeam} homeValue={item.analysis.homeXGoals} awayValue={item.analysis.awayXGoals} digits={2} />
-      <MetricCompare label="EXPECTED SHOTS" homeTeam={item.fixture.homeTeam} awayTeam={item.fixture.awayTeam} homeValue={item.analysis.homeXShots} awayValue={item.analysis.awayXShots} digits={1} />
-      <MetricCompare label="SHOTS ON TARGET" homeTeam={item.fixture.homeTeam} awayTeam={item.fixture.awayTeam} homeValue={item.analysis.homeXShotsOnTarget} awayValue={item.analysis.awayXShotsOnTarget} digits={1} />
+      <MetricCompare kind="goals" label="EXPECTED GOALS" homeTeam={item.fixture.homeTeam} awayTeam={item.fixture.awayTeam} homeValue={item.analysis.homeXGoals} awayValue={item.analysis.awayXGoals} digits={2} />
+      <MetricCompare kind="shots" label="EXPECTED SHOTS" homeTeam={item.fixture.homeTeam} awayTeam={item.fixture.awayTeam} homeValue={item.analysis.homeXShots} awayValue={item.analysis.awayXShots} digits={1} />
+      <MetricCompare kind="target" label="SHOTS ON TARGET" homeTeam={item.fixture.homeTeam} awayTeam={item.fixture.awayTeam} homeValue={item.analysis.homeXShotsOnTarget} awayValue={item.analysis.awayXShotsOnTarget} digits={1} />
     </section>
   );
 }
 
-function PredictionCard({ item, mode, expanded, onToggle, market }: {
+function PredictionCard({ item, expanded, onToggle, market }: {
   item: Prediction;
-  mode: Mode;
   expanded: boolean;
   onToggle: () => void;
   market: Market;
@@ -93,44 +90,45 @@ function PredictionCard({ item, mode, expanded, onToggle, market }: {
         aria-controls={panelId}
       >
         <div className="prediction-card__meta">
-          <span>{countryLeague(item)}</span>
+          <span>{fixtureCompetition(item)}</span>
           <span>{item.fixture.kickoff || ""}</span>
         </div>
+
         <div className="prediction-card__fixture">
-          <div className="prediction-card__teams">
-            <strong>{item.fixture.homeTeam}</strong>
-            <strong>{item.fixture.awayTeam}</strong>
+          <strong className="prediction-card__team prediction-card__team--home">{item.fixture.homeTeam}</strong>
+          <span className="prediction-card__versus">v</span>
+          <strong className="prediction-card__team prediction-card__team--away">{item.fixture.awayTeam}</strong>
+        </div>
+
+        <div className="prediction-card__summary">
+          <div>
+            <small>Prediction</small>
+            <strong className="prediction-card__prediction">{item.prediction.selection}</strong>
           </div>
-          <div className="prediction-card__selection">
-            <small>MODEL</small>
-            <strong>{item.prediction.selection}</strong>
+          <div>
+            <small>Model</small>
+            <strong>{formatOdds(item.prediction.modelPrice)}</strong>
+          </div>
+          <div>
+            <small>Bookmaker</small>
+            <strong>{formatOdds(item.prediction.bookmakerPrice)}</strong>
+          </div>
+          <div>
+            <small>Edge</small>
+            <strong className={valueTone(item.prediction.edge)}>{formatEdge(item.prediction.edge)}</strong>
           </div>
         </div>
 
-        {mode === "value" ? (
-          <div className="prediction-card__numbers prediction-card__numbers--value">
-            <div><small>Model</small><strong>{formatOdds(item.prediction.modelPrice)}</strong></div>
-            <div><small>Bookmaker</small><strong>{formatOdds(item.prediction.bookmakerPrice)}</strong></div>
-            <div><small>Edge</small><strong className={valueTone(item.prediction.edge)}>{formatEdge(item.prediction.edge)}</strong></div>
-          </div>
-        ) : (
-          <div className="prediction-card__numbers prediction-card__numbers--probability">
-            <div><small>Model probability</small><strong className="probability-hero">{formatProbability(item.prediction.probability)}</strong></div>
-            <div><small>Bookmaker price</small><strong>{formatOdds(item.prediction.bookmakerPrice)}</strong></div>
-          </div>
-        )}
-
-        <div className="prediction-card__foot">
-          {mode === "value" ? <span className="classification-chip">{item.prediction.classification}</span> : <span>Most-likely outcome view</span>}
-          <span className="expand-label">{expanded ? "Analysis open" : "View analysis"} <b aria-hidden="true">⌄</b></span>
-        </div>
+        <span className="analysis-toggle">
+          {expanded ? "Analysis open" : "View analysis"}
+          <ChevronIcon className={`analysis-toggle__icon${expanded ? " is-open" : ""}`} />
+        </span>
       </button>
 
       <div id={panelId} className="prediction-card__expand" aria-hidden={!expanded}>
         {expanded ? (
           <div className="prediction-card__expand-inner">
             {market === "match" ? <MatchAnalysis item={item as MatchPrediction} /> : <OuAnalysis item={item as OuPrediction} />}
-            <button className="close-analysis" type="button" onClick={onToggle}>↑ Close analysis</button>
           </div>
         ) : null}
       </div>
@@ -254,7 +252,6 @@ export function PredictionPage({ market }: { market: Market }) {
               ) : null}
               <PredictionCard
                 item={item}
-                mode={mode}
                 market={market}
                 expanded={expandedId === item.marketId}
                 onToggle={() => setExpandedId((current) => current === item.marketId ? null : item.marketId)}
