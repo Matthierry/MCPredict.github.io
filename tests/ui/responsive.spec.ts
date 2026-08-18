@@ -42,7 +42,7 @@ test("Match Result Value and Probability modes have distinct ordering and contro
   await page.goto("/match-result");
   await expect(page.locator(".prediction-card")).toHaveCount(4);
 
-  await expect(page.getByRole("button", { name: "VALUE" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "VALUE", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".no-value-divider")).toHaveCount(1);
   let cards = await page.locator(".prediction-card").allTextContents();
   expect(cards[0]).toContain("Wolverhampton Wanderers");
@@ -56,8 +56,8 @@ test("Match Result Value and Probability modes have distinct ordering and contro
   await expect(page.locator(".no-value-divider")).toHaveCount(0);
 
   await page.getByLabel("Prediction").selectOption("all");
-  await page.getByRole("button", { name: "PROBABILITY" }).click();
-  await expect(page.getByRole("button", { name: "PROBABILITY" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "PROBABILITY", exact: true }).click();
+  await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".no-value-divider")).toHaveCount(0);
   cards = await page.locator(".prediction-card").allTextContents();
   expect(cards[0]).toContain("Manchester City");
@@ -81,7 +81,7 @@ test("O/U mode supports probability ordering, Under filtering and analysis", asy
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto("/over-under-25?mode=probability");
   await expect(page.getByRole("heading", { name: "Over/Under 2.5 Predictions" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "PROBABILITY" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toHaveAttribute("aria-pressed", "true");
 
   await page.getByLabel("Prediction").selectOption("Under 2.5");
   await expect(page.locator(".prediction-card")).toHaveCount(2);
@@ -127,7 +127,7 @@ test("direct SPA navigation and refresh work for public routes", async ({ page }
   await expect(page.getByRole("heading", { name: "Match Result Predictions" })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("heading", { name: "Match Result Predictions" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "PROBABILITY" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toHaveAttribute("aria-pressed", "true");
 });
 
 test("filter-empty and API-failure states are distinct and calm", async ({ page, browser }) => {
