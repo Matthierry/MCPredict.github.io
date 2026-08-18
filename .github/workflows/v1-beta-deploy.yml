@@ -18,6 +18,10 @@ concurrency:
 
 jobs:
   deploy-beta:
+    if: >
+      (github.event_name == 'push' && github.ref == 'refs/heads/agent/mcpredict-v1-rebuild') ||
+      (github.event_name == 'pull_request' && github.head_ref == 'agent/mcpredict-v1-rebuild') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/agent/mcpredict-v1-rebuild')
     runs-on: ubuntu-latest
     env:
       PRIMARY_CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -136,6 +140,7 @@ jobs:
         run: |
           set -euo pipefail
           token="$(openssl rand -hex 32)"
+          echo "::add-mask::$token"
           printf '%s' "$token" | npx wrangler secret put SYNC_TOKEN
           echo "token=$token" >> "$GITHUB_OUTPUT"
 
@@ -148,7 +153,7 @@ jobs:
           set -euo pipefail
           curl \
             --fail-with-body \
-            --retry 12 \
+            --retry 36 \
             --retry-delay 5 \
             --retry-all-errors \
             -X POST \
@@ -160,8 +165,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          health="$(curl --fail-with-body --retry 12 --retry-delay 5 --retry-all-errors https://beta.mcpredict.com/api/v1/health)"
-          home="$(curl --fail-with-body --retry 12 --retry-delay 5 --retry-all-errors https://beta.mcpredict.com/api/v1/home)"
+          health="$(curl --fail-with-body --retry 36 --retry-delay 5 --retry-all-errors https://beta.mcpredict.com/api/v1/health)"
+          home="$(curl --fail-with-body --retry 36 --retry-delay 5 --retry-all-errors https://beta.mcpredict.com/api/v1/home)"
 
           echo "$health" | jq -e '.status == "ok" and .database == "ok"' > /dev/null
           echo "$home" | jq -e 'has("fixturesProcessed") and has("topMatchResult") and has("topOverUnder25") and has("hasPredictions")' > /dev/null
@@ -173,7 +178,6 @@ jobs:
             echo
             echo "- Worker: mcpredict-beta"
             echo "- D1: mcpredict-beta-db"
-            echo "- D1 ID: ${{ steps.d1.outputs.database_id }}"
             echo "- Domain: https://beta.mcpredict.com"
             echo "- Health endpoint: passed"
             echo "- Home API endpoint: passed"
