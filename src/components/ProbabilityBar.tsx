@@ -11,7 +11,7 @@ export function normalizeSegments(segments: Segment[]): Array<Segment & { width:
 }
 
 function pct(value: number) {
-  return `${Math.round(value * 100)}%`;
+  return `${(value * 100).toFixed(1)}%`;
 }
 
 export function ProbabilityBar({
