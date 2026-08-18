@@ -164,7 +164,7 @@ jobs:
           home="$(curl --fail-with-body --retry 12 --retry-delay 5 --retry-all-errors https://beta.mcpredict.com/api/v1/home)"
 
           echo "$health" | jq -e '.status == "ok" and .database == "ok"' > /dev/null
-          echo "$home" | jq -e 'has("fixturesProcessed") and has("matchResultTop") and has("overUnderTop")' > /dev/null
+          echo "$home" | jq -e 'has("fixturesProcessed") and has("topMatchResult") and has("topOverUnder25") and has("hasPredictions")' > /dev/null
 
           {
             echo "## MC Predict beta deployment"
