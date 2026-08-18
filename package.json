@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:ui": "playwright test",
     "typecheck": "tsc -b",
     "deploy:beta": "wrangler deploy",
     "db:migrate:beta": "wrangler d1 migrations apply mcpredict-beta-db --remote"
@@ -21,10 +22,12 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260804.1",
+    "@playwright/test": "^1.55.0",
     "@types/papaparse": "^5.3.16",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^6.0.5",
+    "lighthouse": "^12.8.2",
     "typescript": "^5.9.2",
     "vite": "^8.2.0",
     "vitest": "^4.1.10",
