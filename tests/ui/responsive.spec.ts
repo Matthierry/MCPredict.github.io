@@ -24,7 +24,9 @@ test("has no horizontal overflow at required responsive widths", async ({ page }
     const firstTrigger = page.locator(".prediction-card__trigger").first();
     await firstTrigger.click();
     await expect(firstTrigger).toHaveAttribute("aria-expanded", "true");
-    await expect(page.getByRole("button", { name: "↑ Close analysis" })).toBeVisible();
+    await expect(firstTrigger.getByText("Analysis open")).toBeVisible();
+    await expect(page.locator(".probability-comparison")).toHaveCount(1);
+    await expect(page.locator(".metric-compare")).toHaveCount(3);
     await expectNoHorizontalOverflow(page, width);
 
     if (width < 768) {
@@ -66,9 +68,15 @@ test("Match Result Value and Probability modes have distinct ordering and contro
   expect(cards[3]).toContain("Arsenal");
 
   const triggers = page.locator(".prediction-card__trigger");
+  await expect(triggers.nth(0).locator(".prediction-card__summary > div")).toHaveCount(4);
   await triggers.nth(0).click();
   await expect(triggers.nth(0)).toHaveAttribute("aria-expanded", "true");
-  await expect(page.locator(".probability-panel")).toHaveCount(2);
+  await expect(page.locator(".probability-comparison")).toHaveCount(1);
+  await expect(page.getByText("1X2 PROBABILITY COMPARISON", { exact: true })).toBeVisible();
+  await expect(page.getByText("Bookmaker (pre-overround)", { exact: true })).toBeVisible();
+  await expect(page.locator(".probability-outcome")).toHaveCount(3);
+  await expect(page.locator(".metric-compare")).toHaveCount(3);
+
   await triggers.nth(1).click();
   await expect(triggers.nth(0)).toHaveAttribute("aria-expanded", "false");
   await expect(triggers.nth(1)).toHaveAttribute("aria-expanded", "true");
@@ -92,9 +100,11 @@ test("O/U mode supports probability ordering, Under filtering and analysis", asy
   const firstTrigger = page.locator(".prediction-card__trigger").first();
   await firstTrigger.click();
   await expect(firstTrigger).toHaveAttribute("aria-expanded", "true");
-  await expect(page.locator(".probability-panel")).toHaveCount(2);
-  await expect(page.getByText("BOOKMAKER · O/U 2.5")).toBeVisible();
-  await page.getByRole("button", { name: "↑ Close analysis" }).click();
+  await expect(page.getByText("O/U 2.5 PROBABILITY COMPARISON", { exact: true })).toBeVisible();
+  await expect(page.getByText("Bookmaker (pre-overround)", { exact: true })).toBeVisible();
+  await expect(page.locator(".probability-outcome")).toHaveCount(2);
+  await expect(page.locator(".metric-compare")).toHaveCount(3);
+  await firstTrigger.click();
   await expect(firstTrigger).toHaveAttribute("aria-expanded", "false");
 });
 
