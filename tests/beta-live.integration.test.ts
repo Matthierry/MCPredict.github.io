@@ -1,6 +1,6 @@
 import Papa from "papaparse";
 import { describe, expect, it } from "vitest";
-import { normalizeSourceRows } from "../worker/normalize";
+import { normalizeSourceRows, selectedMatchProbability, selectedOuProbability } from "../worker/normalize";
 import { cleanCell } from "../worker/parsers";
 
 const BETA_ORIGIN = "https://beta.mcpredict.com";
@@ -54,6 +54,8 @@ interface HomeResponse {
   hasPredictions: boolean;
 }
 
+type SourcePrediction = ReturnType<typeof normalizeSourceRows>["predictions"][number];
+
 function parseCsv(text: string): string[][] {
   const parsed = Papa.parse<string[]>(text, { delimiter: ",", skipEmptyLines: false });
   expect(parsed.errors, JSON.stringify(parsed.errors.slice(0, 5))).toHaveLength(0);
@@ -76,17 +78,62 @@ async function fetchJson<T>(path: string): Promise<T> {
   return await response.json() as T;
 }
 
-function selectedMatchProbability(prediction: ReturnType<typeof normalizeSourceRows>["predictions"][number]) {
-  if (prediction.matchPrediction === "Home") return prediction.matchModelHomeProbability;
-  if (prediction.matchPrediction === "Draw") return prediction.matchModelDrawProbability;
-  if (prediction.matchPrediction === "Away") return prediction.matchModelAwayProbability;
-  return null;
+function expectedMatchDisplayProbabilities(source: SourcePrediction) {
+  const raw = {
+    home: source.matchModelHomeProbability,
+    draw: source.matchModelDrawProbability,
+    away: source.matchModelAwayProbability
+  };
+  const selected = selectedMatchProbability(source);
+
+  if (
+    !source.matchPrediction ||
+    selected === null ||
+    raw.home === null ||
+    raw.draw === null ||
+    raw.away === null
+  ) {
+    return raw;
+  }
+
+  const values = {
+    home: raw.home,
+    draw: raw.draw,
+    away: raw.away
+  };
+  const selectedKey =
+    source.matchPrediction === "Home" ? "home" : source.matchPrediction === "Draw" ? "draw" : "away";
+  const otherKeys = (["home", "draw", "away"] as const).filter((key) => key !== selectedKey);
+  const otherRawTotal = otherKeys.reduce((sum, key) => sum + values[key], 0);
+  const remaining = Math.max(0, 1 - selected);
+
+  if (otherRawTotal <= 0) {
+    return {
+      home: selectedKey === "home" ? selected : remaining / 2,
+      draw: selectedKey === "draw" ? selected : remaining / 2,
+      away: selectedKey === "away" ? selected : remaining / 2
+    };
+  }
+
+  const scale = remaining / otherRawTotal;
+  return {
+    home: selectedKey === "home" ? selected : values.home * scale,
+    draw: selectedKey === "draw" ? selected : values.draw * scale,
+    away: selectedKey === "away" ? selected : values.away * scale
+  };
 }
 
-function selectedOuProbability(prediction: ReturnType<typeof normalizeSourceRows>["predictions"][number]) {
-  if (prediction.ouPrediction === "Over 2.5") return prediction.ouModelOverProbability;
-  if (prediction.ouPrediction === "Under 2.5") return prediction.ouModelUnderProbability;
-  return null;
+function expectedOuDisplayProbabilities(source: SourcePrediction) {
+  const selected = selectedOuProbability(source);
+  if (!source.ouPrediction || selected === null) {
+    return {
+      over: source.ouModelOverProbability,
+      under: source.ouModelUnderProbability
+    };
+  }
+  return source.ouPrediction === "Over 2.5"
+    ? { over: selected, under: 1 - selected }
+    : { over: 1 - selected, under: selected };
 }
 
 function expectNullableNumber(actual: number | null, expected: number | null) {
@@ -98,7 +145,7 @@ function expectNullableNumber(actual: number | null, expected: number | null) {
   }
 }
 
-function expectFixtureAndAnalysis(api: ApiPrediction, source: ReturnType<typeof normalizeSourceRows>["predictions"][number]) {
+function expectFixtureAndAnalysis(api: ApiPrediction, source: SourcePrediction) {
   expect(api.fixture).toEqual({
     date: source.fixtureDate,
     kickoff: source.kickoffTime,
@@ -144,6 +191,7 @@ liveQa("deployed beta source-to-API reconciliation", () => {
     const normalized = normalizeSourceRows(sourceRows);
     expect(normalized.conflictingMarketIds).toEqual([]);
     expect(normalized.validFixtureCount).toBeGreaterThan(0);
+    expect(normalized.validMatchResultCount).toBeGreaterThan(0);
 
     const fixtureCountRows = parseCsv(fixtureCountCsv);
     const rawFixtureCount = cleanCell(fixtureCountRows[0]?.[5]);
@@ -180,9 +228,11 @@ liveQa("deployed beta source-to-API reconciliation", () => {
       expectNullableNumber(api.prediction.bookmakerPrice, source.matchBookmakerPrice);
       expectNullableNumber(api.prediction.edge, source.matchEdge);
       expect(api.prediction.classification).toBe(source.matchValueClassification);
-      expectNullableNumber(api.probabilities.model.home ?? null, source.matchModelHomeProbability);
-      expectNullableNumber(api.probabilities.model.draw ?? null, source.matchModelDrawProbability);
-      expectNullableNumber(api.probabilities.model.away ?? null, source.matchModelAwayProbability);
+
+      const expectedModel = expectedMatchDisplayProbabilities(source);
+      expectNullableNumber(api.probabilities.model.home ?? null, expectedModel.home);
+      expectNullableNumber(api.probabilities.model.draw ?? null, expectedModel.draw);
+      expectNullableNumber(api.probabilities.model.away ?? null, expectedModel.away);
       expectNullableNumber(api.probabilities.bookmaker.home ?? null, source.matchBookmakerHomeProbability);
       expectNullableNumber(api.probabilities.bookmaker.draw ?? null, source.matchBookmakerDrawProbability);
       expectNullableNumber(api.probabilities.bookmaker.away ?? null, source.matchBookmakerAwayProbability);
@@ -200,12 +250,27 @@ liveQa("deployed beta source-to-API reconciliation", () => {
       expectNullableNumber(api.prediction.bookmakerPrice, source.ouBookmakerPrice);
       expectNullableNumber(api.prediction.edge, source.ouEdge);
       expect(api.prediction.classification).toBe(source.ouValueClassification);
-      expectNullableNumber(api.probabilities.model.over ?? null, source.ouModelOverProbability);
-      expectNullableNumber(api.probabilities.model.under ?? null, source.ouModelUnderProbability);
+
+      const expectedModel = expectedOuDisplayProbabilities(source);
+      expectNullableNumber(api.probabilities.model.over ?? null, expectedModel.over);
+      expectNullableNumber(api.probabilities.model.under ?? null, expectedModel.under);
 
       // Regression-critical mapping: source V = Bookmaker Over, W = Bookmaker Under.
       expectNullableNumber(api.probabilities.bookmaker.over ?? null, source.ouBookmakerOverProbability);
       expectNullableNumber(api.probabilities.bookmaker.under ?? null, source.ouBookmakerUnderProbability);
+    }
+
+    const norwich = ouById.get("E1NorwichE1West Brom46249");
+    expect(norwich, "Norwich v West Brom missing from deployed O/U beta API").toBeTruthy();
+    if (norwich) {
+      expect(norwich.prediction.selection).toBe("Under 2.5");
+      expect(norwich.prediction.modelPrice).toBeCloseTo(1.42, 10);
+      expect(norwich.prediction.bookmakerPrice).toBeCloseTo(1.84, 10);
+      expect(norwich.prediction.probability).toBeCloseTo(1 / 1.42, 10);
+      expect(norwich.probabilities.model.under).toBeCloseTo(1 / 1.42, 10);
+      expect(norwich.probabilities.model.over).toBeCloseTo(1 - (1 / 1.42), 10);
+      expect(norwich.probabilities.bookmaker.over).toBeCloseTo(1 / 1.88, 10);
+      expect(norwich.probabilities.bookmaker.under).toBeCloseTo(1 / 1.84, 10);
     }
 
     console.log("BETA_LIVE_RECONCILIATION", {
@@ -217,7 +282,14 @@ liveQa("deployed beta source-to-API reconciliation", () => {
       auditedMatchMarketIds: matchAudit.map((row) => row.marketId),
       auditedOuMarketIds: ouAudit.map((row) => row.marketId),
       topMatchResult: home.topMatchResult.map((row) => row.marketId),
-      topOverUnder25: home.topOverUnder25.map((row) => row.marketId)
+      topOverUnder25: home.topOverUnder25.map((row) => row.marketId),
+      norwich: norwich ? {
+        modelPrice: norwich.prediction.modelPrice,
+        selectedProbability: norwich.prediction.probability,
+        bookmakerPrice: norwich.prediction.bookmakerPrice,
+        bookmakerOver: norwich.probabilities.bookmaker.over,
+        bookmakerUnder: norwich.probabilities.bookmaker.under
+      } : null
     });
   }, 60_000);
 });
