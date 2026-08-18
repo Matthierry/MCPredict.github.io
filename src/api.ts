@@ -8,6 +8,11 @@ interface ApiState<T> {
   retry: () => void;
 }
 
+interface CachedData<T> {
+  key: string;
+  value: T | null;
+}
+
 function readCached<T>(key: string): T | null {
   try {
     const raw = localStorage.getItem(key);
@@ -18,23 +23,29 @@ function readCached<T>(key: string): T | null {
 }
 
 export function useCachedApi<T>(url: string, cacheKey: string): ApiState<T> {
-  const [data, setData] = useState<T | null>(() => readCached<T>(cacheKey));
-  const [loading, setLoading] = useState(() => data === null);
+  const [cachedData, setCachedData] = useState<CachedData<T>>(() => ({
+    key: cacheKey,
+    value: readCached<T>(cacheKey)
+  }));
+  const [loading, setLoading] = useState(() => cachedData.value === null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [requestVersion, setRequestVersion] = useState(0);
 
   const retry = useCallback(() => setRequestVersion((version) => version + 1), []);
+  const data = cachedData.key === cacheKey ? cachedData.value : null;
 
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
+    const initialCached = readCached<T>(cacheKey);
+
+    setCachedData({ key: cacheKey, value: initialCached });
+    setError(null);
+    setLoading(initialCached === null);
+    setRefreshing(initialCached !== null);
 
     async function load() {
-      setError(null);
-      if (data !== null) setRefreshing(true);
-      else setLoading(true);
-
       try {
         const response = await fetch(url, {
           signal: controller.signal,
@@ -43,7 +54,7 @@ export function useCachedApi<T>(url: string, cacheKey: string): ApiState<T> {
         if (!response.ok) throw new Error(`Request failed with HTTP ${response.status}.`);
         const payload = (await response.json()) as T;
         if (cancelled) return;
-        setData(payload);
+        setCachedData({ key: cacheKey, value: payload });
         try {
           localStorage.setItem(cacheKey, JSON.stringify(payload));
         } catch {
@@ -67,5 +78,11 @@ export function useCachedApi<T>(url: string, cacheKey: string): ApiState<T> {
     };
   }, [url, cacheKey, requestVersion]);
 
-  return { data, loading, refreshing, error, retry };
+  return {
+    data,
+    loading: cachedData.key === cacheKey ? loading : true,
+    refreshing: cachedData.key === cacheKey ? refreshing : false,
+    error: cachedData.key === cacheKey ? error : null,
+    retry
+  };
 }
