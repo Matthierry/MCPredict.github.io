@@ -14,7 +14,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="app-shell">
       <header className="site-header">
         <div className="site-header__inner">
-          <NavLink to="/" className="brand" aria-label="MC Predict home">
+          <NavLink to="/" className="brand">
             <span className="brand__mark" aria-hidden="true">MC</span>
             <span className="brand__copy">
               <strong>MC Predict</strong>
