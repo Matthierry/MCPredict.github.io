@@ -1,6 +1,12 @@
 import type { MatchPrediction, OuPrediction } from "../types";
 import { formatEdge, formatOdds } from "../format";
 
+function edgeTone(edge: number) {
+  if (edge > 0) return "value-positive";
+  if (edge < 0) return "value-negative";
+  return "value-neutral";
+}
+
 export function TopSelectionCard({ item }: { item: MatchPrediction | OuPrediction }) {
   return (
     <article className="top-selection-card">
@@ -24,7 +30,7 @@ export function TopSelectionCard({ item }: { item: MatchPrediction | OuPredictio
         </div>
         <div>
           <small>Edge</small>
-          <strong className={item.prediction.edge > 0 ? "value-positive" : "value-negative"}>
+          <strong className={edgeTone(item.prediction.edge)}>
             {formatEdge(item.prediction.edge)}
           </strong>
         </div>
