@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "mcpredict-beta",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-08-18",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "triggers": {
+    "crons": [
+      "0 12-18 * * *"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mcpredict-beta-db",
+      "database_id": "REPLACE_WITH_BETA_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "ENVIRONMENT": "beta"
+  },
+  "routes": [
+    {
+      "pattern": "beta.mcpredict.com",
+      "custom_domain": true
+    }
+  ]
+}
