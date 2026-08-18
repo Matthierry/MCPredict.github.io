@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useCachedApi } from "../api";
 import { formatDateLabel, formatEdge, formatOdds, formatProbability } from "../format";
 import { MetricCompare } from "../components/MetricCompare";
@@ -80,9 +81,17 @@ function PredictionCard({ item, mode, expanded, onToggle, market }: {
   onToggle: () => void;
   market: Market;
 }) {
+  const panelId = `analysis-${market}-${item.marketId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+
   return (
     <article className={`prediction-card surface${expanded ? " is-expanded" : ""}`}>
-      <button className="prediction-card__trigger" type="button" onClick={onToggle} aria-expanded={expanded}>
+      <button
+        className="prediction-card__trigger"
+        type="button"
+        onClick={onToggle}
+        aria-expanded={expanded}
+        aria-controls={panelId}
+      >
         <div className="prediction-card__meta">
           <span>{countryLeague(item)}</span>
           <span>{item.fixture.kickoff || ""}</span>
@@ -117,7 +126,7 @@ function PredictionCard({ item, mode, expanded, onToggle, market }: {
         </div>
       </button>
 
-      <div className="prediction-card__expand" aria-hidden={!expanded}>
+      <div id={panelId} className="prediction-card__expand" aria-hidden={!expanded}>
         {expanded ? (
           <div className="prediction-card__expand-inner">
             {market === "match" ? <MatchAnalysis item={item as MatchPrediction} /> : <OuAnalysis item={item as OuPrediction} />}
@@ -138,11 +147,19 @@ export function PredictionPage({ market }: { market: Market }) {
     ? "Compare MC Predict's Home, Draw and Away assessment with bookmaker pricing."
     : "Compare MC Predict's Over 2.5 and Under 2.5 assessment with bookmaker pricing.";
 
+  const [searchParams] = useSearchParams();
+  const requestedMode = searchParams.get("mode");
   const { data, loading, error, retry, refreshing } = useCachedApi<PredictionResponse<Prediction>>(endpoint, cacheKey);
-  const [mode, setMode] = useState<Mode>(initialMode);
+  const [mode, setMode] = useState<Mode>(() => requestedMode === "probability" ? "probability" : requestedMode === "value" ? "value" : initialMode());
   const [date, setDate] = useState("all");
   const [selection, setSelection] = useState("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (requestedMode === "value" || requestedMode === "probability") {
+      setMode(requestedMode);
+    }
+  }, [requestedMode]);
 
   useEffect(() => {
     try { localStorage.setItem(MODE_KEY, mode); } catch { /* session persistence is optional */ }
