@@ -51,7 +51,7 @@ export function HomePage() {
                   <span className="eyebrow">VALUE · MATCH RESULT</span>
                   <h2>Top 3 model edges</h2>
                 </div>
-                <Link to="/match-result" className="text-link">View all</Link>
+                <Link to="/match-result?mode=value" className="text-link">View all</Link>
               </div>
               <div className="top-selection-grid">
                 {data.topMatchResult.map((item) => <TopSelectionCard key={item.marketId} item={item} />)}
@@ -66,7 +66,7 @@ export function HomePage() {
                   <span className="eyebrow">VALUE · O/U 2.5</span>
                   <h2>Top 3 goal-market edges</h2>
                 </div>
-                <Link to="/over-under-25" className="text-link">View all</Link>
+                <Link to="/over-under-25?mode=value" className="text-link">View all</Link>
               </div>
               <div className="top-selection-grid">
                 {data.topOverUnder25.map((item) => <TopSelectionCard key={item.marketId} item={item} />)}
@@ -86,18 +86,24 @@ export function HomePage() {
           </div>
         </div>
         <div className="mode-route-grid">
-          <Link to="/match-result" className="surface route-card">
+          <article className="surface route-card">
             <span className="route-card__tag">VALUE</span>
             <h3>Where does the model disagree with the market?</h3>
-            <p>Compare model price with bookmaker price and rank every selection by model edge.</p>
-            <strong>Explore Match Result →</strong>
-          </Link>
-          <Link to="/over-under-25" className="surface route-card">
+            <p>Rank selections by model edge and compare the supplied model price with the bookmaker price.</p>
+            <div className="route-card__actions" aria-label="Explore Value mode">
+              <Link to="/match-result?mode=value">Match Result →</Link>
+              <Link to="/over-under-25?mode=value">O/U 2.5 →</Link>
+            </div>
+          </article>
+          <article className="surface route-card">
             <span className="route-card__tag route-card__tag--neutral">PROBABILITY</span>
             <h3>What does MC Predict think is most likely?</h3>
-            <p>Switch to Probability mode to rank outcomes by the model's estimated chance.</p>
-            <strong>Explore O/U 2.5 →</strong>
-          </Link>
+            <p>Rank the model's selected outcomes by probability without using value or model edge as the ordering.</p>
+            <div className="route-card__actions" aria-label="Explore Probability mode">
+              <Link to="/match-result?mode=probability">Match Result →</Link>
+              <Link to="/over-under-25?mode=probability">O/U 2.5 →</Link>
+            </div>
+          </article>
         </div>
       </section>
 
