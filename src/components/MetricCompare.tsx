@@ -2,7 +2,7 @@ import type { ComponentType } from "react";
 import { ExpectedGoalsIcon, ExpectedShotsIcon, ShotsOnTargetIcon } from "./icons";
 
 function metric(value: number | null, digits: number) {
-  return value === null ? "—" : value.toFixed(digits).replace(/\.0$/, "");
+  return value === null ? "—" : value.toFixed(digits);
 }
 
 type MetricKind = "goals" | "shots" | "target";
