@@ -1,0 +1,61 @@
+name: MC Predict Beta Accessibility Diagnostic
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - agent/mcpredict-v1-rebuild
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mcpredict-beta-a11y-diagnostic
+  cancel-in-progress: true
+
+jobs:
+  lighthouse-a11y:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Audit deployed beta accessibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          export CHROME_PATH="$(command -v google-chrome || command -v chromium)"
+          npx lighthouse https://beta.mcpredict.com/ \
+            --quiet \
+            --output=json \
+            --output-path=/tmp/lighthouse-beta-a11y.json \
+            --only-categories=accessibility \
+            --chrome-flags="--headless --no-sandbox --disable-gpu"
+
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(fs.readFileSync('/tmp/lighthouse-beta-a11y.json', 'utf8'));
+          const score = Math.round(report.categories.accessibility.score * 100);
+          console.log('ACCESSIBILITY_SCORE', score);
+          for (const ref of report.categories.accessibility.auditRefs || []) {
+            const audit = report.audits[ref.id];
+            if (!audit || audit.score === null || audit.score >= 1) continue;
+            console.log('A11Y_FAIL', JSON.stringify({ id: ref.id, score: audit.score, weight: ref.weight, title: audit.title }));
+            for (const item of (audit.details?.items || []).slice(0, 30)) {
+              const node = item.node || item;
+              console.log('A11Y_NODE', JSON.stringify({
+                selector: node.selector || null,
+                snippet: node.snippet || null,
+                failureSummary: node.failureSummary || null
+              }));
+            }
+          }
+          if (score < 95) process.exit(1);
+          NODE
