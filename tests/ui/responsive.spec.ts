@@ -50,12 +50,12 @@ test("Match Result Value and Probability modes have distinct ordering and contro
   expect(cards[2]).toContain("Liverpool");
   expect(cards[3]).toContain("Manchester City");
 
-  await page.getByLabel("Prediction").selectOption("Draw");
+  await page.getByLabel("Prediction", { exact: true }).selectOption("Draw");
   await expect(page.locator(".prediction-card")).toHaveCount(1);
   await expect(page.locator(".prediction-card").first()).toContainText("Arsenal");
   await expect(page.locator(".no-value-divider")).toHaveCount(0);
 
-  await page.getByLabel("Prediction").selectOption("all");
+  await page.getByLabel("Prediction", { exact: true }).selectOption("all");
   await page.getByRole("button", { name: "PROBABILITY", exact: true }).click();
   await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".no-value-divider")).toHaveCount(0);
@@ -73,7 +73,7 @@ test("Match Result Value and Probability modes have distinct ordering and contro
   await expect(triggers.nth(0)).toHaveAttribute("aria-expanded", "false");
   await expect(triggers.nth(1)).toHaveAttribute("aria-expanded", "true");
 
-  await page.getByLabel("Date").selectOption("2026-08-23");
+  await page.getByLabel("Date", { exact: true }).selectOption("2026-08-23");
   await expect(page.locator(".prediction-card")).toHaveCount(2);
 });
 
@@ -83,7 +83,7 @@ test("O/U mode supports probability ordering, Under filtering and analysis", asy
   await expect(page.getByRole("heading", { name: "Over/Under 2.5 Predictions" })).toBeVisible();
   await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toHaveAttribute("aria-pressed", "true");
 
-  await page.getByLabel("Prediction").selectOption("Under 2.5");
+  await page.getByLabel("Prediction", { exact: true }).selectOption("Under 2.5");
   await expect(page.locator(".prediction-card")).toHaveCount(2);
   const cards = await page.locator(".prediction-card").allTextContents();
   expect(cards[0]).toContain("Tottenham Hotspur");
