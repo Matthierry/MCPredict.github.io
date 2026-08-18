@@ -207,17 +207,25 @@ describe("public API integration", () => {
     }
   });
 
-  it("returns only valid active Match Result rows with the selected AQ probability", async () => {
+  it("returns only valid active Match Result rows with price-aligned selected/model probabilities", async () => {
     const harness = createHarness();
     try {
       const response = await handleApi(new Request("https://beta.mcpredict.com/api/v1/predictions/match-result"), harness.env);
       const body = await jsonBody<{
-        data: Array<{ marketId: string; prediction: { selection: string; probability: number } }>;
+        data: Array<{
+          marketId: string;
+          prediction: { selection: string; probability: number; modelPrice: number };
+          probabilities: { model: { home: number; draw: number; away: number } };
+        }>;
         meta: { datasetId: string; count: number };
       }>(response);
 
       expect(body.data.map((item) => item.marketId)).toEqual(["B", "C", "A"]);
-      expect(body.data.find((item) => item.marketId === "B")?.prediction).toMatchObject({ selection: "Draw", probability: 0.55 });
+      const draw = body.data.find((item) => item.marketId === "B");
+      expect(draw?.prediction.selection).toBe("Draw");
+      expect(draw?.prediction.probability).toBeCloseTo(1 / 1.56);
+      expect(draw?.probabilities.model.draw).toBeCloseTo(1 / 1.56);
+      expect((draw?.probabilities.model.home ?? 0) + (draw?.probabilities.model.draw ?? 0) + (draw?.probabilities.model.away ?? 0)).toBeCloseTo(1);
       expect(body.data.some((item) => item.marketId === "D")).toBe(false);
       expect(body.meta).toMatchObject({ datasetId: "active", count: 3 });
     } finally {
@@ -225,21 +233,27 @@ describe("public API integration", () => {
     }
   });
 
-  it("returns O/U rows with V as bookmaker Over, W as bookmaker Under and BJ/BK selected correctly", async () => {
+  it("returns O/U rows with bookmaker implied probabilities and model bar aligned to selected model price", async () => {
     const harness = createHarness();
     try {
       const response = await handleApi(new Request("https://beta.mcpredict.com/api/v1/predictions/over-under-25"), harness.env);
       const body = await jsonBody<{
         data: Array<{
           marketId: string;
-          prediction: { selection: string; probability: number };
-          probabilities: { bookmaker: { over: number; under: number } };
+          prediction: { selection: string; probability: number; modelPrice: number };
+          probabilities: {
+            model: { over: number; under: number };
+            bookmaker: { over: number; under: number };
+          };
         }>;
       }>(response);
 
       expect(body.data.map((item) => item.marketId)).toEqual(["A", "C", "D", "B"]);
       const under = body.data.find((item) => item.marketId === "C");
-      expect(under?.prediction).toMatchObject({ selection: "Under 2.5", probability: 0.63 });
+      expect(under?.prediction.selection).toBe("Under 2.5");
+      expect(under?.prediction.probability).toBeCloseTo(1 / 1.47);
+      expect(under?.probabilities.model.under).toBeCloseTo(1 / 1.47);
+      expect(under?.probabilities.model.over).toBeCloseTo(1 - (1 / 1.47));
       expect(under?.probabilities.bookmaker).toEqual({ over: 0.64, under: 0.43 });
     } finally {
       harness.database.close();
