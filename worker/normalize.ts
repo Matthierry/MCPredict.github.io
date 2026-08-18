@@ -61,23 +61,25 @@ function createFixtureFingerprint(
   );
 }
 
-function containsMappedSpreadsheetError(row: string[]): boolean {
-  const sharedFields = [
-    "marketId",
-    "fixtureDate",
-    "kickoffTime",
-    "homeTeam",
-    "awayTeam",
-    "country",
-    "league",
-    "homeXGoals",
-    "awayXGoals",
-    "homeXShots",
-    "awayXShots",
-    "homeXShotsOnTarget",
-    "awayXShotsOnTarget"
-  ] as const;
-  return sharedFields.some((field) => isSpreadsheetError(getCell(row, field)));
+const CRITICAL_SHARED_FIELDS = ["marketId", "fixtureDate", "homeTeam", "awayTeam"] as const;
+const OPTIONAL_SHARED_FIELDS = [
+  "kickoffTime",
+  "country",
+  "league",
+  "homeXGoals",
+  "awayXGoals",
+  "homeXShots",
+  "awayXShots",
+  "homeXShotsOnTarget",
+  "awayXShotsOnTarget"
+] as const;
+
+function containsCriticalSharedSpreadsheetError(row: string[]): boolean {
+  return CRITICAL_SHARED_FIELDS.some((field) => isSpreadsheetError(getCell(row, field)));
+}
+
+function optionalSharedSpreadsheetErrors(row: string[]): string[] {
+  return OPTIONAL_SHARED_FIELDS.filter((field) => isSpreadsheetError(getCell(row, field)));
 }
 
 function isHeaderLike(row: string[]): boolean {
@@ -117,9 +119,16 @@ function normalizeRow(
   rowNumber: number,
   diagnostics: string[]
 ): NormalizedPrediction | null {
-  if (containsMappedSpreadsheetError(row)) {
-    diagnostics.push(`Row ${rowNumber}: shared fixture field contains a spreadsheet error.`);
+  if (containsCriticalSharedSpreadsheetError(row)) {
+    diagnostics.push(`Row ${rowNumber}: critical shared fixture field contains a spreadsheet error.`);
     return null;
+  }
+
+  const optionalErrors = optionalSharedSpreadsheetErrors(row);
+  if (optionalErrors.length) {
+    diagnostics.push(
+      `Row ${rowNumber}: optional shared field error(s) normalised to null: ${optionalErrors.join(", ")}.`
+    );
   }
 
   const marketId = cleanCell(getCell(row, "marketId"));
