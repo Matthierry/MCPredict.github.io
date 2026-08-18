@@ -37,6 +37,15 @@ export function parseDecimal(value: unknown): number | null {
   return Number.isFinite(numeric) ? numeric : null;
 }
 
+export function impliedProbabilityFromDecimalOdds(value: unknown): number | null {
+  const odds = parseDecimal(value);
+  if (odds === null || odds < 1) return null;
+  const probability = 1 / odds;
+  return Number.isFinite(probability) && probability >= 0 && probability <= 1
+    ? probability
+    : null;
+}
+
 export function parseEdgePercentagePoints(value: unknown): number | null {
   const raw = cleanCell(value);
   if (!raw || isSpreadsheetError(raw)) return null;
