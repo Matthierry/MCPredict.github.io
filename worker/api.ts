@@ -86,19 +86,27 @@ function selectedOuProbability(row: DbPrediction): number | null {
 }
 
 function matchModelDisplayProbabilities(row: DbPrediction) {
-  const raw = {
-    home: row.match_model_home_probability,
-    draw: row.match_model_draw_probability,
-    away: row.match_model_away_probability
-  };
+  const homeRaw = row.match_model_home_probability;
+  const drawRaw = row.match_model_draw_probability;
+  const awayRaw = row.match_model_away_probability;
+  const raw = { home: homeRaw, draw: drawRaw, away: awayRaw };
   const selected = selectedMatchProbability(row);
-  if (!row.match_prediction || selected === null || raw.home === null || raw.draw === null || raw.away === null) {
+
+  if (
+    !row.match_prediction ||
+    selected === null ||
+    homeRaw === null ||
+    drawRaw === null ||
+    awayRaw === null
+  ) {
     return raw;
   }
 
-  const selectedKey = row.match_prediction === "Home" ? "home" : row.match_prediction === "Draw" ? "draw" : "away";
+  const values = { home: homeRaw, draw: drawRaw, away: awayRaw };
+  const selectedKey =
+    row.match_prediction === "Home" ? "home" : row.match_prediction === "Draw" ? "draw" : "away";
   const otherKeys = (["home", "draw", "away"] as const).filter((key) => key !== selectedKey);
-  const otherRawTotal = otherKeys.reduce((sum, key) => sum + raw[key], 0);
+  const otherRawTotal = otherKeys.reduce((sum, key) => sum + values[key], 0);
   const remaining = Math.max(0, 1 - selected);
 
   if (otherRawTotal <= 0) {
@@ -111,9 +119,9 @@ function matchModelDisplayProbabilities(row: DbPrediction) {
 
   const scale = remaining / otherRawTotal;
   return {
-    home: selectedKey === "home" ? selected : raw.home * scale,
-    draw: selectedKey === "draw" ? selected : raw.draw * scale,
-    away: selectedKey === "away" ? selected : raw.away * scale
+    home: selectedKey === "home" ? selected : values.home * scale,
+    draw: selectedKey === "draw" ? selected : values.draw * scale,
+    away: selectedKey === "away" ? selected : values.away * scale
   };
 }
 
