@@ -62,19 +62,43 @@ function parseCsv(text: string): string[][] {
   return parsed.data;
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(url: string, init: RequestInit, attempts = 4, timeoutMs = 20_000): Promise<Response> {
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, { ...init, signal: controller.signal });
+      if (!response.ok) throw new Error(`HTTP ${response.status} fetching ${url}`);
+      return response;
+    } catch (error) {
+      lastError = error;
+      if (attempt === attempts) break;
+      await sleep(attempt * 2_000);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(`Unable to fetch ${url}`);
+}
+
 async function fetchText(url: string) {
-  const response = await fetch(url, {
+  const response = await fetchWithRetry(url, {
     headers: { "User-Agent": "MC-Predict-V1-Beta-Live-QA/1.0" }
   });
-  expect(response.ok, `HTTP ${response.status} fetching ${url}`).toBe(true);
   return await response.text();
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${BETA_ORIGIN}${path}`, {
+  const response = await fetchWithRetry(`${BETA_ORIGIN}${path}`, {
     headers: { Accept: "application/json", "User-Agent": "MC-Predict-V1-Beta-Live-QA/1.0" }
   });
-  expect(response.ok, `HTTP ${response.status} fetching ${path}`).toBe(true);
   return await response.json() as T;
 }
 
@@ -291,5 +315,5 @@ liveQa("deployed beta source-to-API reconciliation", () => {
         bookmakerUnder: norwich.probabilities.bookmaker.under
       } : null
     });
-  }, 60_000);
+  }, 180_000);
 });
