@@ -42,3 +42,15 @@ export function ChevronIcon({ className }: IconProps) {
 export function ArrowIcon({ className }: IconProps) {
   return <Svg className={className}><path d="M5 12h14"/><path d="m15 8 4 4-4 4"/></Svg>;
 }
+
+export function ExpectedGoalsIcon({ className }: IconProps) {
+  return <Svg className={className}><path d="M5 19v-6"/><path d="M10 19V8"/><path d="M15 19V4"/><path d="M20 19v-9"/><path d="M3 19h19"/></Svg>;
+}
+
+export function ExpectedShotsIcon({ className }: IconProps) {
+  return <Svg className={className}><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.9 4.9 2.1 2.1"/><path d="m17 17 2.1 2.1"/><path d="m19.1 4.9-2.1 2.1"/><path d="M7 17l-2.1 2.1"/></Svg>;
+}
+
+export function ShotsOnTargetIcon({ className }: IconProps) {
+  return <Svg className={className}><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></Svg>;
+}
