@@ -56,6 +56,32 @@ describe("normalization", () => {
     expect(prediction.ouValid).toBe(false);
   });
 
+  it("keeps valid markets when an optional xMetric contains a spreadsheet error", () => {
+    const result = normalizeSourceRows([row({ homeXGoals: "#REF!", awayXShotsOnTarget: "#N/A" })]);
+    expect(result.predictions).toHaveLength(1);
+    expect(result.predictions[0].matchValid).toBe(true);
+    expect(result.predictions[0].ouValid).toBe(true);
+    expect(result.predictions[0].homeXGoals).toBeNull();
+    expect(result.predictions[0].awayXShotsOnTarget).toBeNull();
+    expect(result.diagnostics.some((message) => message.includes("optional shared field error"))).toBe(true);
+  });
+
+  it("normalises optional fixture metadata spreadsheet errors to null", () => {
+    const result = normalizeSourceRows([row({ kickoffTime: "#VALUE!", country: "#REF!", league: "#N/A" })]);
+    expect(result.predictions).toHaveLength(1);
+    expect(result.predictions[0].kickoffTime).toBeNull();
+    expect(result.predictions[0].country).toBeNull();
+    expect(result.predictions[0].league).toBeNull();
+    expect(result.predictions[0].matchValid).toBe(true);
+    expect(result.predictions[0].ouValid).toBe(true);
+  });
+
+  it("rejects a spreadsheet error in a critical shared fixture field", () => {
+    const result = normalizeSourceRows([row({ homeTeam: "#REF!" })]);
+    expect(result.predictions).toHaveLength(0);
+    expect(result.invalidRowCount).toBe(1);
+  });
+
   it("rejects an empty Market ID", () => {
     const result = normalizeSourceRows([row({ marketId: "" })]);
     expect(result.predictions).toHaveLength(0);
