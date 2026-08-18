@@ -1,0 +1,104 @@
+/* Responsive hardening for the narrowest supported V1 viewports.
+   Kept separate from the core design sheet so these constraints stay easy to audit. */
+html,
+body,
+#root,
+.app-shell,
+.site-header,
+.page-shell,
+.page,
+.site-footer,
+.site-footer__inner,
+.home-section,
+.section-heading,
+.control-stack,
+.prediction-list,
+.prediction-card,
+.prediction-card__trigger,
+.prediction-card__fixture,
+.prediction-card__numbers,
+.prediction-card__foot,
+.prediction-card__expand,
+.prediction-card__expand-inner,
+.analysis-body,
+.probability-panel,
+.analysis-metrics,
+.metric-compare {
+  min-width: 0;
+  max-width: 100%;
+}
+
+html,
+body,
+#root,
+.app-shell {
+  overflow-x: clip;
+}
+
+.prediction-card__meta > *,
+.prediction-card__fixture > *,
+.prediction-card__numbers > *,
+.prediction-card__foot > *,
+.probability-panel__head > *,
+.metric-compare__teams > * {
+  min-width: 0;
+}
+
+@media (max-width: 599px) {
+  .section-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+
+  .section-heading > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .text-link {
+    white-space: normal;
+  }
+
+  .prediction-heading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-footer__inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .site-footer a {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .prediction-card__foot,
+  .probability-panel__head {
+    flex-wrap: wrap;
+  }
+
+  .probability-panel__head small {
+    max-width: 100%;
+    text-align: left;
+  }
+}
+
+@media (max-width: 350px) {
+  .filter-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .prediction-card__fixture {
+    gap: 8px;
+  }
+
+  .prediction-card__numbers--value {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .prediction-card__numbers--probability {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  }
+}
