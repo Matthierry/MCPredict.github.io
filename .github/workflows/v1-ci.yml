@@ -36,6 +36,7 @@ jobs:
               "REPLACE_WITH_BETA_D1_DATABASE_ID",
               "00000000-0000-0000-0000-000000000000"
           )
-          Path("/tmp/wrangler-ci.jsonc").write_text(source)
+          Path("wrangler.ci.jsonc").write_text(source)
           PY
-          npx wrangler deploy --dry-run --outdir /tmp/mcpredict-worker-dryrun --config /tmp/wrangler-ci.jsonc
+          trap 'rm -f wrangler.ci.jsonc' EXIT
+          npx wrangler deploy --dry-run --outdir /tmp/mcpredict-worker-dryrun --config wrangler.ci.jsonc
