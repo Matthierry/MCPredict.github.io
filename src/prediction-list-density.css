@@ -2,16 +2,42 @@
    Keep the full information hierarchy while fitting materially more fixtures on mobile. */
 
 .prediction-list {
-  gap: 6px;
+  gap: 5px;
 }
 
-/* Edge is the tightest summary value. Keep double-digit percentages on one line. */
+/* Reduce every visible collapsed-card text treatment by 2px from the approved
+   baseline. Expanded analysis typography remains unchanged. */
+.prediction-card__meta {
+  font-size: calc(0.82rem - 2px);
+}
+
+.prediction-card__team {
+  font-size: clamp(calc(1.08rem - 2px), calc(4vw - 2px), calc(1.5rem - 2px));
+}
+
+.prediction-card__versus {
+  font-size: calc(1.05rem - 2px);
+}
+
+.prediction-card__summary small {
+  font-size: calc(0.66rem - 2px);
+}
+
+.prediction-card__summary strong {
+  font-size: calc(1.12rem - 2px);
+}
+
+.analysis-toggle {
+  font-size: calc(0.78rem - 2px);
+}
+
+/* Edge/probability is the tightest summary value. Keep percentages on one line. */
 .prediction-card__summary > div:last-child strong {
   white-space: nowrap;
   overflow-wrap: normal;
   word-break: normal;
   letter-spacing: -0.025em;
-  font-size: 0.96rem;
+  font-size: calc(0.96rem - 2px);
 }
 
 @media (max-width: 599px) {
@@ -20,37 +46,37 @@
   }
 
   .prediction-card__trigger {
-    padding: 11px 14px 8px;
+    padding: 9px 12px 6px;
   }
 
   .prediction-card__meta {
-    gap: 10px;
-    font-size: 0.66rem;
+    gap: 8px;
+    font-size: calc(0.66rem - 2px);
   }
 
   .prediction-card__fixture {
-    gap: 8px;
-    margin-top: 7px;
+    gap: 7px;
+    margin-top: 5px;
   }
 
   .prediction-card__team {
-    font-size: 0.91rem;
-    line-height: 1.1;
+    font-size: calc(0.91rem - 2px);
+    line-height: 1.08;
   }
 
   .prediction-card__versus {
-    font-size: 0.78rem;
+    font-size: calc(0.78rem - 2px);
   }
 
   .prediction-card__summary {
     grid-template-columns: 1fr 0.85fr 1fr 0.85fr;
-    margin-top: 10px;
-    padding-top: 8px;
+    margin-top: 8px;
+    padding-top: 6px;
   }
 
   .prediction-card__summary > div {
-    gap: 2px;
-    padding-inline: 7px;
+    gap: 1px;
+    padding-inline: 6px;
   }
 
   .prediction-card__summary > div:first-child {
@@ -62,29 +88,29 @@
   }
 
   .prediction-card__summary small {
-    font-size: 0.52rem;
-    letter-spacing: 0.04em;
+    font-size: calc(0.52rem - 2px);
+    letter-spacing: 0.035em;
   }
 
   .prediction-card__summary strong {
-    font-size: 0.86rem;
-    line-height: 1.05;
+    font-size: calc(0.86rem - 2px);
+    line-height: 1.03;
   }
 
   .prediction-card__summary > div:last-child strong {
-    font-size: 0.78rem;
+    font-size: calc(0.78rem - 2px);
   }
 
   .analysis-toggle {
-    min-height: 28px;
-    margin: 2px auto -3px;
-    gap: 4px;
-    font-size: 0.63rem;
+    min-height: 24px;
+    margin: 0 auto -4px;
+    gap: 3px;
+    font-size: calc(0.63rem - 2px);
   }
 
   .analysis-toggle__icon {
-    width: 12px;
-    height: 12px;
+    width: 11px;
+    height: 11px;
   }
 
   /* The analysis itself stays comfortable; only the fixture/list header is compressed. */
@@ -95,22 +121,22 @@
 
 @media (max-width: 350px) {
   .prediction-card__trigger {
-    padding: 10px 11px 7px;
+    padding: 8px 10px 5px;
   }
 
   .prediction-card__summary > div {
-    padding-inline: 5px;
+    padding-inline: 4px;
   }
 
   .prediction-card__summary small {
-    font-size: 0.49rem;
+    font-size: calc(0.49rem - 2px);
   }
 
   .prediction-card__summary strong {
-    font-size: 0.82rem;
+    font-size: calc(0.82rem - 2px);
   }
 
   .prediction-card__summary > div:last-child strong {
-    font-size: 0.74rem;
+    font-size: calc(0.74rem - 2px);
   }
 }
