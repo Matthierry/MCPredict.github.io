@@ -1,4 +1,5 @@
 import type { ActiveDataset, NormalizedPrediction, SyncResult } from "./types";
+import type { TeamColourRecord } from "./team-colours";
 
 export async function getActiveDataset(db: D1Database): Promise<ActiveDataset | null> {
   return (
@@ -214,6 +215,75 @@ export async function setState(db: D1Database, key: string, value: string): Prom
     )
     .bind(key, value, now)
     .run();
+}
+
+export async function getState(db: D1Database, key: string): Promise<string | null> {
+  const row = await db
+    .prepare("SELECT value FROM site_state WHERE key = ?")
+    .bind(key)
+    .first<{ value: string | null }>();
+  return row?.value ?? null;
+}
+
+export async function replaceTeamColours(
+  db: D1Database,
+  records: TeamColourRecord[],
+  sourceHash: string
+): Promise<void> {
+  const now = new Date().toISOString();
+  const batchSize = 50;
+
+  for (let index = 0; index < records.length; index += batchSize) {
+    const statements = records.slice(index, index + batchSize).map((record) =>
+      db
+        .prepare(
+          `INSERT INTO team_colours (
+             team_key, team_name, primary_colour, secondary_colour, source_hash, updated_at
+           ) VALUES (?, ?, ?, ?, ?, ?)
+           ON CONFLICT(team_key) DO UPDATE SET
+             team_name = excluded.team_name,
+             primary_colour = excluded.primary_colour,
+             secondary_colour = excluded.secondary_colour,
+             source_hash = excluded.source_hash,
+             updated_at = excluded.updated_at`
+        )
+        .bind(
+          record.teamKey,
+          record.teamName,
+          record.primaryColour,
+          record.secondaryColour,
+          sourceHash,
+          now
+        )
+    );
+    if (statements.length) await db.batch(statements);
+  }
+
+  // Only remove stale rows after every new/updated row has been written successfully.
+  await db.prepare("DELETE FROM team_colours WHERE source_hash <> ?").bind(sourceHash).run();
+  await setState(db, "team_colour_source_hash", sourceHash);
+  await setState(db, "last_successful_team_colour_sync", now);
+}
+
+export async function getTeamColours(db: D1Database): Promise<Array<{
+  team_key: string;
+  team_name: string;
+  primary_colour: string;
+  secondary_colour: string;
+}>> {
+  const result = await db
+    .prepare(
+      `SELECT team_key, team_name, primary_colour, secondary_colour
+         FROM team_colours
+        ORDER BY team_key`
+    )
+    .all<{
+      team_key: string;
+      team_name: string;
+      primary_colour: string;
+      secondary_colour: string;
+    }>();
+  return result.results ?? [];
 }
 
 export async function upsertFixtureCount(
