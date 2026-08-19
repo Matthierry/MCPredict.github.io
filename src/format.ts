@@ -19,16 +19,65 @@ export function formatMetric(value: number | null | undefined, decimals: number)
   return fixed.replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
 }
 
-export function formatFriendlyDate(isoDate: string): string {
-  const [year, month, day] = isoDate.split("-").map(Number);
+function parseIsoDateParts(isoDate: string): { year: number; month: number; day: number } | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
   const date = new Date(Date.UTC(year, month - 1, day));
-  if (Number.isNaN(date.getTime())) return isoDate;
+
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return { year, month, day };
+}
+
+function ordinalDay(day: number): string {
+  const lastTwo = day % 100;
+  if (lastTwo >= 11 && lastTwo <= 13) return `${day}th`;
+
+  if (day % 10 === 1) return `${day}st`;
+  if (day % 10 === 2) return `${day}nd`;
+  if (day % 10 === 3) return `${day}rd`;
+  return `${day}th`;
+}
+
+export function formatFriendlyDate(isoDate: string): string {
+  const parts = parseIsoDateParts(isoDate);
+  if (!parts) return isoDate;
+
+  const date = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
   return new Intl.DateTimeFormat("en-GB", {
     timeZone: "UTC",
     weekday: "short",
     day: "numeric",
     month: "short"
   }).format(date);
+}
+
+export function formatFixtureMetaDate(isoDate: string): string {
+  const parts = parseIsoDateParts(isoDate);
+  if (!parts) return isoDate;
+
+  const date = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+  const weekday = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
+    weekday: "short"
+  }).format(date);
+  const month = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
+    month: "short"
+  }).format(date);
+
+  return `${weekday} ${ordinalDay(parts.day)} ${month}`;
 }
 
 export function formatUpdatedAt(value: string | null | undefined): string | null {
