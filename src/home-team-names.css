@@ -22,10 +22,37 @@
   white-space: nowrap;
 }
 
-/* The wrapping pressure only exists in the desktop three-across Top 3 layout.
-   Leave the already-approved mobile team size unchanged. */
+/* The wrapping pressure exists in the desktop three-across Top 3 layout.
+   Keep the full market-page cards untouched while making the homepage cards
+   materially denser and easier to scan. */
 @media (min-width: 900px) {
   .page--home .home-prediction-list .prediction-card__team {
-    font-size: clamp(calc(1.08rem - 4px), calc(4vw - 4px), calc(1.5rem - 4px));
+    font-size: clamp(calc(1.08rem - 8px), calc(4vw - 8px), calc(1.5rem - 8px));
+    line-height: 1.05;
+  }
+
+  .page--home .home-prediction-list .prediction-card__trigger {
+    padding: 13px 16px 8px;
+  }
+
+  .page--home .home-prediction-list .prediction-card__fixture {
+    gap: 9px;
+    margin-top: 8px;
+  }
+
+  .page--home .home-prediction-list .prediction-card__summary {
+    margin-top: 12px;
+    padding-top: 9px;
+  }
+
+  .page--home .home-prediction-list .prediction-card__summary > div {
+    gap: 2px;
+    padding-inline: 9px;
+  }
+
+  .page--home .home-prediction-list .analysis-toggle {
+    min-height: 26px;
+    margin: 3px auto -2px;
+    gap: 4px;
   }
 }
