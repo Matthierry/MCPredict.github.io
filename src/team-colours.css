@@ -1,0 +1,106 @@
+/* Subtle team-colour treatment for fixture cards.
+   Colours are supplied by the Worker after server-side validation. */
+
+.prediction-card__trigger {
+  position: relative;
+  isolation: isolate;
+}
+
+.prediction-card__trigger > * {
+  position: relative;
+  z-index: 2;
+}
+
+.prediction-card__trigger::before,
+.prediction-card__trigger::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 25px;
+  width: 44px;
+  height: 42px;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.prediction-card__trigger::before {
+  left: 0;
+  clip-path: polygon(0 0, 100% 0, 64% 100%, 0 100%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--home-primary) 20%, transparent) 0%,
+    color-mix(in srgb, var(--home-primary) 9%, transparent) 58%,
+    transparent 100%
+  );
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--home-secondary) 24%, transparent);
+}
+
+.prediction-card__trigger::after {
+  right: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 36% 100%);
+  background: linear-gradient(
+    270deg,
+    color-mix(in srgb, var(--away-primary) 20%, transparent) 0%,
+    color-mix(in srgb, var(--away-primary) 9%, transparent) 58%,
+    transparent 100%
+  );
+  box-shadow: inset -3px 0 0 color-mix(in srgb, var(--away-secondary) 24%, transparent);
+}
+
+/* Pull competition and kickoff together around the centre, rather than anchoring
+   them against the outside edges where the colour treatment now lives. */
+.prediction-card__meta {
+  width: min(62%, 210px);
+  margin-inline: auto;
+  justify-content: center;
+  gap: 9px;
+}
+
+.prediction-card__meta span:first-child {
+  flex: 1 1 0;
+  text-align: right;
+}
+
+.prediction-card__meta span:last-child {
+  flex: 0 0 auto;
+  text-align: left;
+}
+
+/* Give the colour wings breathing space without making the list taller. */
+.prediction-card__fixture {
+  padding-inline: 22px;
+}
+
+@media (min-width: 600px) {
+  .prediction-card__trigger::before,
+  .prediction-card__trigger::after {
+    top: 38px;
+    width: 62px;
+    height: 56px;
+  }
+
+  .prediction-card__meta {
+    width: min(48%, 280px);
+    gap: 12px;
+  }
+
+  .prediction-card__fixture {
+    padding-inline: 38px;
+  }
+}
+
+@media (max-width: 350px) {
+  .prediction-card__trigger::before,
+  .prediction-card__trigger::after {
+    width: 38px;
+  }
+
+  .prediction-card__meta {
+    width: min(66%, 190px);
+    gap: 7px;
+  }
+
+  .prediction-card__fixture {
+    padding-inline: 18px;
+  }
+}
