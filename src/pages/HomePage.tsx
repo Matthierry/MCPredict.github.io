@@ -1,8 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCachedApi } from "../api";
-import { PredictionCard, type PredictionMarket } from "../components/PredictionCard";
+import {
+  PredictionAnalysis,
+  PredictionCard,
+  predictionFixtureMetaLabel,
+  type PredictionCardItem,
+  type PredictionMarket
+} from "../components/PredictionCard";
 import type { HomeResponse } from "../types";
+
+const DESKTOP_HOME_QUERY = "(min-width: 900px)";
 
 function FixtureCount({ value }: { value: number | null }) {
   return <strong className="hero-stat__value">{value === null ? "—" : value.toLocaleString("en-GB")}</strong>;
@@ -10,6 +18,22 @@ function FixtureCount({ value }: { value: number | null }) {
 
 function cardKey(market: PredictionMarket, marketId: string) {
   return `${market}:${marketId}`;
+}
+
+function useDesktopHomeLayout() {
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia(DESKTOP_HOME_QUERY).matches
+  );
+
+  useEffect(() => {
+    const query = window.matchMedia(DESKTOP_HOME_QUERY);
+    const update = () => setIsDesktop(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  return isDesktop;
 }
 
 function PredictionCardSkeleton() {
@@ -55,12 +79,86 @@ function TopSectionSkeleton({ eyebrow, title }: { eyebrow: string; title: string
   );
 }
 
+function TopPredictionSection({
+  eyebrow,
+  title,
+  href,
+  items,
+  market,
+  expandedId,
+  isDesktop,
+  onToggle
+}: {
+  eyebrow: string;
+  title: string;
+  href: string;
+  items: PredictionCardItem[];
+  market: PredictionMarket;
+  expandedId: string | null;
+  isDesktop: boolean;
+  onToggle: (market: PredictionMarket, marketId: string) => void;
+}) {
+  const drawerId = `home-${market}-analysis-drawer`;
+  const activeItem = items.find((item) => expandedId === cardKey(market, item.marketId)) ?? null;
+
+  return (
+    <section className="home-section">
+      <div className="section-heading">
+        <div>
+          <span className="eyebrow">{eyebrow}</span>
+          <h2>{title}</h2>
+        </div>
+        <Link to={href} className="text-link">View all</Link>
+      </div>
+
+      <div className="prediction-list home-prediction-list">
+        {items.map((item) => {
+          const id = cardKey(market, item.marketId);
+          return (
+            <PredictionCard
+              key={id}
+              item={item}
+              market={market}
+              mode="value"
+              expanded={expandedId === id}
+              onToggle={() => onToggle(market, item.marketId)}
+              renderAnalysis={!isDesktop}
+              analysisControlsId={isDesktop ? drawerId : undefined}
+            />
+          );
+        })}
+      </div>
+
+      {isDesktop ? (
+        <div
+          id={drawerId}
+          className="home-analysis-drawer surface"
+          role="region"
+          aria-label={activeItem ? `${activeItem.fixture.homeTeam} v ${activeItem.fixture.awayTeam} analysis` : `${title} analysis`}
+          hidden={!activeItem}
+        >
+          {activeItem ? (
+            <>
+              <header className="home-analysis-drawer__heading">
+                <span>{predictionFixtureMetaLabel(activeItem)}</span>
+                <strong>{activeItem.fixture.homeTeam} <em>v</em> {activeItem.fixture.awayTeam}</strong>
+              </header>
+              <PredictionAnalysis item={activeItem} market={market} />
+            </>
+          ) : null}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export function HomePage() {
   const { data, loading, error, retry, refreshing } = useCachedApi<HomeResponse>(
     "/api/v1/home",
     "mcpredict:v1:home"
   );
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const isDesktop = useDesktopHomeLayout();
 
   const toggleCard = (market: PredictionMarket, marketId: string) => {
     const nextId = cardKey(market, marketId);
@@ -99,57 +197,29 @@ export function HomePage() {
       {data?.hasPredictions ? (
         <>
           {data.topMatchResult.length > 0 ? (
-            <section className="home-section">
-              <div className="section-heading">
-                <div>
-                  <span className="eyebrow">VALUE · MATCH RESULT</span>
-                  <h2>Top 3 model edges</h2>
-                </div>
-                <Link to="/match-result?mode=value" className="text-link">View all</Link>
-              </div>
-              <div className="prediction-list home-prediction-list">
-                {data.topMatchResult.map((item) => {
-                  const id = cardKey("match", item.marketId);
-                  return (
-                    <PredictionCard
-                      key={id}
-                      item={item}
-                      market="match"
-                      mode="value"
-                      expanded={expandedId === id}
-                      onToggle={() => toggleCard("match", item.marketId)}
-                    />
-                  );
-                })}
-              </div>
-            </section>
+            <TopPredictionSection
+              eyebrow="VALUE · MATCH RESULT"
+              title="Top 3 model edges"
+              href="/match-result?mode=value"
+              items={data.topMatchResult}
+              market="match"
+              expandedId={expandedId}
+              isDesktop={isDesktop}
+              onToggle={toggleCard}
+            />
           ) : null}
 
           {data.topOverUnder25.length > 0 ? (
-            <section className="home-section">
-              <div className="section-heading">
-                <div>
-                  <span className="eyebrow">VALUE · O/U 2.5</span>
-                  <h2>Top 3 goal-market edges</h2>
-                </div>
-                <Link to="/over-under-25?mode=value" className="text-link">View all</Link>
-              </div>
-              <div className="prediction-list home-prediction-list">
-                {data.topOverUnder25.map((item) => {
-                  const id = cardKey("ou", item.marketId);
-                  return (
-                    <PredictionCard
-                      key={id}
-                      item={item}
-                      market="ou"
-                      mode="value"
-                      expanded={expandedId === id}
-                      onToggle={() => toggleCard("ou", item.marketId)}
-                    />
-                  );
-                })}
-              </div>
-            </section>
+            <TopPredictionSection
+              eyebrow="VALUE · O/U 2.5"
+              title="Top 3 goal-market edges"
+              href="/over-under-25?mode=value"
+              items={data.topOverUnder25}
+              market="ou"
+              expandedId={expandedId}
+              isDesktop={isDesktop}
+              onToggle={toggleCard}
+            />
           ) : null}
         </>
       ) : data ? (
