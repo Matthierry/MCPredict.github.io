@@ -1,5 +1,10 @@
 export type Mode = "value" | "probability";
 
+export interface TeamColours {
+  primary: string;
+  secondary: string;
+}
+
 export interface Fixture {
   date: string;
   kickoff: string | null;
@@ -7,6 +12,8 @@ export interface Fixture {
   league: string | null;
   homeTeam: string;
   awayTeam: string;
+  homeColours?: TeamColours | null;
+  awayColours?: TeamColours | null;
 }
 
 export interface Analysis {
