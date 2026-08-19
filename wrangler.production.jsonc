@@ -29,8 +29,8 @@
   },
   "routes": [
     {
-      "pattern": "www.mcpredict.com",
-      "custom_domain": true
+      "pattern": "www.mcpredict.com/*",
+      "zone_name": "mcpredict.com"
     }
   ]
 }
