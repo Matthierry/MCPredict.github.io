@@ -34,6 +34,7 @@ class TestD1 {
 
   constructor() {
     this.raw.exec(readFileSync(new URL("../migrations/0001_initial.sql", import.meta.url), "utf8"));
+    this.raw.exec(readFileSync(new URL("../migrations/0002_team_colours.sql", import.meta.url), "utf8"));
   }
 
   prepare(sql: string) {
@@ -139,6 +140,15 @@ function createHarness() {
   db.prepare("INSERT INTO site_stats (key, numeric_value, updated_at, source_hash) VALUES ('fixtures_processed', ?, ?, ?)")
     .run(18426, "2026-08-18T12:02:00Z", "stats-hash");
 
+  db.prepare(
+    "INSERT INTO team_colours (team_key, team_name, primary_colour, secondary_colour, source_hash, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run("homeb", "Home B", "#EF0107", "#063672", "colour-hash", "2026-08-18T12:03:00Z");
+  db.prepare(
+    "INSERT INTO team_colours (team_key, team_name, primary_colour, secondary_colour, source_hash, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run("awayb", "Away B", "#69BE28", "#002244", "colour-hash", "2026-08-18T12:03:00Z");
+  db.prepare("INSERT INTO site_state (key, value, updated_at) VALUES ('team_colour_source_hash', ?, ?)")
+    .run("colour-hash", "2026-08-18T12:03:00Z");
+
   const env = {
     DB: database as unknown as D1Database,
     ASSETS: {} as Fetcher,
@@ -207,13 +217,17 @@ describe("public API integration", () => {
     }
   });
 
-  it("returns only valid active Match Result rows with price-aligned selected/model probabilities", async () => {
+  it("returns only valid active Match Result rows with price-aligned selected/model probabilities and team colours", async () => {
     const harness = createHarness();
     try {
       const response = await handleApi(new Request("https://beta.mcpredict.com/api/v1/predictions/match-result"), harness.env);
       const body = await jsonBody<{
         data: Array<{
           marketId: string;
+          fixture: {
+            homeColours: { primary: string; secondary: string } | null;
+            awayColours: { primary: string; secondary: string } | null;
+          };
           prediction: { selection: string; probability: number; modelPrice: number };
           probabilities: { model: { home: number; draw: number; away: number } };
         }>;
@@ -226,6 +240,8 @@ describe("public API integration", () => {
       expect(draw?.prediction.probability).toBeCloseTo(1 / 1.56);
       expect(draw?.probabilities.model.draw).toBeCloseTo(1 / 1.56);
       expect((draw?.probabilities.model.home ?? 0) + (draw?.probabilities.model.draw ?? 0) + (draw?.probabilities.model.away ?? 0)).toBeCloseTo(1);
+      expect(draw?.fixture.homeColours).toEqual({ primary: "#EF0107", secondary: "#063672" });
+      expect(draw?.fixture.awayColours).toEqual({ primary: "#69BE28", secondary: "#002244" });
       expect(body.data.some((item) => item.marketId === "D")).toBe(false);
       expect(body.meta).toMatchObject({ datasetId: "active", count: 3 });
     } finally {
