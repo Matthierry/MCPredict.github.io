@@ -15,7 +15,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="site-header">
         <div className="site-header__inner">
           <NavLink to="/" className="brand">
-            <span className="brand__mark" aria-hidden="true">MC</span>
+            <span className="brand__mark" aria-hidden="true">
+              <img src="/mcpredict-mark.png" alt="" width="30" height="30" />
+            </span>
             <span className="brand__copy">
               <strong>MC Predict</strong>
               <small>Predicting Football with Data</small>

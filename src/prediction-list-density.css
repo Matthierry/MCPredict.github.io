@@ -5,6 +5,19 @@
   gap: 5px;
 }
 
+/* Use the supplied MC Predict mark inside the existing circular brand badge. */
+.brand__mark {
+  overflow: hidden;
+  background: #222224;
+}
+
+.brand__mark img {
+  display: block;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
 /* Prediction controls are intentionally page content, not sticky chrome. Keep
    both the mode tabs and filters compact so more fixtures remain visible. */
 .control-stack {
@@ -66,6 +79,12 @@
 
 .prediction-card__summary strong {
   font-size: calc(1.12rem - 2px);
+}
+
+/* Forecast metric values deliberately match the Model / Bookmaker odds scale. */
+.metric-compare__teams strong {
+  font-size: calc(1.12rem - 2px);
+  line-height: 1.05;
 }
 
 .analysis-toggle {
@@ -133,7 +152,8 @@
     letter-spacing: 0.035em;
   }
 
-  .prediction-card__summary strong {
+  .prediction-card__summary strong,
+  .metric-compare__teams strong {
     font-size: calc(0.86rem - 2px);
     line-height: 1.03;
   }
@@ -201,7 +221,8 @@
     font-size: calc(0.49rem - 2px);
   }
 
-  .prediction-card__summary strong {
+  .prediction-card__summary strong,
+  .metric-compare__teams strong {
     font-size: calc(0.82rem - 2px);
   }
 
