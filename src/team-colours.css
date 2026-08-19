@@ -1,106 +1,128 @@
 /* Subtle team-colour treatment for fixture cards.
-   Colours are supplied by the Worker after server-side validation. */
+   Colours are supplied by the Worker after server-side validation.
+   The colour layer is deliberately confined to the fixture header zone so it can
+   never cover the Prediction / Model / Bookmaker / Edge summary row. */
 
-.prediction-card__trigger {
+.prediction-card__fixture-zone {
   position: relative;
   isolation: isolate;
+  overflow: hidden;
+  margin: -13px -13px 0;
+  padding: 13px 13px 0;
 }
 
-.prediction-card__trigger > * {
+.prediction-card__fixture-zone > * {
   position: relative;
   z-index: 2;
 }
 
-.prediction-card__trigger::before,
-.prediction-card__trigger::after {
+.prediction-card__fixture-zone::before,
+.prediction-card__fixture-zone::after {
   content: "";
   position: absolute;
   z-index: 1;
-  top: 25px;
-  width: 44px;
-  height: 42px;
+  top: 0;
+  bottom: 0;
+  width: 68px;
   pointer-events: none;
-  opacity: 0.95;
 }
 
-.prediction-card__trigger::before {
+/* 60/40 spatial split between primary and secondary colours. The colour mixes
+   remain translucent so the treatment reads as a tint rather than a block. */
+.prediction-card__fixture-zone::before {
   left: 0;
-  clip-path: polygon(0 0, 100% 0, 64% 100%, 0 100%);
+  clip-path: polygon(0 0, 100% 0, 68% 100%, 0 100%);
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--home-primary) 20%, transparent) 0%,
-    color-mix(in srgb, var(--home-primary) 9%, transparent) 58%,
-    transparent 100%
+    color-mix(in srgb, var(--home-primary) 22%, transparent) 0 60%,
+    color-mix(in srgb, var(--home-secondary) 20%, transparent) 60% 100%
   );
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--home-secondary) 24%, transparent);
 }
 
-.prediction-card__trigger::after {
+.prediction-card__fixture-zone::after {
   right: 0;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 36% 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 32% 100%);
   background: linear-gradient(
     270deg,
-    color-mix(in srgb, var(--away-primary) 20%, transparent) 0%,
-    color-mix(in srgb, var(--away-primary) 9%, transparent) 58%,
-    transparent 100%
+    color-mix(in srgb, var(--away-primary) 22%, transparent) 0 60%,
+    color-mix(in srgb, var(--away-secondary) 20%, transparent) 60% 100%
   );
-  box-shadow: inset -3px 0 0 color-mix(in srgb, var(--away-secondary) 24%, transparent);
 }
 
-/* Pull competition and kickoff together around the centre, rather than anchoring
-   them against the outside edges where the colour treatment now lives. */
+/* One centred fixture metadata line: League - Date Time. */
 .prediction-card__meta {
-  width: min(62%, 210px);
+  width: 100%;
   margin-inline: auto;
   justify-content: center;
-  gap: 9px;
+  gap: 0;
+  text-align: center;
+  white-space: nowrap;
 }
 
-.prediction-card__meta span:first-child {
-  flex: 1 1 0;
-  text-align: right;
-}
-
+.prediction-card__meta span,
+.prediction-card__meta span:first-child,
 .prediction-card__meta span:last-child {
-  flex: 0 0 auto;
-  text-align: left;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
 }
 
-/* Give the colour wings breathing space without making the list taller. */
+/* Keep both team names clear of the colour wings while retaining the dense card. */
 .prediction-card__fixture {
-  padding-inline: 22px;
+  padding-inline: 32px;
 }
 
-@media (min-width: 600px) {
-  .prediction-card__trigger::before,
-  .prediction-card__trigger::after {
-    top: 38px;
-    width: 62px;
-    height: 56px;
+@media (max-width: 599px) {
+  .prediction-card__fixture-zone {
+    margin: -11px -14px 0;
+    padding: 11px 14px 0;
+  }
+
+  .prediction-card__fixture-zone::before,
+  .prediction-card__fixture-zone::after {
+    width: 64px;
   }
 
   .prediction-card__meta {
-    width: min(48%, 280px);
-    gap: 12px;
+    font-size: 0.64rem;
   }
 
   .prediction-card__fixture {
-    padding-inline: 38px;
+    padding-inline: 30px;
+  }
+}
+
+@media (min-width: 600px) {
+  .prediction-card__fixture-zone::before,
+  .prediction-card__fixture-zone::after {
+    width: 82px;
+  }
+
+  .prediction-card__fixture {
+    padding-inline: 44px;
   }
 }
 
 @media (max-width: 350px) {
-  .prediction-card__trigger::before,
-  .prediction-card__trigger::after {
-    width: 38px;
+  .prediction-card__fixture-zone {
+    margin: -10px -11px 0;
+    padding: 10px 11px 0;
+  }
+
+  .prediction-card__fixture-zone::before,
+  .prediction-card__fixture-zone::after {
+    width: 58px;
   }
 
   .prediction-card__meta {
-    width: min(66%, 190px);
-    gap: 7px;
+    font-size: 0.59rem;
   }
 
   .prediction-card__fixture {
-    padding-inline: 18px;
+    padding-inline: 25px;
   }
 }
