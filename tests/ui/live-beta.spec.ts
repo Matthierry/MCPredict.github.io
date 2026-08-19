@@ -53,6 +53,8 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
     if (count > 0) {
       const firstCard = cards.first();
       const firstTrigger = page.locator(".prediction-card__trigger").first();
+      const fixtureZone = firstCard.locator(".prediction-card__fixture-zone");
+      const summary = firstCard.locator(".prediction-card__summary");
       await expect(firstTrigger.locator(".prediction-card__summary > div")).toHaveCount(4);
 
       const colourVars = await firstCard.evaluate((element) => {
@@ -68,16 +70,32 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
         expect(value).toMatch(/^#[0-9A-F]{6}$/i);
       }
 
+      const wingStyles = await fixtureZone.evaluate((element) => ({
+        overflow: getComputedStyle(element).overflow,
+        homeBackground: getComputedStyle(element, "::before").backgroundImage,
+        awayBackground: getComputedStyle(element, "::after").backgroundImage
+      }));
+      expect(wingStyles.overflow).toBe("hidden");
+      expect(wingStyles.homeBackground).not.toBe("none");
+      expect(wingStyles.awayBackground).not.toBe("none");
+
+      const metaText = (await firstCard.locator(".prediction-card__meta").textContent())?.trim() ?? "";
+      expect(metaText).toMatch(/^.+ - (Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d{1,2}(st|nd|rd|th) [A-Z][a-z]{2}( \d{2}:\d{2})?$/);
+
       const cardBox = await firstCard.boundingBox();
+      const zoneBox = await fixtureZone.boundingBox();
+      const summaryBox = await summary.boundingBox();
       const metaBox = await firstCard.locator(".prediction-card__meta").boundingBox();
       const homeBox = await firstCard.locator(".prediction-card__team--home").boundingBox();
       const awayBox = await firstCard.locator(".prediction-card__team--away").boundingBox();
-      if (cardBox && metaBox && homeBox && awayBox) {
+      if (cardBox && zoneBox && summaryBox && metaBox && homeBox && awayBox) {
         const cardCentre = cardBox.x + cardBox.width / 2;
         const metaCentre = metaBox.x + metaBox.width / 2;
-        expect(Math.abs(cardCentre - metaCentre)).toBeLessThan(8);
-        expect(homeBox.x - cardBox.x).toBeGreaterThan(20);
-        expect((cardBox.x + cardBox.width) - (awayBox.x + awayBox.width)).toBeGreaterThan(20);
+        expect(Math.abs(cardCentre - metaCentre)).toBeLessThan(3);
+        expect(Math.abs(zoneBox.y - cardBox.y)).toBeLessThan(2);
+        expect(zoneBox.y + zoneBox.height).toBeLessThanOrEqual(summaryBox.y + 0.5);
+        expect(homeBox.x - cardBox.x).toBeGreaterThan(24);
+        expect((cardBox.x + cardBox.width) - (awayBox.x + awayBox.width)).toBeGreaterThan(24);
       }
 
       await firstTrigger.click();
