@@ -81,10 +81,10 @@ function OuAnalysis({ item }: { item: OuPrediction }) {
 
 function Metrics({ item }: { item: Prediction }) {
   return (
-    <section className="analysis-metrics" aria-label="Expected performance metrics">
-      <MetricCompare kind="goals" label="EXPECTED GOALS" homeTeam={item.fixture.homeTeam} awayTeam={item.fixture.awayTeam} homeValue={item.analysis.homeXGoals} awayValue={item.analysis.awayXGoals} digits={2} />
-      <MetricCompare kind="shots" label="EXPECTED SHOTS" homeTeam={item.fixture.homeTeam} awayTeam={item.fixture.awayTeam} homeValue={item.analysis.homeXShots} awayValue={item.analysis.awayXShots} digits={1} />
-      <MetricCompare kind="target" label="SHOTS ON TARGET" homeTeam={item.fixture.homeTeam} awayTeam={item.fixture.awayTeam} homeValue={item.analysis.homeXShotsOnTarget} awayValue={item.analysis.awayXShotsOnTarget} digits={1} />
+    <section className="analysis-metrics" aria-label="Forecasted performance metrics">
+      <MetricCompare kind="goals" label="FORECASTED GOALS" homeTeam={item.fixture.homeTeam} awayTeam={item.fixture.awayTeam} homeValue={item.analysis.homeXGoals} awayValue={item.analysis.awayXGoals} digits={2} />
+      <MetricCompare kind="shots" label="FORECASTED SHOTS" homeTeam={item.fixture.homeTeam} awayTeam={item.fixture.awayTeam} homeValue={item.analysis.homeXShots} awayValue={item.analysis.awayXShots} digits={1} />
+      <MetricCompare kind="target" label="FORECASTED SHOTS ON TARGET" homeTeam={item.fixture.homeTeam} awayTeam={item.fixture.awayTeam} homeValue={item.analysis.homeXShotsOnTarget} awayValue={item.analysis.awayXShotsOnTarget} digits={1} />
     </section>
   );
 }
