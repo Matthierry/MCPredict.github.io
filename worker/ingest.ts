@@ -5,9 +5,11 @@ import {
   createSyncRun,
   finishSyncRun,
   getActiveDataset,
+  getState,
   insertPredictions,
   markDatasetFailed,
   pruneOperationalDatasets,
+  replaceTeamColours,
   setState,
   upsertFixtureCount,
   verifyDatasetCount
@@ -15,6 +17,7 @@ import {
 import { canonicalDatasetHash, normalizeSourceRows } from "./normalize";
 import { parseFixtureCount } from "./parsers";
 import { REQUIRED_SOURCE_WIDTH } from "./source-columns";
+import { parseTeamColourRows, TEAM_COLOUR_CSV_URL } from "./team-colours";
 import type { Env, SyncResult } from "./types";
 
 const PREDICTION_CSV_URL =
@@ -91,6 +94,52 @@ async function syncFixtureCount(env: Env): Promise<string> {
   }
 }
 
+async function syncTeamColours(env: Env): Promise<string> {
+  try {
+    const source = await fetchCsv(TEAM_COLOUR_CSV_URL);
+    const parsed = parseTeamColourRows(parseCsv(source.text));
+
+    if (parsed.conflictingTeamKeys.length) {
+      throw new Error(
+        `Conflicting team colour rows: ${parsed.conflictingTeamKeys.slice(0, 10).join(", ")}`
+      );
+    }
+    if (!parsed.records.length) {
+      throw new Error("Team colour source contains no valid colour rows.");
+    }
+
+    const canonical = parsed.records
+      .map((record) => [record.teamKey, record.teamName, record.primaryColour, record.secondaryColour].join("|"))
+      .join("\n");
+    const sourceHash = await hashText(canonical);
+    const activeHash = await getState(env.DB, "team_colour_source_hash");
+
+    if (activeHash !== sourceHash) {
+      await replaceTeamColours(env.DB, parsed.records, sourceHash);
+    } else {
+      await setState(env.DB, "last_successful_team_colour_sync", new Date().toISOString());
+    }
+
+    await setState(env.DB, "last_team_colour_sync_result", "success");
+    console.log("MC Predict team colour sync", {
+      result: activeHash === sourceHash ? "success_no_change" : "success_changed",
+      colours: parsed.records.length,
+      invalidRows: parsed.invalidRows
+    });
+    return "success";
+  } catch (error) {
+    try {
+      await setState(env.DB, "last_team_colour_sync_result", "failed");
+    } catch {
+      // The colour layer is cosmetic; database/state errors must not replace a good prediction dataset.
+    }
+    console.error("MC Predict team colour sync failed", {
+      error: error instanceof Error ? error.message : String(error)
+    });
+    return "failed";
+  }
+}
+
 export async function runIngestion(
   env: Env,
   source: "scheduled" | "manual",
@@ -108,6 +157,7 @@ export async function runIngestion(
 
   let predictionStatus: number | null = null;
   let statResult = "not_run";
+  let teamColourResult = "not_run";
   let finalResult: SyncResult = "failed_fetch";
   let activatedDatasetId: string | null = null;
   let sourceHash: string | null = null;
@@ -214,7 +264,10 @@ export async function runIngestion(
     }
     console.error("MC Predict prediction sync failed", { runId, result: finalResult, error: errorSummary });
   } finally {
-    statResult = await syncFixtureCount(env);
+    [statResult, teamColourResult] = await Promise.all([
+      syncFixtureCount(env),
+      syncTeamColours(env)
+    ]);
 
     await finishSyncRun(env.DB, runId, {
       result: finalResult,
@@ -234,7 +287,8 @@ export async function runIngestion(
       runId,
       result: finalResult,
       activatedDatasetId,
-      statResult
+      statResult,
+      teamColourResult
     });
   }
 
