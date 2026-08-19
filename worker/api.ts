@@ -1,4 +1,5 @@
-import { getActiveDataset, getFixtureCount } from "./db";
+import { getActiveDataset, getFixtureCount, getState, getTeamColours } from "./db";
+import { normalizeTeamKey } from "./team-colours";
 import type { ActiveDataset, Env } from "./types";
 
 interface DbPrediction {
@@ -39,6 +40,13 @@ interface DbPrediction {
   home_xshots_on_target: number | null;
   away_xshots_on_target: number | null;
 }
+
+interface TeamColourValue {
+  primary: string;
+  secondary: string;
+}
+
+type TeamColourMap = Map<string, TeamColourValue>;
 
 const SELECT_COLUMNS = `
   market_id, fixture_date, kickoff_time, country, league, home_team, away_team,
@@ -149,21 +157,23 @@ function analysis(row: DbPrediction) {
   };
 }
 
-function fixture(row: DbPrediction) {
+function fixture(row: DbPrediction, colours: TeamColourMap) {
   return {
     date: row.fixture_date,
     kickoff: row.kickoff_time,
     country: row.country,
     league: row.league,
     homeTeam: row.home_team,
-    awayTeam: row.away_team
+    awayTeam: row.away_team,
+    homeColours: colours.get(normalizeTeamKey(row.home_team)) ?? null,
+    awayColours: colours.get(normalizeTeamKey(row.away_team)) ?? null
   };
 }
 
-function toMatchApi(row: DbPrediction) {
+function toMatchApi(row: DbPrediction, colours: TeamColourMap) {
   return {
     marketId: row.market_id,
-    fixture: fixture(row),
+    fixture: fixture(row, colours),
     prediction: {
       selection: row.match_prediction,
       probability: selectedMatchProbability(row),
@@ -184,10 +194,10 @@ function toMatchApi(row: DbPrediction) {
   };
 }
 
-function toOuApi(row: DbPrediction) {
+function toOuApi(row: DbPrediction, colours: TeamColourMap) {
   return {
     marketId: row.market_id,
-    fixture: fixture(row),
+    fixture: fixture(row, colours),
     prediction: {
       selection: row.ou_prediction,
       probability: selectedOuProbability(row),
@@ -204,6 +214,20 @@ function toOuApi(row: DbPrediction) {
       }
     },
     analysis: analysis(row)
+  };
+}
+
+async function teamColourContext(env: Env): Promise<{ map: TeamColourMap; sourceHash: string | null }> {
+  const [rows, sourceHash] = await Promise.all([
+    getTeamColours(env.DB),
+    getState(env.DB, "team_colour_source_hash")
+  ]);
+  return {
+    map: new Map(rows.map((row) => [
+      row.team_key,
+      { primary: row.primary_colour, secondary: row.secondary_colour }
+    ])),
+    sourceHash
   };
 }
 
@@ -306,8 +330,11 @@ export async function handleApi(request: Request, env: Env): Promise<Response | 
   const active = await getActiveDataset(env.DB);
 
   if (url.pathname === "/api/v1/home") {
-    const stats = await getFixtureCount(env.DB);
-    const etag = `"home-${active?.source_hash ?? "none"}-${stats.updatedAt ?? "none"}"`;
+    const [stats, colours] = await Promise.all([
+      getFixtureCount(env.DB),
+      teamColourContext(env)
+    ]);
+    const etag = `"home-${active?.source_hash ?? "none"}-${colours.sourceHash ?? "no-colours"}-${stats.updatedAt ?? "none"}"`;
     if (matchesEtag(request, etag)) return notModified(etag);
 
     if (!active) {
@@ -331,8 +358,8 @@ export async function handleApi(request: Request, env: Env): Promise<Response | 
     return json(
       {
         fixturesProcessed: stats.value,
-        topMatchResult: matchRows.map(toMatchApi),
-        topOverUnder25: ouRows.map(toOuApi),
+        topMatchResult: matchRows.map((row) => toMatchApi(row, colours.map)),
+        topOverUnder25: ouRows.map((row) => toOuApi(row, colours.map)),
         activeDatasetTimestamp: active.activated_at,
         hasPredictions: active.valid_match_result_count > 0 || active.valid_ou_count > 0
       },
@@ -341,7 +368,8 @@ export async function handleApi(request: Request, env: Env): Promise<Response | 
   }
 
   if (url.pathname === "/api/v1/predictions/match-result") {
-    const etag = `"match-${active?.source_hash ?? "none"}"`;
+    const colours = await teamColourContext(env);
+    const etag = `"match-${active?.source_hash ?? "none"}-${colours.sourceHash ?? "no-colours"}"`;
     if (matchesEtag(request, etag)) return notModified(etag);
     if (!active) {
       return json({ data: [], meta: { datasetId: null, updatedAt: null, count: 0 } }, { etag });
@@ -349,7 +377,7 @@ export async function handleApi(request: Request, env: Env): Promise<Response | 
     const rows = await activeRows(env, active, "match");
     return json(
       {
-        data: rows.map(toMatchApi),
+        data: rows.map((row) => toMatchApi(row, colours.map)),
         meta: { datasetId: active.id, updatedAt: active.activated_at, count: rows.length }
       },
       { etag }
@@ -357,7 +385,8 @@ export async function handleApi(request: Request, env: Env): Promise<Response | 
   }
 
   if (url.pathname === "/api/v1/predictions/over-under-25") {
-    const etag = `"ou-${active?.source_hash ?? "none"}"`;
+    const colours = await teamColourContext(env);
+    const etag = `"ou-${active?.source_hash ?? "none"}-${colours.sourceHash ?? "no-colours"}"`;
     if (matchesEtag(request, etag)) return notModified(etag);
     if (!active) {
       return json({ data: [], meta: { datasetId: null, updatedAt: null, count: 0 } }, { etag });
@@ -365,7 +394,7 @@ export async function handleApi(request: Request, env: Env): Promise<Response | 
     const rows = await activeRows(env, active, "ou");
     return json(
       {
-        data: rows.map(toOuApi),
+        data: rows.map((row) => toOuApi(row, colours.map)),
         meta: { datasetId: active.id, updatedAt: active.activated_at, count: rows.length }
       },
       { etag }
