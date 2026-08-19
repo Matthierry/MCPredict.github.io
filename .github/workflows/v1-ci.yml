@@ -60,7 +60,7 @@ jobs:
       - name: Reconcile current published Google CSVs
         env:
           RUN_REAL_SOURCE_QA: "1"
-        run: npx vitest run tests/real-source.integration.test.ts
+        run: npx vitest run tests/real-source.integration.test.ts tests/team-colours-real.integration.test.ts
 
   ui-qa:
     needs: quality
