@@ -28,8 +28,8 @@
 }
 
 /* Each wing is balanced 50/50 between the club's primary and secondary colours.
-   The middle 30% is a continuous gradient rather than a hard stop, so the colours
-   blend softly while preserving equal visual weight on either side of the midpoint. */
+   The colour blend stays centred, while a separate opacity mask dissolves the
+   inner edge into the card so there is no visible hard stop before the team name. */
 .prediction-card__fixture-zone::before {
   left: 0;
   clip-path: polygon(0 0, 100% 0, 68% 100%, 0 100%);
@@ -39,6 +39,24 @@
     color-mix(in srgb, var(--home-primary) 21%, transparent) 35%,
     color-mix(in srgb, var(--home-secondary) 21%, transparent) 65%,
     color-mix(in srgb, var(--home-secondary) 21%, transparent) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    #000 0%,
+    #000 54%,
+    rgba(0, 0, 0, 0.92) 64%,
+    rgba(0, 0, 0, 0.62) 76%,
+    rgba(0, 0, 0, 0.24) 89%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    #000 0%,
+    #000 54%,
+    rgba(0, 0, 0, 0.92) 64%,
+    rgba(0, 0, 0, 0.62) 76%,
+    rgba(0, 0, 0, 0.24) 89%,
+    transparent 100%
   );
 }
 
@@ -51,6 +69,24 @@
     color-mix(in srgb, var(--away-primary) 21%, transparent) 35%,
     color-mix(in srgb, var(--away-secondary) 21%, transparent) 65%,
     color-mix(in srgb, var(--away-secondary) 21%, transparent) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    270deg,
+    #000 0%,
+    #000 54%,
+    rgba(0, 0, 0, 0.92) 64%,
+    rgba(0, 0, 0, 0.62) 76%,
+    rgba(0, 0, 0, 0.24) 89%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    270deg,
+    #000 0%,
+    #000 54%,
+    rgba(0, 0, 0, 0.92) 64%,
+    rgba(0, 0, 0, 0.62) 76%,
+    rgba(0, 0, 0, 0.24) 89%,
+    transparent 100%
   );
 }
 
