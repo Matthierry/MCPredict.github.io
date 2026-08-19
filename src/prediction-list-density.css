@@ -5,6 +5,47 @@
   gap: 5px;
 }
 
+/* Prediction controls are intentionally page content, not sticky chrome. Keep
+   both the mode tabs and filters compact so more fixtures remain visible. */
+.control-stack {
+  position: static;
+  top: auto;
+  z-index: auto;
+  gap: 6px;
+  padding: 4px;
+  margin-inline: -4px;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.segmented-control {
+  padding: 3px;
+  border-radius: 10px;
+}
+
+.segmented-control button {
+  min-height: 32px;
+  font-size: 0.68rem;
+}
+
+.filter-row {
+  gap: 7px;
+}
+
+.filter-row label {
+  gap: 3px;
+}
+
+.filter-row label > span {
+  font-size: 0.58rem;
+}
+
+.filter-row select {
+  height: 34px;
+  border-radius: 9px;
+  font-size: 0.74rem;
+}
+
 /* Reduce every visible collapsed-card text treatment by 2px from the approved
    baseline. Expanded analysis typography remains unchanged. */
 .prediction-card__meta {
@@ -116,6 +157,34 @@
   /* The analysis itself stays comfortable; only the fixture/list header is compressed. */
   .analysis-body {
     padding-top: 8px;
+  }
+}
+
+/* On desktop, keep each team name a consistent fixed distance from its metric
+   value instead of stretching the home side across a flexible 1fr column. */
+@media (min-width: 768px) {
+  .metric-compare__teams {
+    grid-template-columns: auto auto auto;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .metric-compare__team--home,
+  .metric-compare__team--away {
+    grid-template-columns: auto auto;
+    gap: 12px;
+  }
+
+  .metric-compare__team--home {
+    justify-content: end;
+  }
+
+  .metric-compare__team--away {
+    justify-content: start;
+  }
+
+  .metric-compare__teams small {
+    max-width: 220px;
   }
 }
 
