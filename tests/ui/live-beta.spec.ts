@@ -41,6 +41,23 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
   await expect(page.getByRole("heading", { name: "Predicting Football with Data" })).toBeVisible();
   await expect(page.locator(".hero-stat__value")).not.toHaveText("—");
 
+  const heroBox = await page.locator(".home-hero").boundingBox();
+  expect(heroBox).not.toBeNull();
+  expect(heroBox!.height).toBeLessThanOrEqual(225);
+
+  const homeCards = page.locator(".home-prediction-list .prediction-card");
+  await expect(homeCards).toHaveCount(6);
+  const homeFirstTrigger = homeCards.first().locator(".prediction-card__trigger");
+  await expect(homeFirstTrigger.locator(".prediction-card__summary > div")).toHaveCount(4);
+  await expect(homeFirstTrigger.getByText("View analysis", { exact: true })).toBeVisible();
+  await homeFirstTrigger.click();
+  await expect(homeFirstTrigger).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator(".probability-comparison")).toHaveCount(1);
+  await expect(page.locator(".metric-compare")).toHaveCount(3);
+  await expectNoHorizontalOverflow(page, 390);
+  await homeFirstTrigger.click();
+  await expect(homeFirstTrigger).toHaveAttribute("aria-expanded", "false");
+
   for (const route of ["/match-result", "/over-under-25"]) {
     await page.goto(route, { waitUntil: "networkidle" });
     await expect(page.getByRole("button", { name: "VALUE", exact: true })).toBeVisible();
