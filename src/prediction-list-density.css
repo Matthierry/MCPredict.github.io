@@ -193,7 +193,7 @@
   .metric-compare__team--away {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 0;
   }
 
   .metric-compare__team--home {
@@ -202,6 +202,14 @@
 
   .metric-compare__team--away {
     justify-content: flex-start;
+  }
+
+  .metric-compare__team--home strong {
+    margin-left: 12px;
+  }
+
+  .metric-compare__team--away small {
+    margin-left: 12px;
   }
 
   .metric-compare__teams small {
