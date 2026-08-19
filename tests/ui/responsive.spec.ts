@@ -191,7 +191,6 @@ test("FAQ accordion is keyboard-accessible and single-open", async ({ page }) =>
   await expect(triggers.nth(0)).toHaveAttribute("aria-expanded", "false");
   await expect(triggers.nth(1)).toHaveAttribute("aria-expanded", "true");
   await expect(page.locator("#faq-panel-1")).toBeVisible();
-  await secondContext.close();
 });
 
 test("direct SPA navigation and refresh work for public routes", async ({ page }) => {
