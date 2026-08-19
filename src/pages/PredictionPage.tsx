@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useCachedApi } from "../api";
-import { formatDateLabel, formatEdge, formatFixtureMetaDate, formatOdds } from "../format";
+import { formatDateLabel, formatEdge, formatFixtureMetaDate, formatOdds, formatProbability } from "../format";
 import { MetricCompare } from "../components/MetricCompare";
 import { ProbabilityComparison } from "../components/ProbabilityComparison";
 import { ChevronIcon } from "../components/icons";
@@ -89,13 +89,15 @@ function Metrics({ item }: { item: Prediction }) {
   );
 }
 
-function PredictionCard({ item, expanded, onToggle, market }: {
+function PredictionCard({ item, expanded, onToggle, market, mode }: {
   item: Prediction;
   expanded: boolean;
   onToggle: () => void;
   market: Market;
+  mode: Mode;
 }) {
   const panelId = `analysis-${market}-${item.marketId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  const isProbabilityMode = mode === "probability";
 
   return (
     <article
@@ -135,8 +137,10 @@ function PredictionCard({ item, expanded, onToggle, market }: {
             <strong>{formatOdds(item.prediction.bookmakerPrice)}</strong>
           </div>
           <div>
-            <small>Edge</small>
-            <strong className={valueTone(item.prediction.edge)}>{formatEdge(item.prediction.edge)}</strong>
+            <small>{isProbabilityMode ? "Probability" : "Edge"}</small>
+            <strong className={isProbabilityMode ? "prediction-card__probability" : valueTone(item.prediction.edge)}>
+              {isProbabilityMode ? formatProbability(item.prediction.probability) : formatEdge(item.prediction.edge)}
+            </strong>
           </div>
         </div>
 
@@ -274,6 +278,7 @@ export function PredictionPage({ market }: { market: Market }) {
               <PredictionCard
                 item={item}
                 market={market}
+                mode={mode}
                 expanded={expandedId === item.marketId}
                 onToggle={() => setExpandedId((current) => current === item.marketId ? null : item.marketId)}
               />
