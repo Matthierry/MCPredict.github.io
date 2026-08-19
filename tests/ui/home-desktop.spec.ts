@@ -24,6 +24,7 @@ test("desktop homepage keeps each Top 3 in one row with a shared analysis drawer
 
   const cardBoxes = await matchCards.evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect()));
   expect(Math.max(...cardBoxes.map((box) => box.y)) - Math.min(...cardBoxes.map((box) => box.y))).toBeLessThan(2);
+  expect(Math.max(...cardBoxes.map((box) => box.height))).toBeLessThanOrEqual(180);
 
   await expect(matchDrawer).toBeHidden();
   await expect(matchCards.locator(".prediction-card__expand")).toHaveCount(0);
@@ -59,6 +60,9 @@ test("desktop homepage keeps each Top 3 in one row with a shared analysis drawer
   const ouDrawer = ouSection.locator("#home-ou-analysis-drawer");
 
   await expect(ouCards).toHaveCount(3);
+  const ouCardBoxes = await ouCards.evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect()));
+  expect(Math.max(...ouCardBoxes.map((box) => box.height))).toBeLessThanOrEqual(180);
+
   await ouTriggers.nth(0).click();
   await expect(ouDrawer).toBeVisible();
   await expect(ouDrawer.getByText("O/U 2.5 PROBABILITY COMPARISON", { exact: true })).toBeVisible();
@@ -101,6 +105,6 @@ test("homepage team names only wrap at spaces and single words ellipsize", async
   const marketTeam = page.locator(".prediction-card__team").first();
   await expect(marketTeam).toBeVisible();
   const marketFontSize = await marketTeam.evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
-  expect(marketFontSize - homeFontSize).toBeGreaterThanOrEqual(1.9);
-  expect(marketFontSize - homeFontSize).toBeLessThanOrEqual(2.1);
+  expect(marketFontSize - homeFontSize).toBeGreaterThanOrEqual(5.9);
+  expect(marketFontSize - homeFontSize).toBeLessThanOrEqual(6.1);
 });
