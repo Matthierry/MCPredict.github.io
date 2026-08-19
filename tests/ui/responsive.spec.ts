@@ -169,13 +169,34 @@ test("O/U mode supports probability ordering, Under filtering and analysis", asy
   await expect(firstTrigger).toHaveAttribute("aria-expanded", "false");
 });
 
-test("homepage exposes both markets from both product modes", async ({ page }) => {
+test("homepage uses compact market-page fixture cards for both top-three sections", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Predicting Football with Data" })).toBeVisible();
   await expect(page.getByText("18,426")).toBeVisible();
   await expect(page.getByRole("link", { name: "Match Result →" })).toHaveCount(2);
   await expect(page.getByRole("link", { name: "O/U 2.5 →" })).toHaveCount(2);
+
+  const heroBox = await page.locator(".home-hero").boundingBox();
+  expect(heroBox).not.toBeNull();
+  expect(heroBox!.height).toBeLessThanOrEqual(225);
+
+  const homeCards = page.locator(".home-prediction-list .prediction-card");
+  await expect(homeCards).toHaveCount(6);
+  await expect(homeCards.first().locator(".prediction-card__summary > div")).toHaveCount(4);
+  await expect(homeCards.first().getByText("View analysis", { exact: true })).toBeVisible();
+
+  const triggers = page.locator(".home-prediction-list .prediction-card__trigger");
+  await triggers.nth(0).click();
+  await expect(triggers.nth(0)).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByText("1X2 PROBABILITY COMPARISON", { exact: true })).toBeVisible();
+  await expect(page.locator(".metric-compare")).toHaveCount(3);
+
+  await triggers.nth(3).click();
+  await expect(triggers.nth(0)).toHaveAttribute("aria-expanded", "false");
+  await expect(triggers.nth(3)).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByText("O/U 2.5 PROBABILITY COMPARISON", { exact: true })).toBeVisible();
+  await expectNoHorizontalOverflow(page, 390);
 });
 
 test("FAQ accordion is keyboard-accessible and single-open", async ({ page }) => {
