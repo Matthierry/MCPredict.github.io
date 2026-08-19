@@ -5,11 +5,12 @@ import { describe, expect, it } from "vitest";
 function createDb() {
   const db = new DatabaseSync(":memory:");
   db.exec(readFileSync(new URL("../migrations/0001_initial.sql", import.meta.url), "utf8"));
+  db.exec(readFileSync(new URL("../migrations/0002_team_colours.sql", import.meta.url), "utf8"));
   return db;
 }
 
 describe("D1-compatible snapshot schema", () => {
-  it("applies the production migration and enforces Market ID uniqueness within a dataset", () => {
+  it("applies the production migrations and enforces Market ID uniqueness within a dataset", () => {
     const db = createDb();
     db.prepare("INSERT INTO prediction_datasets (id, source_hash, source_fetched_at, created_at, status) VALUES (?, ?, ?, ?, ?)")
       .run("dataset-a", "hash", "2026-08-18T12:00:00Z", "2026-08-18T12:00:00Z", "building");
@@ -35,6 +36,17 @@ describe("D1-compatible snapshot schema", () => {
     expect(db.prepare("SELECT status FROM prediction_datasets WHERE id = 'old'").get()).toMatchObject({ status: "superseded" });
     expect(db.prepare("SELECT status FROM prediction_datasets WHERE id = 'new'").get()).toMatchObject({ status: "active" });
     expect(db.prepare("SELECT value FROM site_state WHERE key = 'active_prediction_dataset_id'").get()).toMatchObject({ value: "new" });
+    db.close();
+  });
+
+  it("stores validated team colours independently from prediction snapshots", () => {
+    const db = createDb();
+    db.prepare(
+      "INSERT INTO team_colours (team_key, team_name, primary_colour, secondary_colour, source_hash, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+    ).run("arsenal", "Arsenal", "#EF0107", "#063672", "colour-hash", "2026-08-19T10:00:00Z");
+
+    expect(db.prepare("SELECT primary_colour, secondary_colour FROM team_colours WHERE team_key = 'arsenal'").get())
+      .toMatchObject({ primary_colour: "#EF0107", secondary_colour: "#063672" });
     db.close();
   });
 });
