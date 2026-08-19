@@ -27,16 +27,18 @@
   pointer-events: none;
 }
 
-/* Each wing is a true 60/40 spatial split: 60% primary, 40% secondary.
-   Both are translucent so the treatment stays subtle while making the secondary
-   club colour materially more visible than the previous thin accent line. */
+/* Each wing is balanced 50/50 between the club's primary and secondary colours.
+   The middle 30% is a continuous gradient rather than a hard stop, so the colours
+   blend softly while preserving equal visual weight on either side of the midpoint. */
 .prediction-card__fixture-zone::before {
   left: 0;
   clip-path: polygon(0 0, 100% 0, 68% 100%, 0 100%);
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--home-primary) 22%, transparent) 0 60%,
-    color-mix(in srgb, var(--home-secondary) 20%, transparent) 60% 100%
+    color-mix(in srgb, var(--home-primary) 21%, transparent) 0%,
+    color-mix(in srgb, var(--home-primary) 21%, transparent) 35%,
+    color-mix(in srgb, var(--home-secondary) 21%, transparent) 65%,
+    color-mix(in srgb, var(--home-secondary) 21%, transparent) 100%
   );
 }
 
@@ -45,8 +47,10 @@
   clip-path: polygon(0 0, 100% 0, 100% 100%, 32% 100%);
   background: linear-gradient(
     270deg,
-    color-mix(in srgb, var(--away-primary) 22%, transparent) 0 60%,
-    color-mix(in srgb, var(--away-secondary) 20%, transparent) 60% 100%
+    color-mix(in srgb, var(--away-primary) 21%, transparent) 0%,
+    color-mix(in srgb, var(--away-primary) 21%, transparent) 35%,
+    color-mix(in srgb, var(--away-secondary) 21%, transparent) 65%,
+    color-mix(in srgb, var(--away-secondary) 21%, transparent) 100%
   );
 }
 
