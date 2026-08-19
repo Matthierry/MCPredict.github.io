@@ -25,25 +25,26 @@
 }
 
 .page--home .home-hero {
-  padding: 18px 16px;
+  padding: 14px 16px;
 }
 
 .page--home .home-hero h1 {
   margin-top: 4px;
+  font-size: clamp(1.6rem, 7.4vw, 2.8rem);
 }
 
 .page--home .home-hero__lead {
-  margin-top: 7px;
-  line-height: 1.35;
+  margin-top: 6px;
+  line-height: 1.28;
 }
 
 .page--home .hero-stat {
-  margin-top: 14px;
+  margin-top: 8px;
   gap: 2px;
 }
 
 .page--home .hero-stat__value {
-  font-size: clamp(2.65rem, 13vw, 4.8rem);
+  font-size: clamp(2.45rem, 11.5vw, 4.5rem);
   line-height: 0.88;
 }
 
@@ -252,11 +253,11 @@
 
 @media (min-width: 600px) {
   .page--home .home-hero {
-    padding: 22px 20px;
+    padding: 18px 20px;
   }
 
   .page--home .hero-stat {
-    margin-top: 16px;
+    margin-top: 12px;
   }
 }
 
@@ -303,11 +304,11 @@
   }
 
   .page--home .home-hero {
-    padding: 16px 14px;
+    padding: 12px 14px;
   }
 
   .page--home .hero-stat {
-    margin-top: 12px;
+    margin-top: 8px;
   }
 
   .page--home .section-heading h2 {
