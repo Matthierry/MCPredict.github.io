@@ -69,3 +69,38 @@ test("desktop homepage keeps each Top 3 in one row with a shared analysis drawer
   }));
   expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
 });
+
+test("homepage team names only wrap at spaces and single words ellipsize", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+
+  const homeTeams = page.locator(".home-prediction-list .prediction-card__team");
+  await expect(homeTeams).toHaveCount(12);
+
+  const homeFontSize = await homeTeams.first().evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
+
+  const singleWord = page.locator(".home-prediction-list .prediction-card__team--single-word").first();
+  await expect(singleWord).toBeVisible();
+  const singleStyles = await singleWord.evaluate((element) => ({
+    whiteSpace: getComputedStyle(element).whiteSpace,
+    textOverflow: getComputedStyle(element).textOverflow,
+    overflowX: getComputedStyle(element).overflowX
+  }));
+  expect(singleStyles.whiteSpace).toBe("nowrap");
+  expect(singleStyles.textOverflow).toBe("ellipsis");
+  expect(singleStyles.overflowX).toBe("hidden");
+
+  const multiWord = page.locator(".home-prediction-list .prediction-card__team--multi-word").first();
+  await expect(multiWord).toBeVisible();
+  const wordTokens = multiWord.locator(".prediction-card__team-word");
+  expect(await wordTokens.count()).toBeGreaterThan(1);
+  const tokenWhiteSpace = await wordTokens.evaluateAll((tokens) => tokens.map((token) => getComputedStyle(token).whiteSpace));
+  expect(tokenWhiteSpace.every((value) => value === "nowrap")).toBe(true);
+
+  await page.goto("/match-result");
+  const marketTeam = page.locator(".prediction-card__team").first();
+  await expect(marketTeam).toBeVisible();
+  const marketFontSize = await marketTeam.evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
+  expect(marketFontSize - homeFontSize).toBeGreaterThanOrEqual(1.9);
+  expect(marketFontSize - homeFontSize).toBeLessThanOrEqual(2.1);
+});
