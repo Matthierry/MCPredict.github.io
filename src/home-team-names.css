@@ -32,27 +32,27 @@
   }
 
   .page--home .home-prediction-list .prediction-card__trigger {
-    padding: 13px 16px 8px;
+    padding: 9px 14px 4px;
   }
 
   .page--home .home-prediction-list .prediction-card__fixture {
-    gap: 9px;
-    margin-top: 8px;
+    gap: 8px;
+    margin-top: 5px;
   }
 
   .page--home .home-prediction-list .prediction-card__summary {
-    margin-top: 12px;
-    padding-top: 9px;
+    margin-top: 8px;
+    padding-top: 6px;
   }
 
   .page--home .home-prediction-list .prediction-card__summary > div {
-    gap: 2px;
-    padding-inline: 9px;
+    gap: 1px;
+    padding-inline: 8px;
   }
 
   .page--home .home-prediction-list .analysis-toggle {
-    min-height: 26px;
-    margin: 3px auto -2px;
-    gap: 4px;
+    min-height: 20px;
+    margin: 1px auto -2px;
+    gap: 3px;
   }
 }
