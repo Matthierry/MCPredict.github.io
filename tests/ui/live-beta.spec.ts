@@ -70,6 +70,8 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
         expect(value).toMatch(/^#[0-9A-F]{6}$/i);
       }
 
+      // The colour wings live only inside this clipped fixture zone. This protects
+      // Prediction / Model / Bookmaker / Edge from colour bleed on compact cards.
       const wingStyles = await fixtureZone.evaluate((element) => ({
         overflow: getComputedStyle(element).overflow,
         homeBackground: getComputedStyle(element, "::before").backgroundImage,
@@ -79,6 +81,8 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
       expect(wingStyles.homeBackground).not.toBe("none");
       expect(wingStyles.awayBackground).not.toBe("none");
 
+      // Metadata must be a single centred League - Date Time line, for example:
+      // League 2 - Sat 15th Aug 15:00.
       const metaText = (await firstCard.locator(".prediction-card__meta").textContent())?.trim() ?? "";
       expect(metaText).toMatch(/^.+ - (Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d{1,2}(st|nd|rd|th) [A-Z][a-z]{2}( \d{2}:\d{2})?$/);
 
