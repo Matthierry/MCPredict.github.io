@@ -39,12 +39,41 @@ test("has no horizontal overflow at required responsive widths", async ({ page }
   }
 });
 
+test("prediction controls are compact and scroll with the page", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 600 });
+  await page.goto("/match-result");
+  await expect(page.locator(".prediction-card")).toHaveCount(4);
+
+  const controlGeometry = await page.locator(".control-stack").evaluate((element) => {
+    const modeButton = element.querySelector(".segmented-control button");
+    const select = element.querySelector(".filter-row select");
+    return {
+      position: getComputedStyle(element).position,
+      modeHeight: modeButton?.getBoundingClientRect().height ?? 999,
+      selectHeight: select?.getBoundingClientRect().height ?? 999
+    };
+  });
+
+  expect(controlGeometry.position).toBe("static");
+  expect(controlGeometry.modeHeight).toBeLessThanOrEqual(34);
+  expect(controlGeometry.selectHeight).toBeLessThanOrEqual(36);
+
+  const before = await page.locator(".control-stack").boundingBox();
+  expect(before).not.toBeNull();
+  await page.evaluate(() => window.scrollTo(0, 500));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  const after = await page.locator(".control-stack").boundingBox();
+  expect(after).not.toBeNull();
+  expect(after!.y).toBeLessThan(before!.y);
+});
+
 test("Match Result Value and Probability modes have distinct ordering and controls", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto("/match-result");
   await expect(page.locator(".prediction-card")).toHaveCount(4);
 
   await expect(page.getByRole("button", { name: "VALUE", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".prediction-card").first().locator(".prediction-card__summary > div").last()).toContainText("Edge");
   await expect(page.locator(".no-value-divider")).toHaveCount(1);
   let cards = await page.locator(".prediction-card").allTextContents();
   expect(cards[0]).toContain("Wolverhampton Wanderers");
@@ -61,6 +90,9 @@ test("Match Result Value and Probability modes have distinct ordering and contro
   await page.getByRole("button", { name: "PROBABILITY", exact: true }).click();
   await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".no-value-divider")).toHaveCount(0);
+  const probabilityCell = page.locator(".prediction-card").first().locator(".prediction-card__summary > div").last();
+  await expect(probabilityCell).toContainText("Probability");
+  await expect(probabilityCell).toContainText("%");
   cards = await page.locator(".prediction-card").allTextContents();
   expect(cards[0]).toContain("Manchester City");
   expect(cards[1]).toContain("Wolverhampton Wanderers");
@@ -76,6 +108,9 @@ test("Match Result Value and Probability modes have distinct ordering and contro
   await expect(page.getByText("Bookmaker (pre-overround)", { exact: true })).toBeVisible();
   await expect(page.locator(".probability-outcome")).toHaveCount(3);
   await expect(page.locator(".metric-compare")).toHaveCount(3);
+  await expect(page.getByText("FORECASTED GOALS", { exact: true })).toBeVisible();
+  await expect(page.getByText("FORECASTED SHOTS", { exact: true })).toBeVisible();
+  await expect(page.getByText("FORECASTED SHOTS ON TARGET", { exact: true })).toBeVisible();
 
   await triggers.nth(1).click();
   await expect(triggers.nth(0)).toHaveAttribute("aria-expanded", "false");
@@ -83,6 +118,29 @@ test("Match Result Value and Probability modes have distinct ordering and contro
 
   await page.getByLabel("Date", { exact: true }).selectOption("2026-08-23");
   await expect(page.locator(".prediction-card")).toHaveCount(2);
+});
+
+test("desktop forecast metrics keep equal team-to-value spacing", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto("/match-result");
+  const firstTrigger = page.locator(".prediction-card__trigger").first();
+  await firstTrigger.click();
+  await expect(page.locator(".metric-compare")).toHaveCount(3);
+
+  const gaps = await page.locator(".metric-compare").first().evaluate((row) => {
+    const homeName = row.querySelector(".metric-compare__team--home small")!.getBoundingClientRect();
+    const homeValue = row.querySelector(".metric-compare__team--home strong")!.getBoundingClientRect();
+    const awayValue = row.querySelector(".metric-compare__team--away strong")!.getBoundingClientRect();
+    const awayName = row.querySelector(".metric-compare__team--away small")!.getBoundingClientRect();
+    return {
+      home: homeValue.left - homeName.right,
+      away: awayName.left - awayValue.right
+    };
+  });
+
+  expect(gaps.home).toBeGreaterThanOrEqual(10);
+  expect(gaps.away).toBeGreaterThanOrEqual(10);
+  expect(Math.abs(gaps.home - gaps.away)).toBeLessThanOrEqual(1);
 });
 
 test("O/U mode supports probability ordering, Under filtering and analysis", async ({ page }) => {
@@ -104,6 +162,9 @@ test("O/U mode supports probability ordering, Under filtering and analysis", asy
   await expect(page.getByText("Bookmaker (pre-overround)", { exact: true })).toBeVisible();
   await expect(page.locator(".probability-outcome")).toHaveCount(2);
   await expect(page.locator(".metric-compare")).toHaveCount(3);
+  await expect(page.getByText("FORECASTED GOALS", { exact: true })).toBeVisible();
+  await expect(page.getByText("FORECASTED SHOTS", { exact: true })).toBeVisible();
+  await expect(page.getByText("FORECASTED SHOTS ON TARGET", { exact: true })).toBeVisible();
   await firstTrigger.click();
   await expect(firstTrigger).toHaveAttribute("aria-expanded", "false");
 });
@@ -130,6 +191,7 @@ test("FAQ accordion is keyboard-accessible and single-open", async ({ page }) =>
   await expect(triggers.nth(0)).toHaveAttribute("aria-expanded", "false");
   await expect(triggers.nth(1)).toHaveAttribute("aria-expanded", "true");
   await expect(page.locator("#faq-panel-1")).toBeVisible();
+  await secondContext.close();
 });
 
 test("direct SPA navigation and refresh work for public routes", async ({ page }) => {
