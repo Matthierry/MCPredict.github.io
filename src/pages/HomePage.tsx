@@ -1,10 +1,41 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCachedApi } from "../api";
-import { TopSelectionCard } from "../components/TopSelectionCard";
+import { PredictionCard, type PredictionMarket } from "../components/PredictionCard";
 import type { HomeResponse } from "../types";
 
 function FixtureCount({ value }: { value: number | null }) {
   return <strong className="hero-stat__value">{value === null ? "—" : value.toLocaleString("en-GB")}</strong>;
+}
+
+function cardKey(market: PredictionMarket, marketId: string) {
+  return `${market}:${marketId}`;
+}
+
+function PredictionCardSkeleton() {
+  return (
+    <article className="prediction-card surface home-prediction-card--loading" aria-hidden="true">
+      <div className="prediction-card__trigger home-prediction-card__placeholder">
+        <div className="prediction-card__fixture-zone">
+          <div className="prediction-card__meta">
+            <span>League - Sat 15th Aug 15:00</span>
+          </div>
+          <div className="prediction-card__fixture">
+            <strong className="prediction-card__team prediction-card__team--home">Loading</strong>
+            <span className="prediction-card__versus">v</span>
+            <strong className="prediction-card__team prediction-card__team--away">Loading</strong>
+          </div>
+        </div>
+        <div className="prediction-card__summary">
+          <div><small>Prediction</small><strong>Home</strong></div>
+          <div><small>Model</small><strong>1.00</strong></div>
+          <div><small>Bookmaker</small><strong>1.00</strong></div>
+          <div><small>Edge</small><strong>+0.0%</strong></div>
+        </div>
+        <span className="analysis-toggle">View analysis</span>
+      </div>
+    </article>
+  );
 }
 
 function TopSectionSkeleton({ eyebrow, title }: { eyebrow: string; title: string }) {
@@ -17,27 +48,8 @@ function TopSectionSkeleton({ eyebrow, title }: { eyebrow: string; title: string
         </div>
         <span className="text-link">View all</span>
       </div>
-      <div className="top-selection-grid">
-        {[0, 1, 2].map((index) => (
-          <article className="top-selection-card top-selection-card--loading" key={index}>
-            <div className="top-selection-card__placeholder">
-              <div className="top-selection-card__meta">
-                <span>England · Championship</span>
-                <span>15:00</span>
-              </div>
-              <div className="top-selection-card__fixture">
-                <strong>Loading fixture</strong>
-                <span>v</span>
-                <strong>Loading team</strong>
-              </div>
-              <div className="top-selection-card__result">
-                <div><small>Model</small><strong>Under 2.5</strong></div>
-                <div><small>Bookmaker</small><strong>1.00</strong></div>
-                <div><small>Edge</small><strong>+0.0%</strong></div>
-              </div>
-            </div>
-          </article>
-        ))}
+      <div className="prediction-list home-prediction-list">
+        {[0, 1, 2].map((index) => <PredictionCardSkeleton key={index} />)}
       </div>
     </section>
   );
@@ -48,6 +60,12 @@ export function HomePage() {
     "/api/v1/home",
     "mcpredict:v1:home"
   );
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const toggleCard = (market: PredictionMarket, marketId: string) => {
+    const nextId = cardKey(market, marketId);
+    setExpandedId((current) => current === nextId ? null : nextId);
+  };
 
   return (
     <div className="page page--home">
@@ -89,8 +107,20 @@ export function HomePage() {
                 </div>
                 <Link to="/match-result?mode=value" className="text-link">View all</Link>
               </div>
-              <div className="top-selection-grid">
-                {data.topMatchResult.map((item) => <TopSelectionCard key={item.marketId} item={item} />)}
+              <div className="prediction-list home-prediction-list">
+                {data.topMatchResult.map((item) => {
+                  const id = cardKey("match", item.marketId);
+                  return (
+                    <PredictionCard
+                      key={id}
+                      item={item}
+                      market="match"
+                      mode="value"
+                      expanded={expandedId === id}
+                      onToggle={() => toggleCard("match", item.marketId)}
+                    />
+                  );
+                })}
               </div>
             </section>
           ) : null}
@@ -104,8 +134,20 @@ export function HomePage() {
                 </div>
                 <Link to="/over-under-25?mode=value" className="text-link">View all</Link>
               </div>
-              <div className="top-selection-grid">
-                {data.topOverUnder25.map((item) => <TopSelectionCard key={item.marketId} item={item} />)}
+              <div className="prediction-list home-prediction-list">
+                {data.topOverUnder25.map((item) => {
+                  const id = cardKey("ou", item.marketId);
+                  return (
+                    <PredictionCard
+                      key={id}
+                      item={item}
+                      market="ou"
+                      mode="value"
+                      expanded={expandedId === id}
+                      onToggle={() => toggleCard("ou", item.marketId)}
+                    />
+                  );
+                })}
               </div>
             </section>
           ) : null}
