@@ -6,7 +6,9 @@ import { MetricCompare } from "./MetricCompare";
 import { ProbabilityComparison } from "./ProbabilityComparison";
 
 export type PredictionMarket = "match" | "ou";
-type Prediction = MatchPrediction | OuPrediction;
+export type PredictionCardItem = MatchPrediction | OuPrediction;
+
+type Prediction = PredictionCardItem;
 
 function valueTone(edge: number) {
   if (edge > 0) return "value-positive";
@@ -18,7 +20,7 @@ function fixtureCompetition(item: Prediction) {
   return item.fixture.league || item.fixture.country || "Football";
 }
 
-function fixtureMetaLabel(item: Prediction) {
+export function predictionFixtureMetaLabel(item: Prediction) {
   const competition = fixtureCompetition(item);
   const fixtureDate = formatFixtureMetaDate(item.fixture.date);
   const kickoff = item.fixture.kickoff?.trim();
@@ -75,14 +77,23 @@ function OuAnalysis({ item }: { item: OuPrediction }) {
   );
 }
 
-export function PredictionCard({ item, expanded, onToggle, market, mode }: {
+export function PredictionAnalysis({ item, market }: { item: Prediction; market: PredictionMarket }) {
+  return market === "match"
+    ? <MatchAnalysis item={item as MatchPrediction} />
+    : <OuAnalysis item={item as OuPrediction} />;
+}
+
+export function PredictionCard({ item, expanded, onToggle, market, mode, renderAnalysis = true, analysisControlsId }: {
   item: Prediction;
   expanded: boolean;
   onToggle: () => void;
   market: PredictionMarket;
   mode: Mode;
+  renderAnalysis?: boolean;
+  analysisControlsId?: string;
 }) {
-  const panelId = `analysis-${market}-${item.marketId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  const defaultPanelId = `analysis-${market}-${item.marketId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  const panelId = analysisControlsId ?? defaultPanelId;
   const isProbabilityMode = mode === "probability";
 
   return (
@@ -99,7 +110,7 @@ export function PredictionCard({ item, expanded, onToggle, market, mode }: {
       >
         <div className="prediction-card__fixture-zone">
           <div className="prediction-card__meta">
-            <span>{fixtureMetaLabel(item)}</span>
+            <span>{predictionFixtureMetaLabel(item)}</span>
           </div>
 
           <div className="prediction-card__fixture">
@@ -136,13 +147,15 @@ export function PredictionCard({ item, expanded, onToggle, market, mode }: {
         </span>
       </button>
 
-      <div id={panelId} className="prediction-card__expand" aria-hidden={!expanded}>
-        {expanded ? (
-          <div className="prediction-card__expand-inner">
-            {market === "match" ? <MatchAnalysis item={item as MatchPrediction} /> : <OuAnalysis item={item as OuPrediction} />}
-          </div>
-        ) : null}
-      </div>
+      {renderAnalysis ? (
+        <div id={panelId} className="prediction-card__expand" aria-hidden={!expanded}>
+          {expanded ? (
+            <div className="prediction-card__expand-inner">
+              <PredictionAnalysis item={item} market={market} />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </article>
   );
 }
