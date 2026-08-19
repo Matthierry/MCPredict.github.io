@@ -1,0 +1,212 @@
+/* Subtle team-colour treatment for fixture cards.
+   Colours are supplied by the Worker after server-side validation.
+   The colour layer is deliberately confined to the fixture header zone so it can
+   never cover the Prediction / Model / Bookmaker / Edge summary row. */
+
+/* Fixture-card surface tokens for the approved list treatment. */
+.prediction-card.surface {
+  background: #222224;
+  border-color: #363638;
+}
+
+.prediction-card__fixture-zone {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: -13px -13px 0;
+  padding: 13px 13px 0;
+}
+
+.prediction-card__fixture-zone > * {
+  position: relative;
+  z-index: 2;
+}
+
+.prediction-card__fixture-zone::before,
+.prediction-card__fixture-zone::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  width: 68px;
+  pointer-events: none;
+}
+
+/* Each wing remains a simple rectangle with a straight vertical inner edge.
+   Primary and secondary retain an even 50/50 balance, with overall colour
+   strength set to 15%. Separate horizontal and vertical masks soften both the
+   inner edge and the bottom edge into the fixture-card surface. */
+.prediction-card__fixture-zone::before {
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--home-primary) 15%, transparent) 0%,
+    color-mix(in srgb, var(--home-primary) 15%, transparent) 38%,
+    color-mix(in srgb, var(--home-primary) 7.5%, var(--home-secondary) 7.5%) 50%,
+    color-mix(in srgb, var(--home-secondary) 15%, transparent) 62%,
+    color-mix(in srgb, var(--home-secondary) 15%, transparent) 100%
+  );
+  -webkit-mask-image:
+    linear-gradient(
+      90deg,
+      #000 0%,
+      #000 70%,
+      rgba(0, 0, 0, 0.72) 82%,
+      rgba(0, 0, 0, 0.35) 91%,
+      transparent 100%
+    ),
+    linear-gradient(
+      180deg,
+      #000 0%,
+      #000 70%,
+      rgba(0, 0, 0, 0.72) 82%,
+      rgba(0, 0, 0, 0.35) 91%,
+      transparent 100%
+    );
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(
+      90deg,
+      #000 0%,
+      #000 70%,
+      rgba(0, 0, 0, 0.72) 82%,
+      rgba(0, 0, 0, 0.35) 91%,
+      transparent 100%
+    ),
+    linear-gradient(
+      180deg,
+      #000 0%,
+      #000 70%,
+      rgba(0, 0, 0, 0.72) 82%,
+      rgba(0, 0, 0, 0.35) 91%,
+      transparent 100%
+    );
+  mask-composite: intersect;
+}
+
+.prediction-card__fixture-zone::after {
+  right: 0;
+  background: linear-gradient(
+    270deg,
+    color-mix(in srgb, var(--away-primary) 15%, transparent) 0%,
+    color-mix(in srgb, var(--away-primary) 15%, transparent) 38%,
+    color-mix(in srgb, var(--away-primary) 7.5%, var(--away-secondary) 7.5%) 50%,
+    color-mix(in srgb, var(--away-secondary) 15%, transparent) 62%,
+    color-mix(in srgb, var(--away-secondary) 15%, transparent) 100%
+  );
+  -webkit-mask-image:
+    linear-gradient(
+      270deg,
+      #000 0%,
+      #000 70%,
+      rgba(0, 0, 0, 0.72) 82%,
+      rgba(0, 0, 0, 0.35) 91%,
+      transparent 100%
+    ),
+    linear-gradient(
+      180deg,
+      #000 0%,
+      #000 70%,
+      rgba(0, 0, 0, 0.72) 82%,
+      rgba(0, 0, 0, 0.35) 91%,
+      transparent 100%
+    );
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(
+      270deg,
+      #000 0%,
+      #000 70%,
+      rgba(0, 0, 0, 0.72) 82%,
+      rgba(0, 0, 0, 0.35) 91%,
+      transparent 100%
+    ),
+    linear-gradient(
+      180deg,
+      #000 0%,
+      #000 70%,
+      rgba(0, 0, 0, 0.72) 82%,
+      rgba(0, 0, 0, 0.35) 91%,
+      transparent 100%
+    );
+  mask-composite: intersect;
+}
+
+/* One centred fixture metadata line: League - Date Time. */
+.prediction-card__meta {
+  width: 100%;
+  margin-inline: auto;
+  justify-content: center;
+  gap: 0;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.prediction-card__meta span,
+.prediction-card__meta span:first-child,
+.prediction-card__meta span:last-child {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+/* Keep both team names clear of the colour wings while retaining the dense card. */
+.prediction-card__fixture {
+  padding-inline: 32px;
+}
+
+@media (max-width: 599px) {
+  .prediction-card__fixture-zone {
+    margin: -11px -14px 0;
+    padding: 11px 14px 0;
+  }
+
+  .prediction-card__fixture-zone::before,
+  .prediction-card__fixture-zone::after {
+    width: 64px;
+  }
+
+  .prediction-card__meta {
+    font-size: 0.64rem;
+  }
+
+  .prediction-card__fixture {
+    padding-inline: 30px;
+  }
+}
+
+@media (min-width: 600px) {
+  .prediction-card__fixture-zone::before,
+  .prediction-card__fixture-zone::after {
+    width: 82px;
+  }
+
+  .prediction-card__fixture {
+    padding-inline: 44px;
+  }
+}
+
+@media (max-width: 350px) {
+  .prediction-card__fixture-zone {
+    margin: -10px -11px 0;
+    padding: 10px 11px 0;
+  }
+
+  .prediction-card__fixture-zone::before,
+  .prediction-card__fixture-zone::after {
+    width: 58px;
+  }
+
+  .prediction-card__meta {
+    font-size: 0.59rem;
+  }
+
+  .prediction-card__fixture {
+    padding-inline: 25px;
+  }
+}

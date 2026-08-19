@@ -1,0 +1,408 @@
+/* Dense collapsed fixture list treatment.
+   Keep the full information hierarchy while fitting materially more fixtures on mobile. */
+
+.prediction-list {
+  gap: 5px;
+}
+
+/* Use the supplied MC Predict mark inside the existing circular brand badge. */
+.brand__mark {
+  overflow: hidden;
+  background: #222224;
+}
+
+.brand__mark img {
+  display: block;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+/* Homepage density: keep the same fixture-card language as the market pages,
+   but bring the ranked selections materially higher in the initial viewport. */
+.page--home {
+  gap: 14px;
+}
+
+.page--home .home-hero {
+  padding: 14px 16px;
+}
+
+.page--home .home-hero h1 {
+  margin-top: 4px;
+  font-size: clamp(1.6rem, 7.4vw, 2.8rem);
+}
+
+.page--home .home-hero__lead {
+  margin-top: 6px;
+  line-height: 1.28;
+}
+
+.page--home .hero-stat {
+  margin-top: 8px;
+  gap: 2px;
+}
+
+.page--home .hero-stat__value {
+  font-size: clamp(2.45rem, 11.5vw, 4.5rem);
+  line-height: 0.88;
+}
+
+.page--home .hero-stat span {
+  font-size: 0.72rem;
+}
+
+.page--home .home-section {
+  gap: 7px;
+}
+
+.page--home .section-heading {
+  align-items: end;
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+
+.page--home .section-heading h2 {
+  margin-top: 2px;
+  font-size: 1.08rem;
+}
+
+.page--home .section-heading .eyebrow {
+  font-size: 0.6rem;
+}
+
+.page--home .section-heading .text-link {
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.home-prediction-list {
+  gap: 5px;
+}
+
+.home-prediction-card--loading {
+  pointer-events: none;
+}
+
+.home-prediction-card__placeholder {
+  visibility: hidden;
+}
+
+.home-analysis-drawer[hidden] {
+  display: none;
+}
+
+/* Prediction controls are intentionally page content, not sticky chrome. Keep
+   both the mode tabs and filters compact so more fixtures remain visible. */
+.control-stack {
+  position: static;
+  top: auto;
+  z-index: auto;
+  gap: 6px;
+  padding: 4px;
+  margin-inline: -4px;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.segmented-control {
+  padding: 3px;
+  border-radius: 10px;
+}
+
+.segmented-control button {
+  min-height: 32px;
+  font-size: 0.68rem;
+}
+
+.filter-row {
+  gap: 7px;
+}
+
+.filter-row label {
+  gap: 3px;
+}
+
+.filter-row label > span {
+  font-size: 0.58rem;
+}
+
+.filter-row select {
+  height: 34px;
+  border-radius: 9px;
+  font-size: 0.74rem;
+}
+
+/* Reduce every visible collapsed-card text treatment by 2px from the approved
+   baseline. Expanded analysis typography remains unchanged. */
+.prediction-card__meta {
+  font-size: calc(0.82rem - 2px);
+}
+
+.prediction-card__team {
+  font-size: clamp(calc(1.08rem - 2px), calc(4vw - 2px), calc(1.5rem - 2px));
+}
+
+.prediction-card__versus {
+  font-size: calc(1.05rem - 2px);
+}
+
+.prediction-card__summary small {
+  font-size: calc(0.66rem - 2px);
+}
+
+.prediction-card__summary strong {
+  font-size: calc(1.12rem - 2px);
+}
+
+/* Forecast metric values deliberately match the Model / Bookmaker odds scale. */
+.metric-compare__teams strong {
+  font-size: calc(1.12rem - 2px);
+  line-height: 1.05;
+}
+
+.analysis-toggle {
+  font-size: calc(0.78rem - 2px);
+}
+
+/* Edge/probability is the tightest summary value. Keep percentages on one line. */
+.prediction-card__summary > div:last-child strong {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+  letter-spacing: -0.025em;
+  font-size: calc(0.96rem - 2px);
+}
+
+@media (max-width: 599px) {
+  .prediction-card.surface {
+    border-radius: 14px;
+  }
+
+  .prediction-card__trigger {
+    padding: 9px 12px 6px;
+  }
+
+  .prediction-card__meta {
+    gap: 8px;
+    font-size: calc(0.66rem - 2px);
+  }
+
+  .prediction-card__fixture {
+    gap: 7px;
+    margin-top: 5px;
+  }
+
+  .prediction-card__team {
+    font-size: calc(0.91rem - 2px);
+    line-height: 1.08;
+  }
+
+  .prediction-card__versus {
+    font-size: calc(0.78rem - 2px);
+  }
+
+  .prediction-card__summary {
+    grid-template-columns: 1fr 0.85fr 1fr 0.85fr;
+    margin-top: 8px;
+    padding-top: 6px;
+  }
+
+  .prediction-card__summary > div {
+    gap: 1px;
+    padding-inline: 6px;
+  }
+
+  .prediction-card__summary > div:first-child {
+    padding-left: 2px;
+  }
+
+  .prediction-card__summary > div:last-child {
+    padding-right: 2px;
+  }
+
+  .prediction-card__summary small {
+    font-size: calc(0.52rem - 2px);
+    letter-spacing: 0.035em;
+  }
+
+  .prediction-card__summary strong,
+  .metric-compare__teams strong {
+    font-size: calc(0.86rem - 2px);
+    line-height: 1.03;
+  }
+
+  .prediction-card__summary > div:last-child strong {
+    font-size: calc(0.78rem - 2px);
+  }
+
+  .analysis-toggle {
+    min-height: 24px;
+    margin: 0 auto -4px;
+    gap: 3px;
+    font-size: calc(0.63rem - 2px);
+  }
+
+  .analysis-toggle__icon {
+    width: 11px;
+    height: 11px;
+  }
+
+  /* The analysis itself stays comfortable; only the fixture/list header is compressed. */
+  .analysis-body {
+    padding-top: 8px;
+  }
+}
+
+@media (min-width: 600px) {
+  .page--home .home-hero {
+    padding: 18px 20px;
+  }
+
+  .page--home .hero-stat {
+    margin-top: 12px;
+  }
+}
+
+/* On desktop, keep each team name a consistent fixed distance from its metric
+   value instead of stretching the home side across a flexible 1fr column. */
+@media (min-width: 768px) {
+  .metric-compare__teams {
+    grid-template-columns: auto auto auto;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .metric-compare__team--home,
+  .metric-compare__team--away {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .metric-compare__team--home {
+    justify-content: flex-end;
+  }
+
+  .metric-compare__team--away {
+    justify-content: flex-start;
+  }
+
+  .metric-compare__team--home strong {
+    margin-left: 12px;
+  }
+
+  .metric-compare__team--away small {
+    margin-left: 12px;
+  }
+
+  .metric-compare__teams small {
+    max-width: 220px;
+  }
+}
+
+/* Homepage desktop interaction: preserve the fast three-card comparison row,
+   then give the selected fixture's analysis the full width underneath. */
+@media (min-width: 900px) {
+  .home-prediction-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .home-prediction-list .prediction-card {
+    min-width: 0;
+    height: 100%;
+  }
+
+  .home-prediction-list .prediction-card__trigger {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .home-prediction-list .analysis-toggle {
+    margin-top: auto;
+  }
+
+  .home-analysis-drawer {
+    margin-top: 4px;
+    padding: 16px 20px 20px;
+    background: #222224;
+    border: 1px solid #363638;
+    border-radius: 16px;
+  }
+
+  .home-analysis-drawer__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #363638;
+  }
+
+  .home-analysis-drawer__heading span {
+    color: var(--muted);
+    font-size: 0.72rem;
+  }
+
+  .home-analysis-drawer__heading strong {
+    color: var(--text);
+    font-size: 0.95rem;
+    text-align: right;
+  }
+
+  .home-analysis-drawer__heading em {
+    margin-inline: 8px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-style: normal;
+    font-weight: 500;
+  }
+
+  .home-analysis-drawer .analysis-body {
+    padding-top: 16px;
+  }
+}
+
+@media (max-width: 350px) {
+  .page--home {
+    gap: 12px;
+  }
+
+  .page--home .home-hero {
+    padding: 12px 14px;
+  }
+
+  .page--home .hero-stat {
+    margin-top: 8px;
+  }
+
+  .page--home .section-heading h2 {
+    font-size: 1rem;
+  }
+
+  .prediction-card__trigger {
+    padding: 8px 10px 5px;
+  }
+
+  .prediction-card__summary > div {
+    padding-inline: 4px;
+  }
+
+  .prediction-card__summary small {
+    font-size: calc(0.49rem - 2px);
+  }
+
+  .prediction-card__summary strong,
+  .metric-compare__teams strong {
+    font-size: calc(0.82rem - 2px);
+  }
+
+  .prediction-card__summary > div:last-child strong {
+    font-size: calc(0.74rem - 2px);
+  }
+}

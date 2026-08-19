@@ -1,0 +1,58 @@
+/* Homepage Top 3 cards have narrower team columns on desktop than the full
+   market pages. Keep names readable without splitting individual words. */
+.page--home .prediction-card__team {
+  overflow: hidden;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+/* Multi-word names may wrap only at the literal spaces between these tokens.
+   A token itself is never split across lines. */
+.page--home .prediction-card__team-word {
+  white-space: nowrap;
+}
+
+/* Single-word names have no safe wrap point. If one cannot fit, keep the card
+   geometry intact and show the conventional ellipsis instead of breaking it. */
+.page--home .prediction-card__team--single-word {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The wrapping pressure exists in the desktop three-across Top 3 layout.
+   Keep the full market-page cards untouched while making the homepage cards
+   materially denser and easier to scan. */
+@media (min-width: 900px) {
+  .page--home .home-prediction-list .prediction-card__team {
+    font-size: clamp(calc(1.08rem - 8px), calc(4vw - 8px), calc(1.5rem - 8px));
+    line-height: 1.05;
+  }
+
+  .page--home .home-prediction-list .prediction-card__trigger {
+    padding: 9px 14px 4px;
+  }
+
+  .page--home .home-prediction-list .prediction-card__fixture {
+    gap: 8px;
+    margin-top: 5px;
+  }
+
+  .page--home .home-prediction-list .prediction-card__summary {
+    margin-top: 8px;
+    padding-top: 6px;
+  }
+
+  .page--home .home-prediction-list .prediction-card__summary > div {
+    gap: 1px;
+    padding-inline: 8px;
+  }
+
+  .page--home .home-prediction-list .analysis-toggle {
+    min-height: 20px;
+    margin: 1px auto -2px;
+    gap: 3px;
+  }
+}

@@ -1,0 +1,134 @@
+name: MC Predict V1 CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - agent/mcpredict-v1-rebuild
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mcpredict-v1-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Unit tests
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Validate Cloudflare Worker bundle
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          source = Path("wrangler.jsonc").read_text()
+          source = source.replace(
+              "REPLACE_WITH_BETA_D1_DATABASE_ID",
+              "00000000-0000-0000-0000-000000000000"
+          )
+          Path("wrangler.ci.jsonc").write_text(source)
+          PY
+          trap 'rm -f wrangler.ci.jsonc' EXIT
+          npx wrangler deploy --dry-run --outdir /tmp/mcpredict-worker-dryrun --config wrangler.ci.jsonc
+
+  real-source-qa:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Reconcile current published Google CSVs
+        env:
+          RUN_REAL_SOURCE_QA: "1"
+        run: npx vitest run tests/real-source.integration.test.ts tests/team-colours-real.integration.test.ts
+
+  ui-qa:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build application
+        run: npm run build
+      - name: Responsive and interaction QA
+        run: npm run test:ui
+      - name: Lighthouse local accessibility and best-practice gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/mock-server.mjs > /tmp/mcpredict-qa-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+          ready=false
+          for _ in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/api/v1/health > /dev/null; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          if [[ "$ready" != "true" ]]; then
+            cat /tmp/mcpredict-qa-server.log
+            exit 1
+          fi
+
+          chrome_path="$(command -v google-chrome || command -v chromium)"
+          if [[ -z "$chrome_path" ]]; then
+            echo "No hosted Chrome/Chromium executable found for Lighthouse." >&2
+            exit 1
+          fi
+          export CHROME_PATH="$chrome_path"
+
+          npx lighthouse http://127.0.0.1:4173/ \
+            --quiet \
+            --output=json \
+            --output-path=/tmp/lighthouse.json \
+            --only-categories=performance,accessibility,best-practices \
+            --chrome-flags="--headless --no-sandbox --disable-gpu"
+
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(fs.readFileSync('/tmp/lighthouse.json', 'utf8'));
+          const scores = {
+            performance: report.categories.performance.score,
+            accessibility: report.categories.accessibility.score,
+            bestPractices: report.categories['best-practices'].score
+          };
+          const rounded = Object.fromEntries(Object.entries(scores).map(([key, value]) => [key, Math.round(value * 100)]));
+          console.log('LOCAL_LIGHTHOUSE', rounded);
+          console.log('Local performance is informational; the deployed beta workflow enforces Performance >= 90 against Cloudflare.');
+          const failures = [];
+          if (scores.accessibility < 0.95) failures.push(`Accessibility ${rounded.accessibility} < 95`);
+          if (scores.bestPractices < 0.95) failures.push(`Best Practices ${rounded.bestPractices} < 95`);
+          if (failures.length) {
+            console.error(failures.join('\n'));
+            process.exit(1);
+          }
+          NODE
