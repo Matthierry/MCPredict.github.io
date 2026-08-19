@@ -87,8 +87,6 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
         expect(value).toMatch(/^#[0-9A-F]{6}$/i);
       }
 
-      // The colour wings live only inside this clipped fixture zone. This protects
-      // Prediction / Model / Bookmaker / Edge from colour bleed on compact cards.
       const wingStyles = await fixtureZone.evaluate((element) => ({
         overflow: getComputedStyle(element).overflow,
         homeBackground: getComputedStyle(element, "::before").backgroundImage,
@@ -98,8 +96,6 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
       expect(wingStyles.homeBackground).not.toBe("none");
       expect(wingStyles.awayBackground).not.toBe("none");
 
-      // Metadata must be a single centred League - Date Time line, for example:
-      // League 2 - Sat 15th Aug 15:00.
       const metaText = (await firstCard.locator(".prediction-card__meta").textContent())?.trim() ?? "";
       expect(metaText).toMatch(/^.+ - (Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d{1,2}(st|nd|rd|th) [A-Z][a-z]{2}( \d{2}:\d{2})?$/);
 
@@ -136,6 +132,38 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
     await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator(".no-value-divider")).toHaveCount(0);
   }
+});
+
+test("deployed beta desktop homepage uses three-across cards with one shared drawer", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const matchSection = page.locator(".home-section").filter({ has: page.getByRole("heading", { name: "Top 3 model edges", exact: true }) });
+  const matchList = matchSection.locator(".home-prediction-list");
+  const matchCards = matchList.locator(".prediction-card");
+  const matchTriggers = matchList.locator(".prediction-card__trigger");
+  const matchDrawer = matchSection.locator("#home-match-analysis-drawer");
+
+  await expect(matchCards).toHaveCount(3);
+  const grid = await matchList.evaluate((element) => ({
+    display: getComputedStyle(element).display,
+    columns: getComputedStyle(element).gridTemplateColumns.split(" ").filter(Boolean).length
+  }));
+  expect(grid.display).toBe("grid");
+  expect(grid.columns).toBe(3);
+
+  await expect(matchDrawer).toBeHidden();
+  await matchTriggers.nth(0).click();
+  await expect(matchDrawer).toBeVisible();
+  await expect(matchDrawer.getByText("1X2 PROBABILITY COMPARISON", { exact: true })).toBeVisible();
+  await expect(matchDrawer.locator(".metric-compare")).toHaveCount(3);
+
+  await matchTriggers.nth(1).click();
+  await expect(matchTriggers.nth(0)).toHaveAttribute("aria-expanded", "false");
+  await expect(matchTriggers.nth(1)).toHaveAttribute("aria-expanded", "true");
+  await matchTriggers.nth(1).click();
+  await expect(matchDrawer).toBeHidden();
+  await expectNoHorizontalOverflow(page, 1280);
 });
 
 test("deployed beta supports direct route refresh", async ({ page }) => {
