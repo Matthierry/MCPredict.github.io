@@ -36,6 +36,7 @@ class TestD1 {
 
   constructor() {
     this.raw.exec(readFileSync(new URL("../migrations/0001_initial.sql", import.meta.url), "utf8"));
+    this.raw.exec(readFileSync(new URL("../migrations/0002_team_colours.sql", import.meta.url), "utf8"));
   }
 
   prepare(sql: string) {
@@ -120,6 +121,14 @@ function fixtureCountCsv(value: number) {
   return `,,,,,${value}`;
 }
 
+function teamColourCsv() {
+  return csv([
+    ["", "Team Name", "Primary", "Secondary"],
+    ["", "Arsenal", "#EF0107", "#063672"],
+    ["", "Leeds", "#FFCD00", "#1D428A"]
+  ]);
+}
+
 function createHarness() {
   const database = new TestD1();
   const env = {
@@ -133,6 +142,8 @@ function createHarness() {
   let predictionBody = csv([sourceRow()]);
   let fixtureStatus = 200;
   let fixtureBody = fixtureCountCsv(1234);
+  let teamColourStatus = 200;
+  let teamColourBody = teamColourCsv();
 
   const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
@@ -145,6 +156,12 @@ function createHarness() {
     if (url.includes("gid=56710734")) {
       return new Response(fixtureBody, {
         status: fixtureStatus,
+        headers: { "Content-Type": "text/csv; charset=utf-8" }
+      });
+    }
+    if (url.includes("gid=1067058604")) {
+      return new Response(teamColourBody, {
+        status: teamColourStatus,
         headers: { "Content-Type": "text/csv; charset=utf-8" }
       });
     }
@@ -162,6 +179,10 @@ function createHarness() {
     setFixtureCount(body: string, status = 200) {
       fixtureBody = body;
       fixtureStatus = status;
+    },
+    setTeamColours(body: string, status = 200) {
+      teamColourBody = body;
+      teamColourStatus = status;
     }
   };
 }
@@ -172,7 +193,7 @@ afterEach(() => {
 });
 
 describe("ingestion integration", () => {
-  it("activates a changed dataset and imports F1 independently", async () => {
+  it("activates a changed dataset and imports F1 and team colours independently", async () => {
     const harness = createHarness();
     try {
       const sync = await runIngestion(harness.env, "manual", null);
@@ -183,6 +204,9 @@ describe("ingestion integration", () => {
       expect(active?.valid_match_result_count).toBe(1);
       expect(active?.valid_ou_count).toBe(1);
       expect(harness.database.raw.prepare("SELECT COUNT(*) AS count FROM predictions WHERE dataset_id = ?").get(active?.id)).toMatchObject({ count: 1 });
+      expect(harness.database.raw.prepare("SELECT COUNT(*) AS count FROM team_colours").get()).toMatchObject({ count: 2 });
+      expect(harness.database.raw.prepare("SELECT primary_colour, secondary_colour FROM team_colours WHERE team_key = 'arsenal'").get())
+        .toMatchObject({ primary_colour: "#EF0107", secondary_colour: "#063672" });
 
       const fixtures = await getFixtureCount(harness.env.DB);
       expect(fixtures.value).toBe(1234);
@@ -270,6 +294,21 @@ describe("ingestion integration", () => {
       expect((await getActiveDataset(harness.env.DB))?.valid_fixture_count).toBe(1);
       expect((await getFixtureCount(harness.env.DB)).value).toBeNull();
       expect(harness.database.raw.prepare("SELECT site_stat_result FROM sync_runs ORDER BY started_at DESC LIMIT 1").get()).toMatchObject({ site_stat_result: "failed" });
+    } finally {
+      harness.database.close();
+    }
+  });
+
+  it("keeps predictions available when the independent team-colour source fails", async () => {
+    const harness = createHarness();
+    try {
+      harness.setTeamColours("unavailable", 503);
+      const sync = await runIngestion(harness.env, "manual", null);
+      expect(sync.result).toBe("success_changed");
+      expect((await getActiveDataset(harness.env.DB))?.valid_fixture_count).toBe(1);
+      expect(harness.database.raw.prepare("SELECT COUNT(*) AS count FROM team_colours").get()).toMatchObject({ count: 0 });
+      expect(harness.database.raw.prepare("SELECT value FROM site_state WHERE key = 'last_team_colour_sync_result'").get())
+        .toMatchObject({ value: "failed" });
     } finally {
       harness.database.close();
     }
