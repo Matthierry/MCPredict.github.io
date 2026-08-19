@@ -1,0 +1,31 @@
+/* Homepage Top 3 cards have narrower team columns on desktop than the full
+   market pages. Keep names readable without splitting individual words. */
+.page--home .prediction-card__team {
+  overflow: hidden;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+/* Multi-word names may wrap only at the literal spaces between these tokens.
+   A token itself is never split across lines. */
+.page--home .prediction-card__team-word {
+  white-space: nowrap;
+}
+
+/* Single-word names have no safe wrap point. If one cannot fit, keep the card
+   geometry intact and show the conventional ellipsis instead of breaking it. */
+.page--home .prediction-card__team--single-word {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The wrapping pressure only exists in the desktop three-across Top 3 layout.
+   Leave the already-approved mobile team size unchanged. */
+@media (min-width: 900px) {
+  .page--home .home-prediction-list .prediction-card__team {
+    font-size: clamp(calc(1.08rem - 4px), calc(4vw - 4px), calc(1.5rem - 4px));
+  }
+}
