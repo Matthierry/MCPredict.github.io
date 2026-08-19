@@ -27,8 +27,9 @@
   pointer-events: none;
 }
 
-/* 60/40 spatial split between primary and secondary colours. The colour mixes
-   remain translucent so the treatment reads as a tint rather than a block. */
+/* Each wing is a true 60/40 spatial split: 60% primary, 40% secondary.
+   Both are translucent so the treatment stays subtle while making the secondary
+   club colour materially more visible than the previous thin accent line. */
 .prediction-card__fixture-zone::before {
   left: 0;
   clip-path: polygon(0 0, 100% 0, 68% 100%, 0 100%);
