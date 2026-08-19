@@ -2,12 +2,18 @@ import Papa from "papaparse";
 import { describe, expect, it } from "vitest";
 import { normalizeSourceRows, selectedMatchProbability, selectedOuProbability } from "../worker/normalize";
 import { cleanCell } from "../worker/parsers";
+import { normalizeTeamKey, parseTeamColourRows, TEAM_COLOUR_CSV_URL } from "../worker/team-colours";
 
 const BETA_ORIGIN = "https://beta.mcpredict.com";
 const PREDICTION_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_1dSqKC6BUuykrL9QA5_fwiIEodU3jXBCskHCA7uVU-EYnHusQWZhMFwZXNvk2bFlElmsQHZ3b4n2/pub?gid=2036795967&single=true&output=csv";
 const FIXTURE_COUNT_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRoeausAAqFFCFoB0NK4vjsgmmzxP_J-WtgvUdusuau-jmJ3d3fqPAAa_ujd7nGYag5rJFOysZZUYiA/pub?gid=56710734&single=true&output=csv";
+
+interface TeamColours {
+  primary: string;
+  secondary: string;
+}
 
 interface ApiPrediction {
   marketId: string;
@@ -18,6 +24,8 @@ interface ApiPrediction {
     league: string | null;
     homeTeam: string;
     awayTeam: string;
+    homeColours: TeamColours | null;
+    awayColours: TeamColours | null;
   };
   prediction: {
     selection: string | null;
@@ -170,7 +178,7 @@ function expectNullableNumber(actual: number | null, expected: number | null) {
 }
 
 function expectFixtureAndAnalysis(api: ApiPrediction, source: SourcePrediction) {
-  expect(api.fixture).toEqual({
+  expect(api.fixture).toMatchObject({
     date: source.fixtureDate,
     kickoff: source.kickoffTime,
     country: source.country,
@@ -200,9 +208,10 @@ const liveQa = process.env.RUN_BETA_LIVE_QA === "1" ? describe : describe.skip;
 
 liveQa("deployed beta source-to-API reconciliation", () => {
   it("serves a healthy active dataset and matches the published Google sources", async () => {
-    const [predictionCsv, fixtureCountCsv, health, home, match, ou] = await Promise.all([
+    const [predictionCsv, fixtureCountCsv, teamColourCsv, health, home, match, ou] = await Promise.all([
       fetchText(PREDICTION_CSV_URL),
       fetchText(FIXTURE_COUNT_CSV_URL),
+      fetchText(TEAM_COLOUR_CSV_URL),
       fetchJson<{ status: string; database: string; activeDataset: boolean }>("/api/v1/health"),
       fetchJson<HomeResponse>("/api/v1/home"),
       fetchJson<PredictionResponse>("/api/v1/predictions/match-result"),
@@ -216,6 +225,11 @@ liveQa("deployed beta source-to-API reconciliation", () => {
     expect(normalized.conflictingMarketIds).toEqual([]);
     expect(normalized.validFixtureCount).toBeGreaterThan(0);
     expect(normalized.validMatchResultCount).toBeGreaterThan(0);
+
+    const parsedColours = parseTeamColourRows(parseCsv(teamColourCsv));
+    expect(parsedColours.conflictingTeamKeys).toEqual([]);
+    expect(parsedColours.records.length).toBeGreaterThan(0);
+    const coloursByKey = new Map(parsedColours.records.map((record) => [record.teamKey, record]));
 
     const fixtureCountRows = parseCsv(fixtureCountCsv);
     const rawFixtureCount = cleanCell(fixtureCountRows[0]?.[5]);
@@ -236,6 +250,28 @@ liveQa("deployed beta source-to-API reconciliation", () => {
     expectDescendingEdge(ou.data);
     expect(home.topMatchResult.map((row) => row.marketId)).toEqual(match.data.slice(0, 3).map((row) => row.marketId));
     expect(home.topOverUnder25.map((row) => row.marketId)).toEqual(ou.data.slice(0, 3).map((row) => row.marketId));
+
+    const allApiRows = [...match.data, ...ou.data];
+    const unmatchedColours = new Set<string>();
+    for (const api of allApiRows) {
+      const expectedHome = coloursByKey.get(normalizeTeamKey(api.fixture.homeTeam));
+      const expectedAway = coloursByKey.get(normalizeTeamKey(api.fixture.awayTeam));
+
+      if (!expectedHome) unmatchedColours.add(api.fixture.homeTeam);
+      if (!expectedAway) unmatchedColours.add(api.fixture.awayTeam);
+
+      expect(api.fixture.homeColours, `Home colours missing for ${api.fixture.homeTeam}`).toEqual(
+        expectedHome
+          ? { primary: expectedHome.primaryColour, secondary: expectedHome.secondaryColour }
+          : null
+      );
+      expect(api.fixture.awayColours, `Away colours missing for ${api.fixture.awayTeam}`).toEqual(
+        expectedAway
+          ? { primary: expectedAway.primaryColour, secondary: expectedAway.secondaryColour }
+          : null
+      );
+    }
+    expect(Array.from(unmatchedColours).sort()).toEqual([]);
 
     const matchById = new Map(match.data.map((row) => [row.marketId, row]));
     const ouById = new Map(ou.data.map((row) => [row.marketId, row]));
@@ -303,6 +339,7 @@ liveQa("deployed beta source-to-API reconciliation", () => {
       validFixtures: normalized.validFixtureCount,
       matchCount: match.meta.count,
       ouCount: ou.meta.count,
+      teamColourRows: parsedColours.records.length,
       auditedMatchMarketIds: matchAudit.map((row) => row.marketId),
       auditedOuMarketIds: ouAudit.map((row) => row.marketId),
       topMatchResult: home.topMatchResult.map((row) => row.marketId),
@@ -312,7 +349,9 @@ liveQa("deployed beta source-to-API reconciliation", () => {
         selectedProbability: norwich.prediction.probability,
         bookmakerPrice: norwich.prediction.bookmakerPrice,
         bookmakerOver: norwich.probabilities.bookmaker.over,
-        bookmakerUnder: norwich.probabilities.bookmaker.under
+        bookmakerUnder: norwich.probabilities.bookmaker.under,
+        homeColours: norwich.fixture.homeColours,
+        awayColours: norwich.fixture.awayColours
       } : null
     });
   }, 180_000);
