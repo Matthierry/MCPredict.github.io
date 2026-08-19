@@ -51,8 +51,35 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
     const cards = page.locator(".prediction-card");
     const count = await cards.count();
     if (count > 0) {
+      const firstCard = cards.first();
       const firstTrigger = page.locator(".prediction-card__trigger").first();
       await expect(firstTrigger.locator(".prediction-card__summary > div")).toHaveCount(4);
+
+      const colourVars = await firstCard.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          homePrimary: style.getPropertyValue("--home-primary").trim(),
+          homeSecondary: style.getPropertyValue("--home-secondary").trim(),
+          awayPrimary: style.getPropertyValue("--away-primary").trim(),
+          awaySecondary: style.getPropertyValue("--away-secondary").trim()
+        };
+      });
+      for (const value of Object.values(colourVars)) {
+        expect(value).toMatch(/^#[0-9A-F]{6}$/i);
+      }
+
+      const cardBox = await firstCard.boundingBox();
+      const metaBox = await firstCard.locator(".prediction-card__meta").boundingBox();
+      const homeBox = await firstCard.locator(".prediction-card__team--home").boundingBox();
+      const awayBox = await firstCard.locator(".prediction-card__team--away").boundingBox();
+      if (cardBox && metaBox && homeBox && awayBox) {
+        const cardCentre = cardBox.x + cardBox.width / 2;
+        const metaCentre = metaBox.x + metaBox.width / 2;
+        expect(Math.abs(cardCentre - metaCentre)).toBeLessThan(8);
+        expect(homeBox.x - cardBox.x).toBeGreaterThan(20);
+        expect((cardBox.x + cardBox.width) - (awayBox.x + awayBox.width)).toBeGreaterThan(20);
+      }
+
       await firstTrigger.click();
       await expect(firstTrigger).toHaveAttribute("aria-expanded", "true");
       await expect(firstTrigger.getByText("Analysis open")).toBeVisible();
