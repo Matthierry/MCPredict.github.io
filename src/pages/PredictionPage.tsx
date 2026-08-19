@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useCachedApi } from "../api";
 import { formatDateLabel, formatEdge, formatOdds } from "../format";
@@ -29,6 +30,15 @@ function valueTone(edge: number) {
 
 function fixtureCompetition(item: Prediction) {
   return item.fixture.league || item.fixture.country || "Football";
+}
+
+function teamColourStyle(item: Prediction): CSSProperties {
+  return {
+    "--home-primary": item.fixture.homeColours?.primary ?? "transparent",
+    "--home-secondary": item.fixture.homeColours?.secondary ?? item.fixture.homeColours?.primary ?? "transparent",
+    "--away-primary": item.fixture.awayColours?.primary ?? "transparent",
+    "--away-secondary": item.fixture.awayColours?.secondary ?? item.fixture.awayColours?.primary ?? "transparent"
+  } as CSSProperties;
 }
 
 function MatchAnalysis({ item }: { item: MatchPrediction }) {
@@ -81,7 +91,10 @@ function PredictionCard({ item, expanded, onToggle, market }: {
   const panelId = `analysis-${market}-${item.marketId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 
   return (
-    <article className={`prediction-card surface${expanded ? " is-expanded" : ""}`}>
+    <article
+      className={`prediction-card surface${expanded ? " is-expanded" : ""}`}
+      style={teamColourStyle(item)}
+    >
       <button
         className="prediction-card__trigger"
         type="button"
