@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useCachedApi } from "../api";
-import { formatDateLabel, formatEdge, formatOdds } from "../format";
+import { formatDateLabel, formatEdge, formatFixtureMetaDate, formatOdds } from "../format";
 import { MetricCompare } from "../components/MetricCompare";
 import { ProbabilityComparison } from "../components/ProbabilityComparison";
 import { ChevronIcon } from "../components/icons";
@@ -30,6 +30,13 @@ function valueTone(edge: number) {
 
 function fixtureCompetition(item: Prediction) {
   return item.fixture.league || item.fixture.country || "Football";
+}
+
+function fixtureMetaLabel(item: Prediction) {
+  const competition = fixtureCompetition(item);
+  const fixtureDate = formatFixtureMetaDate(item.fixture.date);
+  const kickoff = item.fixture.kickoff?.trim();
+  return `${competition} - ${fixtureDate}${kickoff ? ` ${kickoff}` : ""}`;
 }
 
 function teamColourStyle(item: Prediction): CSSProperties {
@@ -102,15 +109,16 @@ function PredictionCard({ item, expanded, onToggle, market }: {
         aria-expanded={expanded}
         aria-controls={panelId}
       >
-        <div className="prediction-card__meta">
-          <span>{fixtureCompetition(item)}</span>
-          <span>{item.fixture.kickoff || ""}</span>
-        </div>
+        <div className="prediction-card__fixture-zone">
+          <div className="prediction-card__meta">
+            <span>{fixtureMetaLabel(item)}</span>
+          </div>
 
-        <div className="prediction-card__fixture">
-          <strong className="prediction-card__team prediction-card__team--home">{item.fixture.homeTeam}</strong>
-          <span className="prediction-card__versus">v</span>
-          <strong className="prediction-card__team prediction-card__team--away">{item.fixture.awayTeam}</strong>
+          <div className="prediction-card__fixture">
+            <strong className="prediction-card__team prediction-card__team--home">{item.fixture.homeTeam}</strong>
+            <span className="prediction-card__versus">v</span>
+            <strong className="prediction-card__team prediction-card__team--away">{item.fixture.awayTeam}</strong>
+          </div>
         </div>
 
         <div className="prediction-card__summary">
