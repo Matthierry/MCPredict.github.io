@@ -36,6 +36,30 @@ function teamColourStyle(item: Prediction): CSSProperties {
   } as CSSProperties;
 }
 
+function TeamName({ name, side }: { name: string; side: "home" | "away" }) {
+  const trimmed = name.trim();
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  const isSingleWord = words.length <= 1;
+  const classes = [
+    "prediction-card__team",
+    `prediction-card__team--${side}`,
+    isSingleWord ? "prediction-card__team--single-word" : "prediction-card__team--multi-word"
+  ].join(" ");
+
+  return (
+    <strong className={classes} title={trimmed}>
+      {isSingleWord
+        ? trimmed
+        : words.map((word, index) => (
+          <span key={`${word}-${index}`}>
+            <span className="prediction-card__team-word">{word}</span>
+            {index < words.length - 1 ? " " : null}
+          </span>
+        ))}
+    </strong>
+  );
+}
+
 function Metrics({ item }: { item: Prediction }) {
   return (
     <section className="analysis-metrics" aria-label="Forecasted performance metrics">
@@ -114,9 +138,9 @@ export function PredictionCard({ item, expanded, onToggle, market, mode, renderA
           </div>
 
           <div className="prediction-card__fixture">
-            <strong className="prediction-card__team prediction-card__team--home">{item.fixture.homeTeam}</strong>
+            <TeamName name={item.fixture.homeTeam} side="home" />
             <span className="prediction-card__versus">v</span>
-            <strong className="prediction-card__team prediction-card__team--away">{item.fixture.awayTeam}</strong>
+            <TeamName name={item.fixture.awayTeam} side="away" />
           </div>
         </div>
 
