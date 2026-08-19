@@ -89,6 +89,10 @@
   visibility: hidden;
 }
 
+.home-analysis-drawer[hidden] {
+  display: none;
+}
+
 /* Prediction controls are intentionally page content, not sticky chrome. Keep
    both the mode tabs and filters compact so more fixtures remain visible. */
 .control-stack {
@@ -295,6 +299,72 @@
 
   .metric-compare__teams small {
     max-width: 220px;
+  }
+}
+
+/* Homepage desktop interaction: preserve the fast three-card comparison row,
+   then give the selected fixture's analysis the full width underneath. */
+@media (min-width: 900px) {
+  .home-prediction-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .home-prediction-list .prediction-card {
+    min-width: 0;
+    height: 100%;
+  }
+
+  .home-prediction-list .prediction-card__trigger {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .home-prediction-list .analysis-toggle {
+    margin-top: auto;
+  }
+
+  .home-analysis-drawer {
+    margin-top: 4px;
+    padding: 16px 20px 20px;
+    background: #222224;
+    border: 1px solid #363638;
+    border-radius: 16px;
+  }
+
+  .home-analysis-drawer__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #363638;
+  }
+
+  .home-analysis-drawer__heading span {
+    color: var(--muted);
+    font-size: 0.72rem;
+  }
+
+  .home-analysis-drawer__heading strong {
+    color: var(--text);
+    font-size: 0.95rem;
+    text-align: right;
+  }
+
+  .home-analysis-drawer__heading em {
+    margin-inline: 8px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-style: normal;
+    font-weight: 500;
+  }
+
+  .home-analysis-drawer .analysis-body {
+    padding-top: 16px;
   }
 }
 
