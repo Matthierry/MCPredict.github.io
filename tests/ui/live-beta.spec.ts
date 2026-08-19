@@ -152,6 +152,27 @@ test("deployed beta desktop homepage uses three-across cards with one shared dra
   expect(grid.display).toBe("grid");
   expect(grid.columns).toBe(3);
 
+  const allHomeTeams = page.locator(".home-prediction-list .prediction-card__team");
+  await expect(allHomeTeams).toHaveCount(12);
+
+  const singleWord = page.locator(".home-prediction-list .prediction-card__team--single-word").first();
+  await expect(singleWord).toBeVisible();
+  const singleStyles = await singleWord.evaluate((element) => ({
+    whiteSpace: getComputedStyle(element).whiteSpace,
+    textOverflow: getComputedStyle(element).textOverflow,
+    overflowX: getComputedStyle(element).overflowX
+  }));
+  expect(singleStyles.whiteSpace).toBe("nowrap");
+  expect(singleStyles.textOverflow).toBe("ellipsis");
+  expect(singleStyles.overflowX).toBe("hidden");
+
+  const multiWord = page.locator(".home-prediction-list .prediction-card__team--multi-word").first();
+  await expect(multiWord).toBeVisible();
+  const wordTokens = multiWord.locator(".prediction-card__team-word");
+  expect(await wordTokens.count()).toBeGreaterThan(1);
+  const tokenStyles = await wordTokens.evaluateAll((tokens) => tokens.map((token) => getComputedStyle(token).whiteSpace));
+  expect(tokenStyles.every((value) => value === "nowrap")).toBe(true);
+
   await expect(matchDrawer).toBeHidden();
   await matchTriggers.nth(0).click();
   await expect(matchDrawer).toBeVisible();
