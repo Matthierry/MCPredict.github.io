@@ -1,0 +1,157 @@
+name: Refresh Production Data
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mcpredict-v1-production
+  cancel-in-progress: false
+
+jobs:
+  refresh-production-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PRIMARY_CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      PRIMARY_CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      ALTERNATE_CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      ALTERNATE_CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      PRODUCTION_ORIGIN: https://www.mcpredict.com
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check Cloudflare credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="${PRIMARY_CF_API_TOKEN:-${ALTERNATE_CF_API_TOKEN:-}}"
+          account="${PRIMARY_CF_ACCOUNT_ID:-${ALTERNATE_CF_ACCOUNT_ID:-}}"
+
+          if [[ -z "$token" || -z "$account" ]]; then
+            echo "Cloudflare production credentials are not configured." >&2
+            exit 1
+          fi
+
+          echo "::add-mask::$token"
+          echo "::add-mask::$account"
+          echo "CLOUDFLARE_API_TOKEN=$token" >> "$GITHUB_ENV"
+          echo "CLOUDFLARE_ACCOUNT_ID=$account" >> "$GITHUB_ENV"
+
+      - name: Install Wrangler dependency
+        run: npm install --no-audit --no-fund
+
+      - name: Resolve existing production Worker configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cat > /tmp/mcpredict-bootstrap.jsonc <<'EOF'
+          {
+            "name": "mcpredict-bootstrap",
+            "compatibility_date": "2026-08-18"
+          }
+          EOF
+
+          database_id="$(npx wrangler d1 list --json --config /tmp/mcpredict-bootstrap.jsonc | jq -r '.[] | select(.name == "mcpredict-production-db") | (.uuid // .id // .database_id // empty)' | head -n 1)"
+
+          if [[ -z "$database_id" ]]; then
+            echo "Existing mcpredict-production-db could not be found. Refresh aborted; no database was created or migrated." >&2
+            exit 1
+          fi
+
+          DB_ID="$database_id" python - <<'PY'
+          import os
+          from pathlib import Path
+
+          source = Path("wrangler.production.jsonc")
+          target = Path("/tmp/wrangler.production.refresh.jsonc")
+          text = source.read_text()
+          placeholder = "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID"
+          if placeholder not in text:
+              raise SystemExit("Production Wrangler config is missing its D1 placeholder")
+          target.write_text(text.replace(placeholder, os.environ["DB_ID"]))
+          PY
+
+          echo "Production D1 resolved successfully."
+
+      - name: Configure temporary manual-sync token
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(openssl rand -hex 32)"
+          echo "::add-mask::$token"
+          echo "SYNC_TOKEN=$token" >> "$GITHUB_ENV"
+          printf '%s' "$token" | npx wrangler secret put SYNC_TOKEN --config /tmp/wrangler.production.refresh.jsonc
+
+      - name: Refresh spreadsheet data into production D1
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl \
+            --fail-with-body \
+            --retry 4 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            -X POST \
+            -H "Authorization: Bearer $SYNC_TOKEN" \
+            "$PRODUCTION_ORIGIN/api/internal/sync" \
+            -o /tmp/sync-result.json
+
+          echo "Refresh result:"
+          jq '{result, datasetId}' /tmp/sync-result.json
+          jq -e '.result | type == "string" and startswith("success_")' /tmp/sync-result.json > /dev/null
+
+      - name: Verify refreshed production data
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          health="$(curl --fail-with-body --retry 4 --retry-delay 3 --retry-all-errors "$PRODUCTION_ORIGIN/api/v1/health")"
+          home="$(curl --fail-with-body --retry 4 --retry-delay 3 --retry-all-errors "$PRODUCTION_ORIGIN/api/v1/home")"
+          match="$(curl --fail-with-body --retry 4 --retry-delay 3 --retry-all-errors "$PRODUCTION_ORIGIN/api/v1/predictions/match-result")"
+          ou="$(curl --fail-with-body --retry 4 --retry-delay 3 --retry-all-errors "$PRODUCTION_ORIGIN/api/v1/predictions/over-under-25")"
+
+          echo "$health" | jq -e '.status == "ok" and .database == "ok" and .activeDataset == true' > /dev/null
+          echo "$home" | jq -e 'has("fixturesProcessed") and has("topMatchResult") and has("topOverUnder25") and has("hasPredictions") and has("activeDatasetTimestamp")' > /dev/null
+          echo "$match" | jq -e 'has("data") and (.meta | has("datasetId") and has("updatedAt") and has("count"))' > /dev/null
+          echo "$ou" | jq -e 'has("data") and (.meta | has("datasetId") and has("updatedAt") and has("count"))' > /dev/null
+
+          echo "Production data verification:"
+          jq -n \
+            --arg fixtures "$(echo "$home" | jq -r '.fixturesProcessed // "—"')" \
+            --arg updated "$(echo "$home" | jq -r '.activeDatasetTimestamp // "—"')" \
+            --arg matchCount "$(echo "$match" | jq -r '.meta.count // 0')" \
+            --arg ouCount "$(echo "$ou" | jq -r '.meta.count // 0')" \
+            '{fixturesProcessed: $fixtures, activeDatasetTimestamp: $updated, matchResultRows: $matchCount, overUnderRows: $ouCount}'
+
+      - name: Refresh summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## MC Predict production data refresh"
+            echo
+            if [[ "${{ job.status }}" == "success" ]]; then
+              echo "Production spreadsheet data was refreshed successfully."
+              echo
+              echo "- No application build was run"
+              echo "- No D1 migrations were run"
+              echo "- No Worker or website deployment was run"
+              echo "- Existing production Worker: mcpredict-production"
+              echo "- Existing production D1: mcpredict-production-db"
+              echo "- Production site: https://www.mcpredict.com"
+            else
+              echo "Production data refresh failed. Existing production deployment was not replaced."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

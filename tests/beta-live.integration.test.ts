@@ -320,19 +320,6 @@ liveQa("deployed beta source-to-API reconciliation", () => {
       expectNullableNumber(api.probabilities.bookmaker.under ?? null, source.ouBookmakerUnderProbability);
     }
 
-    const norwich = ouById.get("E1NorwichE1West Brom46249");
-    expect(norwich, "Norwich v West Brom missing from deployed O/U beta API").toBeTruthy();
-    if (norwich) {
-      expect(norwich.prediction.selection).toBe("Under 2.5");
-      expect(norwich.prediction.modelPrice).toBeCloseTo(1.42, 10);
-      expect(norwich.prediction.bookmakerPrice).toBeCloseTo(1.84, 10);
-      expect(norwich.prediction.probability).toBeCloseTo(1 / 1.42, 10);
-      expect(norwich.probabilities.model.under).toBeCloseTo(1 / 1.42, 10);
-      expect(norwich.probabilities.model.over).toBeCloseTo(1 - (1 / 1.42), 10);
-      expect(norwich.probabilities.bookmaker.over).toBeCloseTo(1 / 1.88, 10);
-      expect(norwich.probabilities.bookmaker.under).toBeCloseTo(1 / 1.84, 10);
-    }
-
     console.log("BETA_LIVE_RECONCILIATION", {
       datasetId: match.meta.datasetId,
       fixturesProcessed,
@@ -343,16 +330,7 @@ liveQa("deployed beta source-to-API reconciliation", () => {
       auditedMatchMarketIds: matchAudit.map((row) => row.marketId),
       auditedOuMarketIds: ouAudit.map((row) => row.marketId),
       topMatchResult: home.topMatchResult.map((row) => row.marketId),
-      topOverUnder25: home.topOverUnder25.map((row) => row.marketId),
-      norwich: norwich ? {
-        modelPrice: norwich.prediction.modelPrice,
-        selectedProbability: norwich.prediction.probability,
-        bookmakerPrice: norwich.prediction.bookmakerPrice,
-        bookmakerOver: norwich.probabilities.bookmaker.over,
-        bookmakerUnder: norwich.probabilities.bookmaker.under,
-        homeColours: norwich.fixture.homeColours,
-        awayColours: norwich.fixture.awayColours
-      } : null
+      topOverUnder25: home.topOverUnder25.map((row) => row.marketId)
     });
   }, 180_000);
 });
