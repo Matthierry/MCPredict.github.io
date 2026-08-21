@@ -46,6 +46,34 @@ describe("normalization", () => {
     expect(prediction.ouBookmakerUnderProbability).toBeCloseTo(1 / 1.84);
   });
 
+  it("preserves the Norwich O/U pricing regression without depending on a live fixture", () => {
+    const prediction = normalizeSourceRows([row({
+      marketId: "E1NorwichE1West Brom46249",
+      homeTeam: "Norwich",
+      awayTeam: "West Brom",
+      matchPrediction: "HOME WIN",
+      ouPrediction: "Under",
+      ouModelUnderProbability: "67.86%",
+      ouModelOverProbability: "32.14%",
+      ouModelPrice: "1.42",
+      ouBookmakerOverProbability: "1.88",
+      ouBookmakerUnderProbability: "1.84",
+      ouBookmakerPrice: "1.84",
+      ouEdge: "16.07%"
+    })]).predictions[0];
+
+    expect(prediction.matchPrediction).toBe("Home");
+    expect(prediction.matchValid).toBe(true);
+    expect(prediction.ouPrediction).toBe("Under 2.5");
+    expect(prediction.ouValid).toBe(true);
+    expect(prediction.ouModelPrice).toBeCloseTo(1.42);
+    expect(selectedOuProbability(prediction)).toBeCloseTo(1 / 1.42);
+    expect(prediction.ouBookmakerOverProbability).toBeCloseTo(1 / 1.88);
+    expect(prediction.ouBookmakerUnderProbability).toBeCloseTo(1 / 1.84);
+    expect(prediction.ouBookmakerPrice).toBeCloseTo(1.84);
+    expect(prediction.ouEdge).toBeCloseTo(16.07);
+  });
+
   it("maps bookmaker 1X2 S/T/U decimal odds to implied probabilities", () => {
     const prediction = normalizeSourceRows([row({ matchBookmakerHomeProbability: "2.26", matchBookmakerDrawProbability: "3.39", matchBookmakerAwayProbability: "2.92" })]).predictions[0];
     expect(prediction.matchBookmakerHomeProbability).toBeCloseTo(1 / 2.26);
