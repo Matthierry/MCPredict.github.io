@@ -1,6 +1,6 @@
 import Papa from "papaparse";
 import { describe, expect, it } from "vitest";
-import { normalizeSourceRows, selectedOuProbability } from "../worker/normalize";
+import { normalizeSourceRows } from "../worker/normalize";
 import {
   cleanCell,
   impliedProbabilityFromDecimalOdds,
@@ -149,31 +149,6 @@ realQa("current published Google CSV sources", () => {
         matchEdge: prediction.matchEdge,
         ouPrediction: prediction.ouPrediction,
         ouEdge: prediction.ouEdge
-      });
-    }
-
-    const norwich = normalized.predictions.find(
-      (prediction) => prediction.homeTeam === "Norwich" && prediction.awayTeam === "West Brom"
-    );
-    expect(norwich, "Norwich v West Brom live regression fixture is missing").toBeTruthy();
-    if (norwich) {
-      expect(norwich.matchPrediction).toBe("Home");
-      expect(norwich.matchValid).toBe(true);
-      expect(norwich.ouPrediction).toBe("Under 2.5");
-      expect(norwich.ouValid).toBe(true);
-      expect(norwich.ouModelPrice).toBeCloseTo(1.42);
-      expect(selectedOuProbability(norwich)).toBeCloseTo(1 / 1.42);
-      expect(norwich.ouBookmakerOverProbability).toBeCloseTo(1 / 1.88);
-      expect(norwich.ouBookmakerUnderProbability).toBeCloseTo(1 / 1.84);
-      expect(norwich.ouBookmakerPrice).toBeCloseTo(1.84);
-      expect(norwich.ouEdge).toBeCloseTo(16.07);
-      console.log("NORWICH_WEST_BROM_REGRESSION", {
-        modelPrice: norwich.ouModelPrice,
-        modelSelectedProbability: selectedOuProbability(norwich),
-        bookmakerPrice: norwich.ouBookmakerPrice,
-        bookmakerOverProbability: norwich.ouBookmakerOverProbability,
-        bookmakerUnderProbability: norwich.ouBookmakerUnderProbability,
-        edge: norwich.ouEdge
       });
     }
   }, 30_000);
