@@ -99,7 +99,7 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
       expect(wingStyles.awayBackground).not.toBe("none");
 
       const metaText = (await firstCard.locator(".prediction-card__meta").textContent())?.trim() ?? "";
-      expect(metaText).toMatch(/^.+ - (Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d{1,2}(st|nd|rd|th) [A-Z][a-z]{2}( \d{2}:\d{2})?$/);
+      expect(metaText).toMatch(/^.+ - (Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d{1,2}(st|nd|rd|th) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)( \d{2}:\d{2})?$/);
 
       const cardBox = await firstCard.boundingBox();
       const zoneBox = await fixtureZone.boundingBox();
