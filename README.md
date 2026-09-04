@@ -173,7 +173,9 @@ Public read-only routes:
 GET /api/v1/home
 GET /api/v1/site-stats
 GET /api/v1/predictions/match-result
+GET /api/v1/predictions/match-result/:marketId
 GET /api/v1/predictions/over-under-25
+GET /api/v1/predictions/over-under-25/:marketId
 GET /api/v1/health
 ```
 
@@ -215,7 +217,18 @@ Only the V1-required filters exist:
 - Match Result: All / Home / Draw / Away
 - O/U: All / Over 2.5 / Under 2.5
 
-All switching, sorting, filtering and fixture expansion is client-side once a market payload has loaded.
+All switching, sorting, filtering and quick-view fixture expansion is client-side once a market payload has loaded.
+
+Each prediction card also exposes a normal HTML link to a dedicated analysis route:
+
+```text
+/match-result/:marketId/:fixtureSlug
+/over-under-25/:marketId/:fixtureSlug
+```
+
+The authoritative Market ID is URL-encoded and used for lookup; the team-and-date slug is readable and canonicalised by the client. Direct navigation and refresh use the focused fixture API routes above.
+
+Fixture routes receive server-rendered title, description, canonical, Open Graph and X metadata from the Worker. Beta fixture pages are marked `noindex,nofollow`; production pages are indexable when the same tested release is promoted.
 
 ### Expanded analysis
 

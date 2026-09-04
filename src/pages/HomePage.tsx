@@ -56,8 +56,9 @@ function PredictionCardSkeleton() {
           <div><small>Bookmaker</small><strong>1.00</strong></div>
           <div><small>Edge</small><strong>+0.0%</strong></div>
         </div>
-        <span className="analysis-toggle">View analysis</span>
+        <span className="analysis-toggle">Quick view</span>
       </div>
+      <span className="prediction-card__detail-link">View full analysis →</span>
     </article>
   );
 }

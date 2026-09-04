@@ -24,7 +24,7 @@ test("has no horizontal overflow at required responsive widths", async ({ page }
     const firstTrigger = page.locator(".prediction-card__trigger").first();
     await firstTrigger.click();
     await expect(firstTrigger).toHaveAttribute("aria-expanded", "true");
-    await expect(firstTrigger.getByText("Analysis open")).toBeVisible();
+    await expect(firstTrigger.getByText("Close quick view")).toBeVisible();
     await expect(page.locator(".probability-comparison")).toHaveCount(1);
     await expect(page.locator(".metric-compare")).toHaveCount(3);
     await expectNoHorizontalOverflow(page, width);
@@ -184,7 +184,8 @@ test("homepage uses compact market-page fixture cards for both top-three section
   const homeCards = page.locator(".home-prediction-list .prediction-card");
   await expect(homeCards).toHaveCount(6);
   await expect(homeCards.first().locator(".prediction-card__summary > div")).toHaveCount(4);
-  await expect(homeCards.first().getByText("View analysis", { exact: true })).toBeVisible();
+  await expect(homeCards.first().getByText("Quick view", { exact: true })).toBeVisible();
+  await expect(homeCards.first().getByRole("link", { name: "View full analysis" })).toBeVisible();
 
   const triggers = page.locator(".home-prediction-list .prediction-card__trigger");
   await triggers.nth(0).click();
@@ -220,6 +221,49 @@ test("direct SPA navigation and refresh work for public routes", async ({ page }
   await page.reload();
   await expect(page.getByRole("heading", { name: "Match Result Predictions" })).toBeVisible();
   await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toHaveAttribute("aria-pressed", "true");
+});
+
+test("fixture cards open a readable, refresh-safe analysis URL", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto("/match-result");
+  const firstCard = page.locator(".prediction-card").first();
+  const analysisLink = firstCard.getByRole("link", { name: "View full analysis" });
+
+  await expect(analysisLink).toHaveAttribute(
+    "href",
+    "/match-result/M1/wolverhampton-wanderers-extremely-long-name-v-brighton-and-hove-albion-long-name-2026-08-22"
+  );
+  await analysisLink.click();
+
+  await expect(page).toHaveURL(/\/match-result\/M1\/wolverhampton-wanderers/);
+  await expect(page.getByRole("heading", {
+    name: "Wolverhampton Wanderers Extremely Long Name v Brighton and Hove Albion Long Name"
+  })).toBeVisible();
+  await expect(page.getByText("1X2 PROBABILITY COMPARISON", { exact: true })).toBeVisible();
+  await expect(page.locator(".metric-compare")).toHaveCount(3);
+  await expectNoHorizontalOverflow(page, 390);
+
+  await page.reload();
+  await expect(page.getByRole("heading", {
+    name: "Wolverhampton Wanderers Extremely Long Name v Brighton and Hove Albion Long Name"
+  })).toBeVisible();
+  await expect(page).toHaveTitle(/Wolverhampton Wanderers Extremely Long Name v Brighton and Hove Albion Long Name/);
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+    "content",
+    /Wolverhampton Wanderers Extremely Long Name v Brighton and Hove Albion Long Name/
+  );
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", page.url());
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index,follow");
+});
+
+test("bare fixture URLs canonicalise and unavailable links fail calmly", async ({ page }) => {
+  await page.goto("/over-under-25/O2");
+  await expect(page).toHaveURL("/over-under-25/O2/fulham-v-burnley-2026-08-22");
+  await expect(page.getByRole("heading", { name: "Fulham v Burnley" })).toBeVisible();
+
+  await page.goto("/match-result/DOES-NOT-EXIST/unknown-fixture");
+  await expect(page.getByText("This fixture analysis is not currently available.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "View current predictions" })).toHaveAttribute("href", "/match-result");
 });
 
 test("filter-empty and API-failure states are distinct and calm", async ({ page, browser }) => {

@@ -283,6 +283,23 @@ async function activeRows(
   return result.results ?? [];
 }
 
+async function activeRow(
+  env: Env,
+  active: ActiveDataset,
+  market: "match" | "ou",
+  marketId: string
+): Promise<DbPrediction | null> {
+  const validity = market === "match" ? "match_valid = 1" : "ou_valid = 1";
+  return await env.DB.prepare(
+    `SELECT ${SELECT_COLUMNS}
+       FROM predictions
+      WHERE dataset_id = ? AND market_id = ? AND ${validity}
+      LIMIT 1`
+  )
+    .bind(active.id, marketId)
+    .first<DbPrediction>();
+}
+
 export async function handleApi(request: Request, env: Env): Promise<Response | null> {
   const url = new URL(request.url);
   if (!url.pathname.startsWith("/api/")) return null;
@@ -396,6 +413,34 @@ export async function handleApi(request: Request, env: Env): Promise<Response | 
       {
         data: rows.map((row) => toOuApi(row, colours.map)),
         meta: { datasetId: active.id, updatedAt: active.activated_at, count: rows.length }
+      },
+      { etag }
+    );
+  }
+
+  const detailMatch = /^\/api\/v1\/predictions\/(match-result|over-under-25)\/(.+)$/.exec(url.pathname);
+  if (detailMatch) {
+    if (!active) return json({ error: "Not found" }, { status: 404, cache: false });
+
+    let marketId: string;
+    try {
+      marketId = decodeURIComponent(detailMatch[2]);
+    } catch {
+      return json({ error: "Invalid fixture identifier" }, { status: 400, cache: false });
+    }
+
+    const market = detailMatch[1] === "match-result" ? "match" : "ou";
+    const colours = await teamColourContext(env);
+    const etag = `"fixture-${market}-${active.source_hash}-${colours.sourceHash ?? "no-colours"}-${encodeURIComponent(marketId)}"`;
+    if (matchesEtag(request, etag)) return notModified(etag);
+
+    const row = await activeRow(env, active, market, marketId);
+    if (!row) return json({ error: "Not found" }, { status: 404, cache: false });
+
+    return json(
+      {
+        data: market === "match" ? toMatchApi(row, colours.map) : toOuApi(row, colours.map),
+        meta: { datasetId: active.id, updatedAt: active.activated_at }
       },
       { etag }
     );

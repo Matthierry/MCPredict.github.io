@@ -70,6 +70,14 @@ export interface PredictionResponse<T> {
   };
 }
 
+export interface PredictionDetailResponse<T> {
+  data: T;
+  meta: {
+    datasetId: string;
+    updatedAt: string | null;
+  };
+}
+
 export interface HomeResponse {
   fixturesProcessed: number | null;
   topMatchResult: MatchPrediction[];

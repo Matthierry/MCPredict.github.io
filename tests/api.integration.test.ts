@@ -276,6 +276,56 @@ describe("public API integration", () => {
     }
   });
 
+  it("returns one active fixture through its shareable analysis endpoint", async () => {
+    const harness = createHarness();
+    try {
+      const response = await handleApi(
+        new Request("https://beta.mcpredict.com/api/v1/predictions/match-result/B"),
+        harness.env
+      );
+      expect(response?.status).toBe(200);
+      const body = await jsonBody<{
+        data: {
+          marketId: string;
+          fixture: { homeTeam: string; awayTeam: string };
+          prediction: { selection: string };
+        };
+        meta: { datasetId: string; updatedAt: string };
+      }>(response);
+
+      expect(body.data).toMatchObject({
+        marketId: "B",
+        fixture: { homeTeam: "Home B", awayTeam: "Away B" },
+        prediction: { selection: "Draw" }
+      });
+      expect(body.meta).toEqual({ datasetId: "active", updatedAt: "2026-08-18T12:01:00Z" });
+      expect(response?.headers.get("etag")).toBeTruthy();
+    } finally {
+      harness.database.close();
+    }
+  });
+
+  it("does not expose invalid-market or superseded fixture analysis", async () => {
+    const harness = createHarness();
+    try {
+      const invalidMarket = await handleApi(
+        new Request("https://beta.mcpredict.com/api/v1/predictions/match-result/D"),
+        harness.env
+      );
+      const superseded = await handleApi(
+        new Request("https://beta.mcpredict.com/api/v1/predictions/match-result/OLD"),
+        harness.env
+      );
+
+      expect(invalidMarket?.status).toBe(404);
+      expect(await jsonBody(invalidMarket)).toEqual({ error: "Not found" });
+      expect(superseded?.status).toBe(404);
+      expect(await jsonBody(superseded)).toEqual({ error: "Not found" });
+    } finally {
+      harness.database.close();
+    }
+  });
+
   it("returns empty public prediction payloads when no active dataset exists", async () => {
     const database = new TestD1();
     const env = {

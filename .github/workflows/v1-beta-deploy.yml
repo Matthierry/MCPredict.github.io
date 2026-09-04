@@ -3,7 +3,7 @@ name: MC Predict V1 Beta Deploy
 on:
   push:
     branches:
-      - agent/mcpredict-v1-rebuild
+      - "agent/**"
   pull_request:
     branches:
       - main
@@ -19,9 +19,9 @@ concurrency:
 jobs:
   deploy-beta:
     if: >
-      (github.event_name == 'push' && github.ref == 'refs/heads/agent/mcpredict-v1-rebuild') ||
-      (github.event_name == 'pull_request' && github.head_ref == 'agent/mcpredict-v1-rebuild') ||
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/agent/mcpredict-v1-rebuild')
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/agent/')) ||
+      (github.event_name == 'pull_request' && startsWith(github.head_ref, 'agent/')) ||
+      (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/agent/'))
     runs-on: ubuntu-latest
     env:
       PRIMARY_CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
