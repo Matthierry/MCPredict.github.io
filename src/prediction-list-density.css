@@ -313,18 +313,38 @@
   }
 
   .home-prediction-list .prediction-card {
+    position: relative;
     min-width: 0;
     height: 100%;
   }
 
-  .home-prediction-list .prediction-card__trigger {
+  .page--home .home-prediction-list .prediction-card__trigger {
     display: flex;
     flex-direction: column;
     height: 100%;
+    padding-bottom: 32px;
   }
 
-  .home-prediction-list .analysis-toggle {
-    margin-top: auto;
+  .page--home .home-prediction-list .analysis-toggle {
+    position: absolute;
+    z-index: 1;
+    bottom: 0;
+    left: 0;
+    width: 50%;
+    min-height: 28px;
+    margin: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .page--home .home-prediction-list .prediction-card__detail-link {
+    position: absolute;
+    z-index: 2;
+    right: 0;
+    bottom: 0;
+    width: 50%;
+    min-height: 28px;
+    border-left: 1px solid rgba(255, 255, 255, 0.07);
+    font-size: calc(0.68rem - 2px);
   }
 
   .home-analysis-drawer {
