@@ -47,9 +47,11 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
 
   const homeCards = page.locator(".home-prediction-list .prediction-card");
   await expect(homeCards).toHaveCount(6);
-  const homeFirstTrigger = homeCards.first().locator(".prediction-card__trigger");
+  const homeFirstCard = homeCards.first();
+  const homeFirstTrigger = homeFirstCard.locator(".prediction-card__trigger");
   await expect(homeFirstTrigger.locator(".prediction-card__summary > div")).toHaveCount(4);
-  await expect(homeFirstTrigger.getByText("View analysis", { exact: true })).toBeVisible();
+  await expect(homeFirstTrigger.getByText("Quick view", { exact: true })).toBeVisible();
+  await expect(homeFirstCard.getByRole("link", { name: "View full analysis" })).toBeVisible();
   await homeFirstTrigger.click();
   await expect(homeFirstTrigger).toHaveAttribute("aria-expanded", "true");
   await expect(page.locator(".probability-comparison")).toHaveCount(1);
@@ -97,7 +99,7 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
       expect(wingStyles.awayBackground).not.toBe("none");
 
       const metaText = (await firstCard.locator(".prediction-card__meta").textContent())?.trim() ?? "";
-      expect(metaText).toMatch(/^.+ - (Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d{1,2}(st|nd|rd|th) [A-Z][a-z]{2}( \d{2}:\d{2})?$/);
+      expect(metaText).toMatch(/^.+ - (Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d{1,2}(st|nd|rd|th) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)( \d{2}:\d{2})?$/);
 
       const cardBox = await firstCard.boundingBox();
       const zoneBox = await fixtureZone.boundingBox();
@@ -117,7 +119,7 @@ test("deployed beta homepage and market routes are interactive", async ({ page }
 
       await firstTrigger.click();
       await expect(firstTrigger).toHaveAttribute("aria-expanded", "true");
-      await expect(firstTrigger.getByText("Analysis open")).toBeVisible();
+      await expect(firstTrigger.getByText("Close quick view")).toBeVisible();
       await expect(page.locator(".probability-comparison")).toHaveCount(1);
       await expect(page.getByText("Bookmaker (pre-overround)", { exact: true })).toBeVisible();
       await expect(page.locator(".metric-compare")).toHaveCount(3);
@@ -194,4 +196,29 @@ test("deployed beta supports direct route refresh", async ({ page }) => {
   await page.reload({ waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "Match Result Predictions" })).toBeVisible();
   await expect(page.getByRole("button", { name: "PROBABILITY", exact: true })).toHaveAttribute("aria-pressed", "true");
+});
+
+test("deployed beta fixture analysis links open and survive refresh", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto("/match-result", { waitUntil: "networkidle" });
+
+  const firstCard = page.locator(".prediction-card").first();
+  const cards = await page.locator(".prediction-card").count();
+  if (cards === 0) {
+    await expect(page.locator(".filter-empty, .availability-note")).toBeVisible();
+    return;
+  }
+
+  const home = (await firstCard.locator(".prediction-card__team--home").textContent())?.trim();
+  const away = (await firstCard.locator(".prediction-card__team--away").textContent())?.trim();
+  const link = firstCard.getByRole("link", { name: "View full analysis" });
+  await expect(link).toHaveAttribute("href", /^\/match-result\/[^/]+\/.+/);
+  await link.click();
+
+  await expect(page.getByRole("heading", { name: `${home} v ${away}` })).toBeVisible();
+  await expect(page.getByText("1X2 PROBABILITY COMPARISON", { exact: true })).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex,nofollow");
+  await expectNoHorizontalOverflow(page, 390);
+  await page.reload({ waitUntil: "networkidle" });
+  await expect(page.getByRole("heading", { name: `${home} v ${away}` })).toBeVisible();
 });

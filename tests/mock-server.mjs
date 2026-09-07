@@ -176,6 +176,31 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  const detailMatch = /^\/api\/v1\/predictions\/(match-result|over-under-25)\/(.+)$/.exec(url.pathname);
+  if (detailMatch) {
+    const source = detailMatch[1] === "match-result" ? match : ou;
+    let marketId = "";
+    try {
+      marketId = decodeURIComponent(detailMatch[2]);
+    } catch {
+      response.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
+      response.end(JSON.stringify({ error: "Invalid fixture identifier" }));
+      return;
+    }
+    const item = source.find((predictionItem) => predictionItem.marketId === marketId);
+    if (item) {
+      response.writeHead(200, {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store"
+      });
+      response.end(JSON.stringify({
+        data: item,
+        meta: { datasetId: "mock-active", updatedAt: "2026-08-18T12:01:00Z" }
+      }));
+      return;
+    }
+  }
+
   if (url.pathname.startsWith("/api/")) {
     response.writeHead(404, { "Content-Type": "application/json; charset=utf-8" });
     response.end(JSON.stringify({ error: "Not found" }));

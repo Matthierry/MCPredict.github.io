@@ -1,6 +1,6 @@
 # MC Predict V1 — Beta deployment
 
-The rebuild is deployed only from `agent/mcpredict-v1-rebuild` and must not replace the production `main` branch before explicit beta approval.
+Beta builds deploy only from branches under `agent/`. They must not replace the production `main` branch before explicit beta approval.
 
 ## Automated beta workflow
 
@@ -19,6 +19,7 @@ The workflow:
 6. configures a generated protected `SYNC_TOKEN`;
 7. triggers a genuine Google CSV ingestion;
 8. smoke-tests the health and homepage APIs on `beta.mcpredict.com`.
+9. runs deployed responsive, interaction and Lighthouse checks, including direct fixture-analysis links.
 
 If either Cloudflare credential is absent, the deployment is safely skipped and production remains unchanged.
 

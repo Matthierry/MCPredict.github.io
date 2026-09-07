@@ -1,11 +1,13 @@
 import type { CSSProperties } from "react";
+import { Link } from "react-router-dom";
+import { fixtureAnalysisPath, type PredictionMarket } from "../../shared/fixture-routes";
 import { formatEdge, formatFixtureMetaDate, formatOdds, formatProbability } from "../format";
 import type { MatchPrediction, Mode, OuPrediction } from "../types";
 import { ChevronIcon } from "./icons";
 import { MetricCompare } from "./MetricCompare";
 import { ProbabilityComparison } from "./ProbabilityComparison";
 
-export type PredictionMarket = "match" | "ou";
+export type { PredictionMarket } from "../../shared/fixture-routes";
 export type PredictionCardItem = MatchPrediction | OuPrediction;
 
 type Prediction = PredictionCardItem;
@@ -166,10 +168,14 @@ export function PredictionCard({ item, expanded, onToggle, market, mode, renderA
         </div>
 
         <span className="analysis-toggle">
-          {expanded ? "Analysis open" : "View analysis"}
+          {expanded ? "Close quick view" : "Quick view"}
           <ChevronIcon className={`analysis-toggle__icon${expanded ? " is-open" : ""}`} />
         </span>
       </button>
+
+      <Link className="prediction-card__detail-link" to={fixtureAnalysisPath(market, item)}>
+        View full analysis <span aria-hidden="true">→</span>
+      </Link>
 
       {renderAnalysis ? (
         <div id={panelId} className="prediction-card__expand" aria-hidden={!expanded}>

@@ -26,6 +26,21 @@ test("desktop homepage keeps each Top 3 in one row with a shared analysis drawer
   expect(Math.max(...cardBoxes.map((box) => box.y)) - Math.min(...cardBoxes.map((box) => box.y))).toBeLessThan(2);
   expect(Math.max(...cardBoxes.map((box) => box.height))).toBeLessThanOrEqual(180);
 
+  const firstSummaryBox = await matchCards.first().locator(".prediction-card__summary").boundingBox();
+  const firstQuickViewBox = await matchCards.first().getByText("Quick view", { exact: true }).boundingBox();
+  const firstDetailLink = matchCards.first().getByRole("link", { name: "View full analysis" });
+  const firstDetailLinkBox = await firstDetailLink.boundingBox();
+  expect(firstSummaryBox).not.toBeNull();
+  expect(firstQuickViewBox).not.toBeNull();
+  expect(firstDetailLinkBox).not.toBeNull();
+  expect(firstQuickViewBox!.y).toBeGreaterThanOrEqual(firstSummaryBox!.y + firstSummaryBox!.height);
+  expect(firstDetailLinkBox!.y).toBeGreaterThanOrEqual(firstSummaryBox!.y + firstSummaryBox!.height);
+  expect(firstQuickViewBox!.height).toBeGreaterThanOrEqual(34);
+  expect(firstDetailLinkBox!.height).toBeGreaterThanOrEqual(34);
+  expect(Math.abs(firstQuickViewBox!.y - firstDetailLinkBox!.y)).toBeLessThan(2);
+  const detailLinkFontSize = await firstDetailLink.evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
+  expect(detailLinkFontSize).toBeGreaterThanOrEqual(10);
+
   await expect(matchDrawer).toBeHidden();
   await expect(matchCards.locator(".prediction-card__expand")).toHaveCount(0);
 

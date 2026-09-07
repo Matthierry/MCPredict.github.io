@@ -26,6 +26,7 @@ body,
 .prediction-card__summary,
 .prediction-card__expand,
 .prediction-card__expand-inner,
+.prediction-card__detail-link,
 .analysis-body,
 .probability-comparison,
 .analysis-metrics,
@@ -197,6 +198,25 @@ body,
   height: 16px;
   color: var(--accent);
   transition: transform var(--transition);
+}
+
+.prediction-card__detail-link {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-decoration: none;
+  transition: background var(--transition), color var(--transition);
+}
+
+.prediction-card__detail-link:hover {
+  background: rgba(240, 147, 0, 0.06);
+  color: var(--accent-hover);
 }
 
 .prediction-card__expand {
@@ -434,6 +454,150 @@ body,
   display: none !important;
 }
 
+/* --------------------------------------------------------------------------
+   Shareable fixture analysis page
+   -------------------------------------------------------------------------- */
+.page--fixture-analysis {
+  width: min(100%, 920px);
+  margin-inline: auto;
+}
+
+.fixture-analysis__back {
+  width: max-content;
+  max-width: 100%;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.fixture-analysis__back:hover {
+  color: var(--accent);
+}
+
+.fixture-analysis__hero {
+  overflow: hidden;
+  padding: 24px 20px 20px;
+}
+
+.fixture-analysis__heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.fixture-analysis__heading-row > div {
+  min-width: 0;
+}
+
+.fixture-analysis__hero h1 {
+  font-size: clamp(1.65rem, 7vw, 3rem);
+}
+
+.fixture-analysis__hero h1 span {
+  color: var(--text-muted);
+  font-size: 0.68em;
+  font-weight: 500;
+}
+
+.fixture-analysis__hero p {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.fixture-analysis__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 24px;
+  border-top: 1px solid var(--analysis-border);
+  border-left: 1px solid var(--analysis-border);
+}
+
+.fixture-analysis__summary > div {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+  padding: 14px 12px;
+  border-right: 1px solid var(--analysis-border);
+  border-bottom: 1px solid var(--analysis-border);
+}
+
+.fixture-analysis__summary > div:first-child {
+  grid-column: 1 / -1;
+}
+
+.fixture-analysis__summary small {
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.fixture-analysis__summary strong {
+  min-width: 0;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.fixture-analysis__selection {
+  color: var(--accent);
+}
+
+.fixture-analysis__panel {
+  overflow: hidden;
+  background: linear-gradient(145deg, #15171a 0%, #101214 100%);
+  border-color: var(--analysis-border);
+  box-shadow: none;
+}
+
+.fixture-analysis__panel > header {
+  padding: 22px 20px 4px;
+}
+
+.fixture-analysis__panel > header h2 {
+  font-size: clamp(1.25rem, 5vw, 1.75rem);
+}
+
+.fixture-analysis__panel > header p {
+  max-width: 680px;
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+}
+
+.fixture-analysis__panel .analysis-body {
+  padding-top: 14px;
+}
+
+.fixture-analysis__disclaimer {
+  margin: -8px 2px 0;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+
+.fixture-analysis__loading {
+  min-height: 180px;
+  display: grid;
+  gap: 16px;
+  align-content: center;
+  padding: 24px;
+}
+
+.fixture-analysis__error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.fixture-analysis__button-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
 @media (max-width: 599px) {
   .section-heading {
     align-items: flex-start;
@@ -503,6 +667,22 @@ body,
   .metric-compare__icon {
     width: 56px;
     height: 56px;
+  }
+
+  .fixture-analysis__hero {
+    padding: 30px 28px 26px;
+  }
+
+  .fixture-analysis__summary {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .fixture-analysis__summary > div:first-child {
+    grid-column: auto;
+  }
+
+  .fixture-analysis__panel > header {
+    padding: 28px 26px 4px;
   }
 }
 
