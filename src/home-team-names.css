@@ -32,7 +32,10 @@
   }
 
   .page--home .home-prediction-list .prediction-card__trigger {
-    padding: 9px 14px 4px;
+    /* Leave a dedicated footer row for the two analysis actions. This file is
+       loaded after prediction-list-density.css, so the full shorthand must
+       preserve that reserved space instead of collapsing it back to 4px. */
+    padding: 9px 14px 38px;
   }
 
   .page--home .home-prediction-list .prediction-card__fixture {
