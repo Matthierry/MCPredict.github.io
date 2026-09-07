@@ -54,8 +54,8 @@
   }
 
   .page--home .home-prediction-list .analysis-toggle {
-    min-height: 20px;
-    margin: 1px auto -2px;
+    min-height: 34px;
+    margin: 0;
     gap: 3px;
   }
 }

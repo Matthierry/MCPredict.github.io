@@ -35,7 +35,9 @@ test("desktop homepage keeps each Top 3 in one row with a shared analysis drawer
   expect(firstDetailLinkBox).not.toBeNull();
   expect(firstQuickViewBox!.y).toBeGreaterThanOrEqual(firstSummaryBox!.y + firstSummaryBox!.height);
   expect(firstDetailLinkBox!.y).toBeGreaterThanOrEqual(firstSummaryBox!.y + firstSummaryBox!.height);
+  expect(firstQuickViewBox!.height).toBeGreaterThanOrEqual(34);
   expect(firstDetailLinkBox!.height).toBeGreaterThanOrEqual(34);
+  expect(Math.abs(firstQuickViewBox!.y - firstDetailLinkBox!.y)).toBeLessThan(2);
   const detailLinkFontSize = await firstDetailLink.evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
   expect(detailLinkFontSize).toBeGreaterThanOrEqual(10);
 
