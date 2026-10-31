@@ -47,8 +47,14 @@ jobs:
           echo "CLOUDFLARE_API_TOKEN=$token" >> "$GITHUB_ENV"
           echo "CLOUDFLARE_ACCOUNT_ID=$account" >> "$GITHUB_ENV"
 
-      - name: Install Wrangler dependency
-        run: npm install --no-audit --no-fund
+      - name: Install isolated Wrangler dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          tools_dir="$RUNNER_TEMP/mcpredict-refresh-tools"
+          mkdir -p "$tools_dir"
+          npm install --prefix "$tools_dir" --no-audit --no-fund wrangler@4.118.0
+          echo "$tools_dir/node_modules/.bin" >> "$GITHUB_PATH"
 
       - name: Resolve existing production Worker configuration
         shell: bash
@@ -62,7 +68,7 @@ jobs:
           }
           EOF
 
-          database_id="$(npx wrangler d1 list --json --config /tmp/mcpredict-bootstrap.jsonc | jq -r '.[] | select(.name == "mcpredict-production-db") | (.uuid // .id // .database_id // empty)' | head -n 1)"
+          database_id="$(wrangler d1 list --json --config /tmp/mcpredict-bootstrap.jsonc | jq -r '.[] | select(.name == "mcpredict-production-db") | (.uuid // .id // .database_id // empty)' | head -n 1)"
 
           if [[ -z "$database_id" ]]; then
             echo "Existing mcpredict-production-db could not be found. Refresh aborted; no database was created or migrated." >&2
@@ -91,7 +97,7 @@ jobs:
           token="$(openssl rand -hex 32)"
           echo "::add-mask::$token"
           echo "SYNC_TOKEN=$token" >> "$GITHUB_ENV"
-          printf '%s' "$token" | npx wrangler secret put SYNC_TOKEN --config /tmp/wrangler.production.refresh.jsonc
+          printf '%s' "$token" | wrangler secret put SYNC_TOKEN --config /tmp/wrangler.production.refresh.jsonc
 
       - name: Refresh spreadsheet data into production D1
         shell: bash
